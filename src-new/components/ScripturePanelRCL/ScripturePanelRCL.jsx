@@ -194,13 +194,16 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
       // Create an AbortController for the fetch operation
       const abortController = new AbortController();
 
-      // Set up timeout for fetch operation
+      // Set up timeout for fetch operation with proper cleanup
       const timeoutId = setTimeout(() => {
-        abortController.abort();
-        setError(
-          `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
-        );
-        setLoading(false);
+        // Only show timeout error if we haven't successfully loaded content
+        if (!usfmContent) {
+          abortController.abort();
+          setError(
+            `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
+          );
+          setLoading(false);
+        }
       }, FETCH_TIMEOUT);
 
       setFetchTimeout(timeoutId);
@@ -234,6 +237,12 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
           throw new Error(`Failed to fetch USFM for ${bookId}`);
         }
 
+        // Clear timeout immediately on successful fetch
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          setFetchTimeout(null);
+        }
+
         // Debug: log the full USFM content
         console.log("📄 Full USFM content length:", rawUSFM.length);
         console.log("📄 First 1000 chars:", rawUSFM.substring(0, 1000));
@@ -251,15 +260,24 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
         setError(null);
       } catch (e) {
         console.error("❌ ScripturePanelRCL: Failed to load chapter:", e);
-        // Don't override timeout error if it's already set
-        if (!error || !error.includes("timed out")) {
-          setError(`Failed to load chapter: ${e.message}`);
+        // Only set error if we don't already have content loaded
+        if (!usfmContent) {
+          if (e.message.includes("aborted") || e.message.includes("timeout")) {
+            setError(
+              `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
+            );
+          } else {
+            setError(`Failed to load chapter: ${e.message}`);
+          }
         }
-        setUsfmContent("");
+        // Don't clear usfmContent if we already have content - keep what's working
+        if (!usfmContent) {
+          setUsfmContent("");
+        }
       } finally {
-        // Clear timeout on completion
-        if (fetchTimeout) {
-          clearTimeout(fetchTimeout);
+        // Always clear timeout on completion
+        if (timeoutId) {
+          clearTimeout(timeoutId);
           setFetchTimeout(null);
         }
         setLoading(false);
