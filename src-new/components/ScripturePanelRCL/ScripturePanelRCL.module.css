@@ -4,22 +4,22 @@
  */
 
 .scripture-panel {
-  /* Use the global section styles as base */
-  padding: var(--spacing-4);
+  /* Match help panels - consistent padding across all screen sizes */
+  padding: var(--spacing-3);
   max-width: var(--content-max-width-mobile);
   margin: 0 auto;
 }
 
 @media (min-width: 768px) {
   .scripture-panel {
-    padding: var(--spacing-6);
+    padding: var(--spacing-3);
     max-width: var(--content-max-width-tablet);
   }
 }
 
 @media (min-width: 1024px) {
   .scripture-panel {
-    padding: var(--spacing-8);
+    padding: var(--spacing-3);
     max-width: var(--content-max-width-desktop);
   }
 }
@@ -28,13 +28,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-3);
   flex-wrap: wrap;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
 }
 
 .title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   margin: 0;
@@ -80,7 +80,7 @@
 }
 
 .search-panel {
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
 }
 
 /* Mobile responsive adjustments */
@@ -88,11 +88,11 @@
   .header {
     flex-direction: column;
     align-items: stretch;
-    gap: var(--spacing-4);
+    gap: var(--spacing-3);
   }
 
   .title {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-sm);
     text-align: center;
   }
 

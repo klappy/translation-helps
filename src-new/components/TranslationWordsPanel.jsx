@@ -9,6 +9,7 @@ import { ReferenceContext } from "../context/ReferenceContext";
 import { getLinksForVerse } from "../services/twlService";
 import { getArticlesForLinks } from "../services/twService";
 import { processRcLinks, RcLink } from "../utils/rcLinkUtils.jsx";
+import styles from "./TranslationWordsPanel.module.css";
 
 /**
  * Extracts a summary from article content (first sentence or paragraph)
@@ -158,31 +159,31 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
 
   if (!reference?.verse) {
     return (
-      <section data-testid='translation-words-panel'>
-        <p>Select a verse to view translation words.</p>
+      <section data-testid='translation-words-panel' className={styles.translationWordsPanel}>
+        <p className={styles.emptyState}>Select a verse to view translation words.</p>
       </section>
     );
   }
 
   if (loading) {
     return (
-      <section data-testid='translation-words-panel'>
-        <p>Loading translation words...</p>
+      <section data-testid='translation-words-panel' className={styles.translationWordsPanel}>
+        <p className={styles.loadingState}>Loading translation words...</p>
       </section>
     );
   }
 
   if (error) {
     return (
-      <section data-testid='translation-words-panel'>
-        <p style={{ color: "red" }}>{error}</p>
+      <section data-testid='translation-words-panel' className={styles.translationWordsPanel}>
+        <p className={styles.errorState}>{error}</p>
         {twlLinks.length > 0 && (
-          <details style={{ marginTop: "8px", fontSize: "0.9em", color: "#666" }}>
-            <summary>Debug Info</summary>
+          <details className={styles.debugInfo}>
+            <summary className={styles.debugSummary}>Debug Info</summary>
             <p>Found {twlLinks.length} TWL link(s) for this verse:</p>
-            <ul>
+            <ul className={styles.debugList}>
               {twlLinks.map((link, index) => (
-                <li key={index} style={{ wordBreak: "break-all" }}>
+                <li key={index} className={styles.debugItem}>
                   {link}
                 </li>
               ))}
@@ -194,106 +195,69 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
   }
 
   return (
-    <section data-testid='translation-words-panel'>
-      <h3>Translation Words</h3>
+    <section data-testid='translation-words-panel' className={styles.translationWordsPanel}>
+      <h3 className={styles.panelHeader}>Translation Words</h3>
       {words.length === 0 ? (
         <div>
-          <p>No translation words available for this verse.</p>
+          <p className={styles.emptyState}>No translation words available for this verse.</p>
           {twlLinks.length > 0 && (
-            <details style={{ marginTop: "8px", fontSize: "0.9em", color: "#666" }}>
-              <summary>Debug Info</summary>
+            <details className={styles.debugInfo}>
+              <summary className={styles.debugSummary}>Debug Info</summary>
               <p>Found {twlLinks.length} TWL link(s) but no articles loaded.</p>
             </details>
           )}
         </div>
       ) : (
-        <div>
-          {words.map((word) => (
-            <div
-              key={word.id}
-              style={{
-                marginBottom: "16px",
-                padding: "12px",
-                backgroundColor: "#f9f9f9",
-                borderRadius: "4px",
-                border: "1px solid #e0e0e0",
-                cursor: onWordClick || (handleRcLinkClick && word.rcUri) ? "pointer" : "default",
-              }}
-              onClick={() => handleWordClick(word)}
-            >
-              <h4
-                style={{
-                  margin: "0 0 8px 0",
-                  color: "#1976d2",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
+        <div className={styles.wordsList}>
+          {words.map((word) => {
+            const isClickable = onWordClick || (handleRcLinkClick && word.rcUri);
+            return (
+              <div
+                key={word.id}
+                className={`${styles.wordCard} ${!isClickable ? styles.nonClickable : ""}`}
+                onClick={() => handleWordClick(word)}
               >
-                {word.title}
-                {(onWordClick || (handleRcLinkClick && word.rcUri)) && (
-                  <span
-                    style={{
-                      fontSize: "0.8em",
-                      color: "#666",
-                      fontWeight: "normal",
-                    }}
-                  >
-                    Click to view full article →
-                  </span>
-                )}
-              </h4>
+                <h4 className={styles.wordTitle}>
+                  {word.title}
+                  {isClickable && (
+                    <span className={styles.clickIndicator}>Click to view full article →</span>
+                  )}
+                </h4>
 
-              <p
-                style={{
-                  margin: "0 0 8px 0",
-                  color: "#333",
-                  lineHeight: "1.4",
-                }}
-              >
-                {processRcLinks(word.summary, (rcUri) => {
-                  if (handleRcLinkClick) {
-                    handleRcLinkClick(rcUri, languageId, organization);
-                  }
-                })}
-              </p>
-
-              {word.rcUri && (
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "0.8em",
-                    color: "#666",
-                  }}
-                  onClick={(e) => e.stopPropagation()} // Prevent triggering parent onClick
-                >
-                  <RcLink
-                    rcUri={word.rcUri}
-                    onRcLinkClick={(rcUri) => {
-                      if (handleRcLinkClick) {
-                        handleRcLinkClick(rcUri, languageId, organization);
-                      }
-                    }}
-                  >
-                    {word.rcUri}
-                  </RcLink>
+                <p className={styles.wordSummary}>
+                  {processRcLinks(word.summary, (rcUri) => {
+                    if (handleRcLinkClick) {
+                      handleRcLinkClick(rcUri, languageId, organization);
+                    }
+                  })}
                 </p>
-              )}
-            </div>
-          ))}
 
-          <div
-            style={{
-              marginTop: "16px",
-              padding: "8px",
-              backgroundColor: "#f0f7ff",
-              borderRadius: "4px",
-              fontSize: "0.9em",
-            }}
-          >
-            <p style={{ margin: 0, color: "#0066cc" }}>
-              💡 <strong>Tip:</strong> These words are linked to this verse through Translation
-              Words Links (TWL).
+                {word.rcUri && (
+                  <p
+                    className={styles.rcLink}
+                    onClick={(e) => e.stopPropagation()} // Prevent triggering parent onClick
+                  >
+                    <RcLink
+                      rcUri={word.rcUri}
+                      onRcLinkClick={(rcUri) => {
+                        if (handleRcLinkClick) {
+                          handleRcLinkClick(rcUri, languageId, organization);
+                        }
+                      }}
+                    >
+                      {word.rcUri}
+                    </RcLink>
+                  </p>
+                )}
+              </div>
+            );
+          })}
+
+          <div className={styles.tipSection}>
+            <p className={styles.tipText}>
+              <span className={styles.tipIcon}>💡</span>
+              <span className={styles.tipBold}>Tip:</span> These words are linked to this verse
+              through Translation Words Links (TWL).
               {(onWordClick || handleRcLinkClick) &&
                 " Click any word above to view the complete article."}
             </p>
