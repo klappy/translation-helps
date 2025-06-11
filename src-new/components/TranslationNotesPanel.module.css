@@ -1,0 +1,110 @@
+/**
+ * TranslationNotesPanel Component Styles
+ * Consistent card-based design following the help panel design system
+ */
+
+.translationNotesPanel {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.panelHeader {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.notesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.noteCard {
+  background-color: var(--help-card-background);
+  border-left: var(--help-card-border);
+  border-radius: var(--help-card-border-radius);
+  padding: var(--help-card-padding);
+  box-shadow: var(--help-card-shadow);
+  margin-bottom: 0;
+}
+
+.noteQuote {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: var(--help-quote-color);
+  margin-bottom: var(--spacing-2);
+  font-family: monospace;
+  background-color: var(--help-quote-background);
+  padding: var(--help-quote-padding);
+  border-radius: var(--help-quote-border-radius);
+  display: inline-block;
+}
+
+.noteOccurrence {
+  font-size: var(--help-meta-size);
+  opacity: 0.8;
+}
+
+.noteText {
+  line-height: var(--line-height-relaxed);
+  color: var(--help-text-color);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.noteTags {
+  margin-top: var(--spacing-2);
+  font-size: var(--help-meta-size);
+  color: var(--help-meta-color);
+  font-style: italic;
+}
+
+.noteSupportReference {
+  margin-top: var(--spacing-1);
+  font-size: var(--help-meta-size);
+  color: var(--help-meta-color);
+}
+
+/* Loading, error, and empty states */
+.loadingState,
+.errorState,
+.emptyState {
+  padding: var(--spacing-4);
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+.loadingState {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.errorState {
+  color: var(--color-error);
+}
+
+.emptyState {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+  .noteCard {
+    padding: calc(var(--help-card-padding) - 2px);
+  }
+
+  .noteText {
+    font-size: var(--font-size-xs);
+  }
+
+  .noteQuote {
+    font-size: var(--font-size-xs);
+  }
+}

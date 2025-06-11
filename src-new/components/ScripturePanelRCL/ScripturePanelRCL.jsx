@@ -6,10 +6,11 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 import { ReferenceContext } from "../../context/ReferenceContext";
 import { ManifestsContext } from "../../context/MultiManifestsContext";
 import { fetchBook } from "../../services/scriptureService";
-import { useProskomma, useImport } from "proskomma-react-hooks";
+import { useCatalog } from "proskomma-react-hooks";
 
 import USFMRenderer from "./USFMRenderer";
 import SearchPanel from "./SearchPanel";
+import styles from "./ScripturePanelRCL.module.css";
 
 /**
  * @param {object} props
@@ -21,30 +22,73 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
+  const [importingBooks, setImportingBooks] = useState(new Set());
+  const [fetchTimeout, setFetchTimeout] = useState(null);
   const { organization, languageId, resourceId, updateReference } = useContext(ReferenceContext);
   const { manifests, isLoading: manifestsLoading } = useContext(ManifestsContext);
 
-  // Shared proskomma instance for both USFMRenderer and SearchPanel
-  const proskommaHook = useProskomma({ verbose: false });
+  // Timeout constants
+  const FETCH_TIMEOUT = 10000; // 10 seconds for fetching book content
 
-  // Create document configuration when USFM content is available
-  const document = useMemo(() => {
-    if (!usfmContent || !organization || !languageId || !reference?.bookId) return null;
-    return [
-      {
-        selectors: { org: organization, lang: languageId, abbr: reference.bookId },
-        data: usfmContent,
-        bookCode: reference.bookId,
-      },
-    ];
-  }, [usfmContent, organization, languageId, reference?.bookId]);
-
-  // Import document into proskomma when document is ready
-  const importHook = useImport({
-    ...proskommaHook,
-    documents: document || [], // Ensure we always pass an array
+  // Check what's already imported to prevent duplicate imports
+  const catalogHook = useCatalog({
     verbose: false,
   });
+
+  // Create a unique key for the current book/resource combination
+  const bookResourceKey = useMemo(() => {
+    if (!organization || !languageId || !reference?.bookId || !resourceId) return null;
+
+    let cleanResourceId = resourceId;
+    if (resourceId && languageId && resourceId.startsWith(`${languageId}_`)) {
+      cleanResourceId = resourceId.substring(languageId.length + 1);
+    }
+
+    return `${organization}/${languageId}_${cleanResourceId}/${reference.bookId}`;
+  }, [organization, languageId, reference?.bookId, resourceId]);
+
+  // Check if the current book is already imported OR currently being imported
+  const isBookAlreadyImported = useMemo(() => {
+    if (!organization || !languageId || !reference?.bookId || !resourceId || !catalogHook.catalog) {
+      return false;
+    }
+
+    // Strip language prefix from resourceId for docSet ID construction
+    let cleanResourceId = resourceId;
+    if (resourceId && languageId && resourceId.startsWith(`${languageId}_`)) {
+      cleanResourceId = resourceId.substring(languageId.length + 1);
+    }
+
+    // Use clean resourceId in docSet ID
+    const docSetId = `${organization}/${languageId}_${cleanResourceId}`;
+    const docSets = catalogHook.catalog.docSets || [];
+
+    // Check if this docSet exists and has documents
+    const existingDocSet = docSets.find((ds) => ds.id === docSetId);
+    const hasDocuments = existingDocSet && existingDocSet.nDocuments > 0;
+
+    console.log("📚 Checking if book is already imported:", {
+      docSetId,
+      cleanResourceId,
+      existingDocSet: !!existingDocSet,
+      hasDocuments,
+      availableDocSets: docSets.map((ds) => ds.id),
+      isCurrentlyImporting: bookResourceKey ? importingBooks.has(bookResourceKey) : false,
+    });
+
+    return hasDocuments;
+  }, [
+    organization,
+    languageId,
+    reference?.bookId,
+    resourceId,
+    catalogHook.catalog,
+    bookResourceKey,
+    importingBooks,
+  ]);
+
+  // Check if import is currently in progress for this book
+  const isCurrentlyImporting = bookResourceKey ? importingBooks.has(bookResourceKey) : false;
 
   // Debug: Log render
   console.log("[ScripturePanelRCL] Rendering with:", {
@@ -55,16 +99,25 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
     manifestsLoading,
     hasManifests: !!manifests,
     usfmContentLength: usfmContent?.length,
-    hasDocument: !!document,
-    importDone: importHook.done,
+    isBookAlreadyImported,
   });
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (fetchTimeout) {
+        clearTimeout(fetchTimeout);
+      }
+    };
+  }, [fetchTimeout]);
 
   useEffect(() => {
     async function loadUSFMChapter() {
-      // Clear previous content and errors when any context changes
-      setUsfmContent("");
-      setError(null);
-
+      // Clear any existing timeout
+      if (fetchTimeout) {
+        clearTimeout(fetchTimeout);
+        setFetchTimeout(null);
+      }
       // Don't attempt to load if we don't have required context
       if (!reference?.bookId || !reference.chapter || !organization || !languageId) {
         console.log("📋 ScripturePanelRCL: Missing required context", {
@@ -73,7 +126,9 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
           organization,
           languageId,
         });
-        // Set helpful guidance message instead of just returning
+        // Clear content and set helpful guidance message
+        setUsfmContent("");
+        setError(null);
         if (!organization) {
           setError("Please select an organization from the dropdown above to view scripture.");
         } else if (!languageId) {
@@ -91,8 +146,21 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
         return;
       }
 
-      // Use the selected resource or fallback to 'ult'
-      const selectedResourceId = resourceId || "ult";
+      // If book is already imported, we don't need to re-fetch the USFM content
+      // The existing content can be used for all chapters in the same book
+      if (isBookAlreadyImported) {
+        console.log("📚 Book already imported, skipping fetch");
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      // Clear previous content and errors when we need to load new content
+      setUsfmContent("");
+      setError(null);
+
+      // Use the selected resource from context (no fallback needed)
+      const selectedResourceId = resourceId;
 
       // Strip language prefix from resourceId for manifest lookup
       // e.g., "en_ult" -> "ult" to match MultiManifestsContext keys
@@ -105,7 +173,9 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
 
       if (!selectedManifest) {
         console.log(
-          `📋 ScripturePanelRCL: ${selectedResourceId.toUpperCase()} manifest not available`
+          `📋 ScripturePanelRCL: ${
+            selectedResourceId?.toUpperCase() || "Unknown"
+          } manifest not available`
         );
         // Show helpful guidance instead of technical error
         if (!resourceId) {
@@ -121,22 +191,56 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
       setLoading(true);
       const { bookId, chapter } = reference;
 
+      // Create an AbortController for the fetch operation
+      const abortController = new AbortController();
+
+      // Set up timeout for fetch operation with proper cleanup
+      const timeoutId = setTimeout(() => {
+        // Only show timeout error if we haven't successfully loaded content
+        if (!usfmContent) {
+          abortController.abort();
+          setError(
+            `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
+          );
+          setLoading(false);
+        }
+      }, FETCH_TIMEOUT);
+
+      setFetchTimeout(timeoutId);
+
       try {
         console.log(
           `📖 ScripturePanelRCL: Loading ${bookId} chapter ${chapter} from ${selectedResourceId}`
         );
 
-        // Fetch raw USFM content
-        const rawUSFM = await fetchBook({
+        // Fetch raw USFM content with timeout protection
+        const fetchPromise = fetchBook({
           languageId,
           resourceId: selectedResourceId,
           bookId,
           manifest: selectedManifest,
           organization,
+          signal: abortController.signal, // Pass abort signal if supported
         });
+
+        // Race between fetch and timeout
+        const rawUSFM = await Promise.race([
+          fetchPromise,
+          new Promise((_, reject) => {
+            abortController.signal.addEventListener("abort", () => {
+              reject(new Error("Fetch aborted due to timeout"));
+            });
+          }),
+        ]);
 
         if (!rawUSFM) {
           throw new Error(`Failed to fetch USFM for ${bookId}`);
+        }
+
+        // Clear timeout immediately on successful fetch
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          setFetchTimeout(null);
         }
 
         // Debug: log the full USFM content
@@ -156,9 +260,26 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
         setError(null);
       } catch (e) {
         console.error("❌ ScripturePanelRCL: Failed to load chapter:", e);
-        setError(`Failed to load chapter: ${e.message}`);
-        setUsfmContent("");
+        // Only set error if we don't already have content loaded
+        if (!usfmContent) {
+          if (e.message.includes("aborted") || e.message.includes("timeout")) {
+            setError(
+              `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
+            );
+          } else {
+            setError(`Failed to load chapter: ${e.message}`);
+          }
+        }
+        // Don't clear usfmContent if we already have content - keep what's working
+        if (!usfmContent) {
+          setUsfmContent("");
+        }
       } finally {
+        // Always clear timeout on completion
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          setFetchTimeout(null);
+        }
         setLoading(false);
       }
     }
@@ -172,6 +293,8 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
     organization,
     manifests,
     manifestsLoading,
+    isBookAlreadyImported,
+    usfmContent,
   ]);
 
   // Accept both chapter and verse for context update
@@ -187,9 +310,9 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
   // Show loading state if manifests are loading or content is loading
   if (manifestsLoading || loading) {
     return (
-      <section data-testid='scripture-panel-rcl' style={{ padding: "20px" }}>
-        <h2>Scripture</h2>
-        <p>Loading scripture...</p>
+      <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
+        <h2 className={styles.title}>Scripture</h2>
+        <div className={styles["loading-state"]}>Loading scripture...</div>
       </section>
     );
   }
@@ -197,9 +320,11 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
   // Show message if no reference is selected
   if (!reference?.bookId) {
     return (
-      <section data-testid='scripture-panel-rcl' style={{ padding: "20px" }}>
-        <h2>Scripture</h2>
-        <p>Please select a book and chapter to view scripture.</p>
+      <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
+        <h2 className={styles.title}>Scripture</h2>
+        <div className={styles["empty-state"]}>
+          Please select a book and chapter to view scripture.
+        </div>
       </section>
     );
   }
@@ -207,18 +332,17 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
   // Show error state
   if (error) {
     return (
-      <section data-testid='scripture-panel-rcl' style={{ padding: "20px" }}>
-        <h2>{`${reference.bookId.toUpperCase()} ${reference.chapter}`}</h2>
-        <p style={{ color: "#d32f2f" }}>{error}</p>
+      <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
+        <h2 className={styles.title}>{`${reference.bookId.toUpperCase()} ${reference.chapter}`}</h2>
+        <div className={styles["error-state"]}>{error}</div>
       </section>
     );
   }
 
   // Strip language prefix from resourceId for manifest lookup
-  const selectedResourceId = resourceId || "ult";
-  let manifestKey = selectedResourceId;
-  if (selectedResourceId && languageId && selectedResourceId.startsWith(`${languageId}_`)) {
-    manifestKey = selectedResourceId.substring(languageId.length + 1);
+  let manifestKey = resourceId;
+  if (resourceId && languageId && resourceId.startsWith(`${languageId}_`)) {
+    manifestKey = resourceId.substring(languageId.length + 1);
   }
   const selectedManifest = manifests[manifestKey];
 
@@ -232,42 +356,27 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
   });
 
   return (
-    <section data-testid='scripture-panel-rcl' style={{ padding: "20px" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "10px",
-        }}
-      >
-        <h2>{`${reference.bookId.toUpperCase()} ${reference.chapter}`}</h2>
+    <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>{`${reference.bookId.toUpperCase()} ${reference.chapter}`}</h2>
         <button
           onClick={() => setShowSearch(!showSearch)}
-          style={{
-            padding: "6px 12px",
-            background: showSearch ? "#007bff" : "#f8f9fa",
-            color: showSearch ? "white" : "#333",
-            border: "1px solid #dee2e6",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "14px",
-          }}
+          className={`${styles["search-toggle"]} ${showSearch ? styles.active : ""}`}
         >
           {showSearch ? "Hide Search" : "Search Scripture"}
         </button>
       </div>
 
       {showSearch && (
-        <SearchPanel
-          org={organization}
-          lang={languageId}
-          abbr={reference.bookId ? reference.bookId.toUpperCase() : ""}
-          usfm={usfmContent}
-          onResultClick={handleVerseClick}
-          proskommaHook={proskommaHook}
-          importHook={importHook}
-        />
+        <div className={styles["search-panel"]}>
+          <SearchPanel
+            org={organization}
+            lang={languageId}
+            abbr={reference.bookId ? reference.bookId.toUpperCase() : ""}
+            usfm={usfmContent}
+            onResultClick={handleVerseClick}
+          />
+        </div>
       )}
 
       <USFMRenderer
@@ -278,8 +387,6 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
         chapter={reference.chapter}
         selectedVerse={reference.verse}
         onVerseClick={handleVerseClick}
-        proskommaHook={proskommaHook}
-        importHook={importHook}
       />
     </section>
   );

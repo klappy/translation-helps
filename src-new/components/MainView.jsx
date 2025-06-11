@@ -12,6 +12,7 @@ import { HelpsTabs } from "./HelpsTabs";
 import { convertRcUriToUrl } from "../utils/rcLinkUtils.jsx";
 import { getArticle } from "../services/twService";
 import { getArticle as getTaArticle } from "../services/taService";
+import styles from "./MainView.module.css";
 
 // Context for rc:// link handling
 export const RcLinkContext = createContext();
@@ -20,6 +21,7 @@ export function MainView() {
   const { reference, organization, languageId } = useContext(ReferenceContext);
   const { manifests } = useContext(ManifestsContext);
   const [activeHelpsTab, setActiveHelpsTab] = useState("tn");
+  const [activeMobileTab, setActiveMobileTab] = useState("scripture");
   const helpsTabsRef = useRef();
 
   const handleVerseClick = (verseNum) => {
@@ -137,43 +139,43 @@ export function MainView() {
   };
 
   return (
-    <main
-      data-testid='main-view'
-      style={{ height: "100vh", display: "flex", flexDirection: "column" }}
-    >
+    <main data-testid='main-view' className={styles.mainView}>
+      {/* Mobile Tab Navigation */}
+      <div className={styles.mobileTabNav}>
+        <button
+          className={`${styles.mobileTab} ${
+            activeMobileTab === "scripture" ? styles.mobileTabActive : ""
+          }`}
+          onClick={() => setActiveMobileTab("scripture")}
+        >
+          Scripture
+        </button>
+        <button
+          className={`${styles.mobileTab} ${
+            activeMobileTab === "resources" ? styles.mobileTabActive : ""
+          }`}
+          onClick={() => setActiveMobileTab("resources")}
+        >
+          Resources
+        </button>
+      </div>
+
       {/* Main Content Area */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          overflow: "hidden",
-          gap: "16px",
-          padding: "16px",
-        }}
-      >
-        {/* Scripture Panel - Left Side */}
+      <div className={styles.contentArea}>
+        {/* Scripture Panel */}
         <div
-          style={{
-            flex: "1",
-            overflow: "auto",
-            backgroundColor: "white",
-            borderRadius: "8px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          }}
+          className={`${styles.scripturePanel} ${
+            activeMobileTab === "scripture" ? styles.mobilePanelActive : ""
+          }`}
         >
           <ScripturePanel reference={reference} onVerseClick={handleVerseClick} />
         </div>
 
-        {/* Translation Helps - Right Side */}
+        {/* Translation Helps */}
         <div
-          style={{
-            flex: "1",
-            overflow: "auto",
-            backgroundColor: "white",
-            borderRadius: "8px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            padding: "20px",
-          }}
+          className={`${styles.helpsPanel} ${
+            activeMobileTab === "resources" ? styles.mobilePanelActive : ""
+          }`}
         >
           <RcLinkContext.Provider value={{ handleRcLinkClick }}>
             <HelpsTabs ref={helpsTabsRef} reference={reference} />

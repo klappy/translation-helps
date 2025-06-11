@@ -9,6 +9,7 @@ import { RcLinkContext } from "./MainView";
 import { ReferenceContext } from "../context/ReferenceContext";
 import { getQuestionsForVerse } from "../services/tqService";
 import { processRcLinks } from "../utils/rcLinkUtils.jsx";
+import styles from "./TranslationQuestionsPanel.module.css";
 
 export function TranslationQuestionsPanel({ reference }) {
   const [questions, setQuestions] = useState([]);
@@ -100,46 +101,47 @@ export function TranslationQuestionsPanel({ reference }) {
 
   if (!reference?.verse) {
     return (
-      <section data-testid='translation-questions-panel'>
-        <p>Select a verse to view translation questions.</p>
+      <section
+        data-testid='translation-questions-panel'
+        className={styles.translationQuestionsPanel}
+      >
+        <p className={styles.emptyState}>Select a verse to view translation questions.</p>
       </section>
     );
   }
 
   if (loading) {
     return (
-      <section data-testid='translation-questions-panel'>
-        <p>Loading translation questions...</p>
+      <section
+        data-testid='translation-questions-panel'
+        className={styles.translationQuestionsPanel}
+      >
+        <p className={styles.loadingState}>Loading translation questions...</p>
       </section>
     );
   }
 
   if (error) {
     return (
-      <section data-testid='translation-questions-panel'>
-        <p style={{ color: "red" }}>{error}</p>
+      <section
+        data-testid='translation-questions-panel'
+        className={styles.translationQuestionsPanel}
+      >
+        <p className={styles.errorState}>{error}</p>
       </section>
     );
   }
 
   return (
-    <section data-testid='translation-questions-panel'>
-      <h3>Translation Questions</h3>
+    <section data-testid='translation-questions-panel' className={styles.translationQuestionsPanel}>
+      <h3 className={styles.panelHeader}>Translation Questions</h3>
       {questions.length === 0 ? (
-        <p>No translation questions available for this verse.</p>
+        <p className={styles.emptyState}>No translation questions available for this verse.</p>
       ) : (
-        <div>
+        <div className={styles.questionsList}>
           {questions.map((qa) => (
-            <div
-              key={qa.id}
-              style={{
-                marginBottom: "16px",
-                padding: "12px",
-                backgroundColor: "#f5f5f5",
-                borderRadius: "4px",
-              }}
-            >
-              <p style={{ fontWeight: "bold", marginBottom: "8px", color: "#1976d2" }}>
+            <div key={qa.id} className={styles.questionCard}>
+              <p className={styles.questionText}>
                 Q:{" "}
                 {processRcLinks(qa.question, (rcUri) => {
                   if (handleRcLinkClick) {
@@ -147,7 +149,7 @@ export function TranslationQuestionsPanel({ reference }) {
                   }
                 })}
               </p>
-              <p style={{ marginLeft: "16px" }}>
+              <p className={styles.answerText}>
                 A:{" "}
                 {processRcLinks(qa.answer, (rcUri) => {
                   if (handleRcLinkClick) {

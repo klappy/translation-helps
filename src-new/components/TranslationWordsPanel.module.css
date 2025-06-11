@@ -1,0 +1,172 @@
+/**
+ * TranslationWordsPanel Component Styles
+ * Consistent card-based design following the help panel design system
+ */
+
+.translationWordsPanel {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.panelHeader {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.wordsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.wordCard {
+  background-color: var(--help-card-background);
+  border-left: var(--help-card-border);
+  border-radius: var(--help-card-border-radius);
+  padding: var(--help-card-padding);
+  box-shadow: var(--help-card-shadow);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.wordCard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.wordCard.nonClickable {
+  cursor: default;
+}
+
+.wordCard.nonClickable:hover {
+  transform: none;
+  box-shadow: var(--help-card-shadow);
+}
+
+.wordTitle {
+  margin: 0 0 var(--spacing-2) 0;
+  color: var(--color-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clickIndicator {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-normal);
+}
+
+.wordSummary {
+  margin: 0 0 var(--spacing-2) 0;
+  color: var(--help-text-color);
+  line-height: var(--line-height-relaxed);
+  font-size: var(--font-size-sm);
+}
+
+.rcLink {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  word-break: break-all;
+}
+
+.tipSection {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-3);
+  background-color: #f0f7ff;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+}
+
+.tipText {
+  margin: 0;
+  color: #0066cc;
+}
+
+.tipIcon {
+  margin-right: var(--spacing-1);
+}
+
+.tipBold {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Loading, error, and empty states */
+.loadingState,
+.errorState,
+.emptyState {
+  padding: var(--spacing-4);
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+.loadingState {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.errorState {
+  color: var(--color-error);
+}
+
+.emptyState {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.debugInfo {
+  margin-top: var(--spacing-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.debugSummary {
+  cursor: pointer;
+  padding: var(--spacing-1);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+}
+
+.debugList {
+  margin: var(--spacing-2) 0 0 0;
+  padding-left: var(--spacing-4);
+}
+
+.debugItem {
+  word-break: break-all;
+  margin-bottom: var(--spacing-1);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+  .wordCard {
+    padding: calc(var(--help-card-padding) - 2px);
+  }
+
+  .wordTitle {
+    font-size: var(--font-size-sm);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-1);
+  }
+
+  .clickIndicator {
+    font-size: var(--font-size-xs);
+  }
+
+  .wordSummary {
+    font-size: var(--font-size-xs);
+  }
+
+  .tipSection {
+    padding: var(--spacing-2);
+  }
+}

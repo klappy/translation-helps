@@ -5,6 +5,7 @@
 import React, { useState, useContext, useRef, useCallback, useMemo, useEffect } from "react";
 import { ReferenceContext } from "../../context/ReferenceContext";
 import { useProskomma, useImport, useSearchForPassages } from "proskomma-react-hooks";
+import styles from "./SearchPanel.module.css";
 
 /**
  * @param {object} props
@@ -13,18 +14,8 @@ import { useProskomma, useImport, useSearchForPassages } from "proskomma-react-h
  * @param {string} props.abbr - Book abbreviation
  * @param {string} props.usfm - USFM content
  * @param {function} props.onResultClick - Callback when a search result is clicked
- * @param {object} props.proskommaHook - Shared proskomma hook from parent
- * @param {object} props.importHook - Shared import hook from parent
  */
-export default function SearchPanel({
-  org,
-  lang,
-  abbr,
-  usfm,
-  onResultClick,
-  proskommaHook,
-  importHook,
-}) {
+export default function SearchPanel({ org, lang, abbr, usfm, onResultClick }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [timeoutError, setTimeoutError] = useState("");
@@ -32,6 +23,28 @@ export default function SearchPanel({
   const searchTimeoutRef = useRef(null);
   const debounceTimeoutRef = useRef(null);
   const { updateReference } = useContext(ReferenceContext);
+
+  // Create proskomma instance
+  const proskommaHook = useProskomma({ verbose: false });
+
+  // Create document configuration for import
+  const document = useMemo(() => {
+    if (!usfm || !org || !lang || !abbr) return null;
+    return [
+      {
+        selectors: { org, lang, abbr },
+        data: usfm,
+        bookCode: abbr,
+      },
+    ];
+  }, [usfm, org, lang, abbr]);
+
+  // Import document
+  const importHook = useImport({
+    ...proskommaHook,
+    documents: document || [],
+    verbose: false,
+  });
 
   // Debounce search term to prevent search on every keystroke
   useEffect(() => {
@@ -308,61 +321,46 @@ export default function SearchPanel({
 
   // Don't show search if import isn't complete
   if (!importHook.done) {
-    return (
-      <div style={{ padding: "10px", fontStyle: "italic", color: "#666" }}>Preparing search...</div>
-    );
+    return <div className={styles.loadingState}>Preparing search...</div>;
   }
 
   return (
-    <div className='search-panel' style={{ padding: "10px", borderTop: "1px solid #eee" }}>
-      <form onSubmit={handleSearch} style={{ marginBottom: "10px" }}>
-        <div style={{ display: "flex", gap: "8px" }}>
+    <div className={styles.searchPanel}>
+      <form onSubmit={handleSearch} className={styles.searchForm}>
+        <div className={styles.searchInputGroup}>
           <input
             type='text'
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder='Search scripture text...'
-            style={{
-              flex: 1,
-              padding: "8px",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-            }}
+            className={styles.searchInput}
           />
-          <button
-            type='submit'
-            disabled={!searchTerm.trim() || isSearching}
-            style={{
-              padding: "8px 16px",
-              background: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: searchTerm.trim() && !isSearching ? "pointer" : "not-allowed",
-              opacity: searchTerm.trim() && !isSearching ? 1 : 0.6,
-            }}
-          >
-            {isSearching ? "Searching..." : "Search"}
-          </button>
         </div>
+        <button
+          type='submit'
+          disabled={!searchTerm.trim() || isSearching}
+          className={styles.searchButton}
+        >
+          {isSearching ? "Searching..." : "Search"}
+        </button>
       </form>
 
       {/* Timeout Error */}
-      {timeoutError && <div style={{ padding: "10px", color: "red" }}>{timeoutError}</div>}
+      {timeoutError && <div className={styles.errorState}>{timeoutError}</div>}
 
       {/* Search Results - proskomma or fallback */}
       {((searchHook.passages && searchHook.passages.length > 0) ||
         fallbackSearchResults.length > 0) &&
         !timeoutError && (
-          <div className='search-results'>
-            <h4 style={{ margin: "10px 0", fontSize: "14px", color: "#666" }}>
+          <div className={styles.resultsSection}>
+            <h4 className={styles.resultsHeader}>
               Found {(searchHook.passages?.length || 0) + fallbackSearchResults.length} result(s)
               for "{searchTerm}"
               {fallbackSearchResults.length > 0 && !searchHook.passages?.length && (
-                <span style={{ fontSize: "12px", color: "#999" }}> (direct text search)</span>
+                <span className={styles.resultsSubtitle}> (direct text search)</span>
               )}
             </h4>
-            <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+            <div className={styles.resultsList}>
               {/* Proskomma results first */}
               {searchHook.passages &&
                 searchHook.passages.map((result, index) => {
@@ -380,22 +378,12 @@ export default function SearchPanel({
                     <div
                       key={`proskomma-${index}`}
                       onClick={() => handleResultClick(result)}
-                      style={{
-                        padding: "8px",
-                        margin: "4px 0",
-                        border: "1px solid #eee",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        background: "#f9f9f9",
-                        transition: "background 0.2s",
-                      }}
-                      onMouseEnter={(e) => (e.target.style.background = "#e0f7fa")}
-                      onMouseLeave={(e) => (e.target.style.background = "#f9f9f9")}
+                      className={styles.resultItem}
                     >
-                      <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>
+                      <div className={styles.resultReference}>
                         {abbr.toUpperCase()} {chapter}:{verse}
                       </div>
-                      <div style={{ fontSize: "14px" }}>{result.text || "No text available"}</div>
+                      <div className={styles.resultText}>{result.text || "No text available"}</div>
                     </div>
                   );
                 })}
@@ -405,22 +393,10 @@ export default function SearchPanel({
                 <div
                   key={`fallback-${index}`}
                   onClick={() => handleResultClick(result)}
-                  style={{
-                    padding: "8px",
-                    margin: "4px 0",
-                    border: "1px solid #eee",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    background: "#f9f9f9",
-                    transition: "background 0.2s",
-                  }}
-                  onMouseEnter={(e) => (e.target.style.background = "#e0f7fa")}
-                  onMouseLeave={(e) => (e.target.style.background = "#f9f9f9")}
+                  className={styles.resultItem}
                 >
-                  <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>
-                    {result.reference}
-                  </div>
-                  <div style={{ fontSize: "14px" }}>{result.text}</div>
+                  <div className={styles.resultReference}>{result.reference}</div>
+                  <div className={styles.resultText}>{result.text}</div>
                 </div>
               ))}
             </div>
@@ -432,14 +408,12 @@ export default function SearchPanel({
         (!searchHook.passages || searchHook.passages.length === 0) &&
         fallbackSearchResults.length === 0 &&
         !timeoutError && (
-          <div style={{ padding: "10px", fontStyle: "italic", color: "#666" }}>
-            No results found for "{searchTerm}"
-          </div>
+          <div className={styles.noResults}>No results found for "{searchTerm}"</div>
         )}
 
       {/* Search Errors */}
       {searchHook.errors && searchHook.errors.length > 0 && !timeoutError && (
-        <div style={{ padding: "10px", color: "red" }}>Search error: {searchHook.errors[0]}</div>
+        <div className={styles.errorState}>Search error: {searchHook.errors[0]}</div>
       )}
     </div>
   );

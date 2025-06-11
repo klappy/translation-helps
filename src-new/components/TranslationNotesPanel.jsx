@@ -9,6 +9,7 @@ import { RcLinkContext } from "./MainView";
 import { ReferenceContext } from "../context/ReferenceContext";
 import { getNotesForVerse } from "../services/tnService";
 import { processMarkdownWithRcLinks } from "../utils/markdownUtils.jsx";
+import styles from "./TranslationNotesPanel.module.css";
 
 export function TranslationNotesPanel({ reference }) {
   const [notes, setNotes] = useState([]);
@@ -84,97 +85,55 @@ export function TranslationNotesPanel({ reference }) {
 
   if (!reference?.verse) {
     return (
-      <section data-testid='translation-notes-panel'>
-        <p>Select a verse to view translation notes.</p>
+      <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
+        <p className={styles.emptyState}>Select a verse to view translation notes.</p>
       </section>
     );
   }
 
   if (loading) {
     return (
-      <section data-testid='translation-notes-panel'>
-        <p>Loading translation notes...</p>
+      <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
+        <p className={styles.loadingState}>Loading translation notes...</p>
       </section>
     );
   }
 
   if (error) {
     return (
-      <section data-testid='translation-notes-panel'>
-        <p style={{ color: "red" }}>{error}</p>
+      <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
+        <p className={styles.errorState}>{error}</p>
       </section>
     );
   }
 
   return (
-    <section data-testid='translation-notes-panel'>
-      <h3>Translation Notes</h3>
+    <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
+      <h3 className={styles.panelHeader}>Translation Notes</h3>
       {notes.length === 0 ? (
-        <p>No translation notes available for this verse.</p>
+        <p className={styles.emptyState}>No translation notes available for this verse.</p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
+        <ul className={styles.notesList}>
           {notes.map((note) => (
-            <li
-              key={note.id}
-              style={{
-                marginBottom: "16px",
-                padding: "16px",
-                backgroundColor: "#f8f9fa",
-                borderRadius: "8px",
-                borderLeft: "4px solid #1976d2",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              }}
-            >
+            <li key={note.id} className={styles.noteCard}>
               {note.quote && (
-                <div
-                  style={{
-                    fontWeight: "bold",
-                    fontSize: "14px",
-                    color: "#1565c0",
-                    marginBottom: "8px",
-                    fontFamily: "monospace",
-                    backgroundColor: "#e3f2fd",
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    display: "inline-block",
-                  }}
-                >
+                <div className={styles.noteQuote}>
                   "{note.quote}"
                   {note.occurrence && note.occurrence !== "1" && (
-                    <span style={{ fontSize: "12px", opacity: 0.8 }}>
-                      {" "}
-                      (occurrence {note.occurrence})
-                    </span>
+                    <span className={styles.noteOccurrence}> (occurrence {note.occurrence})</span>
                   )}
                 </div>
               )}
-              <div style={{ lineHeight: "1.5", color: "#333" }}>
+              <div className={styles.noteText}>
                 {processMarkdownWithRcLinks(note.text, (rcUri) => {
                   if (handleRcLinkClick) {
                     handleRcLinkClick(rcUri, languageId, organization);
                   }
                 })}
               </div>
-              {note.tags && (
-                <div
-                  style={{
-                    marginTop: "8px",
-                    fontSize: "12px",
-                    color: "#666",
-                    fontStyle: "italic",
-                  }}
-                >
-                  Tags: {note.tags}
-                </div>
-              )}
+              {note.tags && <div className={styles.noteTags}>Tags: {note.tags}</div>}
               {note.supportReference && (
-                <div
-                  style={{
-                    marginTop: "4px",
-                    fontSize: "12px",
-                    color: "#666",
-                  }}
-                >
+                <div className={styles.noteSupportReference}>
                   See also:{" "}
                   {processMarkdownWithRcLinks(note.supportReference, (rcUri) => {
                     if (handleRcLinkClick) {
