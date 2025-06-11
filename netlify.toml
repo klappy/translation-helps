@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build"
+  command = "npm install && npm run build"
   functions = "netlify/functions"
   publish = "dist"
 
@@ -13,12 +13,6 @@
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
-  status = 200
-
-# Redirect specific chat endpoint
-[[redirects]]
-  from = "/.netlify/functions/chat"
-  to = "/.netlify/functions/chat"
   status = 200
 
 # SPA fallback for client-side routing
