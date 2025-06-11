@@ -1,0 +1,85 @@
+/**
+ * TranslationQuestionsPanel Component Styles
+ * Consistent card-based design following the help panel design system
+ */
+
+.translationQuestionsPanel {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.panelHeader {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.questionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.questionCard {
+  background-color: var(--help-card-background);
+  border-left: var(--help-card-border);
+  border-radius: var(--help-card-border-radius);
+  padding: var(--help-card-padding);
+  box-shadow: var(--help-card-shadow);
+}
+
+.questionText {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: var(--help-quote-color);
+  margin-bottom: var(--spacing-2);
+}
+
+.answerText {
+  font-size: var(--font-size-sm);
+  color: var(--help-text-color);
+  line-height: var(--line-height-relaxed);
+  margin-left: var(--spacing-4);
+  margin: 0;
+}
+
+/* Loading, error, and empty states */
+.loadingState,
+.errorState,
+.emptyState {
+  padding: var(--spacing-4);
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+.loadingState {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.errorState {
+  color: var(--color-error);
+}
+
+.emptyState {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+  .questionCard {
+    padding: calc(var(--help-card-padding) - 2px);
+  }
+
+  .questionText,
+  .answerText {
+    font-size: var(--font-size-xs);
+  }
+
+  .answerText {
+    margin-left: var(--spacing-3);
+  }
+}

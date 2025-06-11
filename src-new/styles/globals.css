@@ -22,26 +22,26 @@
   --color-error: #ef4444;
   --color-info: #0ea5e9;
 
-  /* Typography */
+  /* Typography - Optimized for content density */
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
     sans-serif;
   --font-size-xs: 0.75rem; /* 12px */
-  --font-size-sm: 0.875rem; /* 14px */
-  --font-size-md: 1rem; /* 16px */
-  --font-size-lg: 1.25rem; /* 20px */
-  --font-size-xl: 1.5rem; /* 24px */
-  --font-size-2xl: 2rem; /* 32px */
+  --font-size-sm: 0.8125rem; /* 13px - optimized for content density */
+  --font-size-md: 0.875rem; /* 14px - smaller base size for better density */
+  --font-size-lg: 0.9375rem; /* 15px - reduced for headers */
+  --font-size-xl: 1rem; /* 16px - reduced significantly */
+  --font-size-2xl: 1.125rem; /* 18px - reduced significantly */
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
-  --line-height-tight: 1.2;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.7;
+  --line-height-tight: 1.3;
+  --line-height-normal: 1.4;
+  --line-height-relaxed: 1.5;
 
-  /* Spacing Scale (4px base unit) */
+  /* Spacing Scale (4px base unit) - optimized for content density */
   --spacing-0: 0px;
   --spacing-1: 4px;
   --spacing-2: 8px;
@@ -53,6 +53,11 @@
   --spacing-10: 40px;
   --spacing-12: 48px;
   --spacing-16: 64px;
+
+  /* Content density tokens */
+  --content-spacing-tight: var(--spacing-1);
+  --content-spacing-normal: var(--spacing-2);
+  --content-spacing-relaxed: var(--spacing-3);
 
   /* Border Radius */
   --radius-sm: 4px;
@@ -101,6 +106,23 @@
   --content-max-width-mobile: 100%;
   --content-max-width-tablet: 700px;
   --content-max-width-desktop: 800px;
+
+  /* Help Panel Design System - Consistent card-based design */
+  --help-card-background: #f8f9fa;
+  --help-card-border: 4px solid var(--color-primary);
+  --help-card-border-radius: var(--radius-md);
+  --help-card-padding: var(--spacing-3);
+  --help-card-margin: var(--spacing-3);
+  --help-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  --help-quote-background: #e3f2fd;
+  --help-quote-color: #1565c0;
+  --help-quote-padding: var(--spacing-1) var(--spacing-2);
+  --help-quote-border-radius: var(--radius-sm);
+
+  --help-text-color: var(--color-text);
+  --help-meta-color: var(--color-text-light);
+  --help-meta-size: var(--font-size-xs);
 }
 
 /* Global Styles */
@@ -321,13 +343,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
   flex-wrap: wrap;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
 }
 
 .panel-title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   margin: 0;
@@ -341,32 +363,35 @@ body {
   }
 
   .panel-title {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-md);
     text-align: center;
   }
 }
 
 /* Loading and Error States */
 .loading-state {
-  padding: var(--spacing-6);
+  padding: var(--spacing-4);
   text-align: center;
   font-style: italic;
   color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
 }
 
 .error-state {
-  padding: var(--spacing-6);
+  padding: var(--spacing-4);
   text-align: center;
   color: var(--color-error);
   background-color: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: var(--radius-md);
-  margin: var(--spacing-4) 0;
+  margin: var(--spacing-3) 0;
+  font-size: var(--font-size-sm);
 }
 
 .empty-state {
-  padding: var(--spacing-6);
+  padding: var(--spacing-4);
   text-align: center;
   color: var(--color-text-muted);
   font-style: italic;
+  font-size: var(--font-size-sm);
 }
