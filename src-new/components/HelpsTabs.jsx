@@ -9,6 +9,7 @@ import { TranslationNotesPanel } from "./TranslationNotesPanel";
 import { TranslationQuestionsPanel } from "./TranslationQuestionsPanel";
 import { TranslationWordsPanel } from "./TranslationWordsPanel";
 import { ArticlePanel } from "./ArticlePanel";
+import { LLMChatPanel } from "./LLMChatPanel";
 
 const STATIC_TABS = [
   { id: "tn", label: "Translation Notes", component: TranslationNotesPanel, isStatic: true },
@@ -19,6 +20,7 @@ const STATIC_TABS = [
     isStatic: true,
   },
   { id: "tw", label: "Translation Words", component: TranslationWordsPanel, isStatic: true },
+  { id: "chat", label: "AI Assistant", component: LLMChatPanel, isStatic: true },
 ];
 
 export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {

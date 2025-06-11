@@ -1,5 +1,57 @@
 # Changelog
 
+## [0.13.0] - 2025-06-11
+
+### Added
+
+- **LLM Chat Panel Feature - AI Assistant Integration ([#72](https://github.com/klappy/translation-helps/issues/72))**
+  - ✅ Implemented comprehensive LLM Chat Panel with professional chat interface using OpenAI GPT-4o
+  - ✅ Created `LLMChatPanel` component with modern chat UI design, message bubbles, and typing indicators
+  - ✅ Implemented `ChatContext` for state management with automatic context packaging of current verse reference
+  - ✅ Added serverless architecture using Netlify Functions for secure OpenAI API communication
+  - ✅ Integrated AI Assistant tab alongside existing translation resources (Translation Notes, Questions, Words)
+  - ✅ Context-aware responses: chat automatically includes current verse reference and available resources
+  - ✅ Professional styling with CSS modules, responsive design, and accessibility support
+  - ✅ Comprehensive error handling and graceful degradation when API is unavailable
+  - ✅ Development mode with mock responses to avoid API costs during development
+  - ✅ Environment configuration for both development and production deployments
+  - ✅ Complete test coverage with 8 passing unit tests for all components and services
+  - ✅ Secure API key management through Netlify environment variables
+  - ✅ Character limit (4000) with real-time counter and input validation
+  - ✅ Message history management with conversation persistence within session
+  - ✅ Badge display showing current verse context and available resource count
+
+### Technical Implementation
+
+- **Component Architecture**: Modular chat system with `LLMChatPanel.jsx`, `ChatContext.jsx`, and `llmChatService.js`
+- **Serverless Backend**: Netlify Function (`netlify/functions/chat.js`) for secure API proxy with CORS configuration
+- **Context Integration**: Seamless integration with existing `ReferenceContext` and resource management systems
+- **Professional UI**: Generic chat window design patterns with blue accent theme and smooth animations
+- **API Configuration**: OpenAI GPT-4o integration with optimized system prompts for biblical content assistance
+- **Documentation**: Complete feature documentation in `docs/llm-chat-feature.md` with usage examples and troubleshooting
+- **Files Created**:
+  - `src-new/components/LLMChatPanel.jsx` - Main chat interface component
+  - `src-new/components/LLMChatPanel.module.css` - Professional chat styling
+  - `src-new/components/LLMChatPanel.test.jsx` - Comprehensive component tests
+  - `src-new/context/ChatContext.jsx` - Chat state management with context awareness
+  - `src-new/services/llmChatService.js` - API communication service with mock responses
+  - `netlify/functions/chat.js` - Serverless function for OpenAI API integration
+  - `netlify.toml` - Netlify deployment configuration
+  - `docs/llm-chat-feature.md` - Complete feature documentation
+- **Files Modified**:
+  - `src-new/components/HelpsTabs.jsx` - Added AI Assistant tab integration
+  - `src-new/components/App.jsx` - Added ChatProvider to context hierarchy
+  - `.env.development` - Environment configuration template
+
+### User Experience Benefits
+
+- **Contextual Assistance**: AI automatically knows current verse and available translation resources
+- **Professional Interface**: Modern chat experience with intuitive design and smooth interactions
+- **Biblical Expertise**: Powered by GPT-4o with specialized prompts for biblical content and translation assistance
+- **Seamless Integration**: Natural fit alongside existing translation helps with consistent tab interface
+- **Educational Value**: Helps users understand translation notes, word meanings, and biblical context
+- **Accessibility**: Full keyboard navigation, screen reader support, and responsive mobile design
+
 ## [0.12.1] - 2025-06-11
 
 ### Removed
