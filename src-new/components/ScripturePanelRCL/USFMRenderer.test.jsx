@@ -13,6 +13,28 @@ const mockContextValue = {
   updateReference: vi.fn(),
 };
 
+const mockProskommaHook = {
+  proskomma: {
+    docSetList: () => [{ id: "test-docset" }],
+    processor: { docSets: { "test-docset": {} } },
+    gqlQuery: () => ({
+      data: {
+        docSet: {
+          documents: [{ id: "doc1", bookCode: "TIT" }],
+        },
+      },
+    }),
+  },
+  state: { docSetIds: ["test-docset"] },
+  verbose: true,
+};
+
+const mockImportHook = {
+  importing: false,
+  done: true,
+  errors: [],
+};
+
 const defaultProps = {
   selectedVerse: 1,
   onVerseClick: vi.fn(),
@@ -24,6 +46,8 @@ const defaultProps = {
 \\v 1 Paul, a servant of God and an apostle of Jesus Christ
 \\v 2 in hope of eternal life`,
   chapter: 1,
+  proskommaHook: mockProskommaHook,
+  importHook: mockImportHook,
 };
 
 const renderWithContext = (component, contextValue = mockContextValue) => {
@@ -52,6 +76,8 @@ describe("USFMRenderer", () => {
         abbr=''
         usfm=''
         chapter={1}
+        proskommaHook={mockProskommaHook}
+        importHook={mockImportHook}
       />
     );
     expect(screen.getByText("Missing scripture context.")).toBeInTheDocument();

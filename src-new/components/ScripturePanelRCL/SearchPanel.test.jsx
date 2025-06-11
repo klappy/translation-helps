@@ -28,6 +28,8 @@ const defaultProps = {
 \\v 1 Paul, a servant of God and an apostle of Jesus Christ
 \\v 2 in hope of eternal life`,
   onResultClick: vi.fn(),
+  proskommaHook: mockUseProskomma(),
+  importHook: mockUseImport({ shouldComplete: true }),
 };
 
 // Mock implementations
@@ -52,6 +54,14 @@ const renderWithContext = (component, contextValue = mockContextValue) => {
   );
 };
 
+// Helper to merge props with required proskommaHook/importHook defaults
+const withRequiredHooks = (props = {}) => ({
+  ...defaultProps,
+  ...props,
+  proskommaHook: props.proskommaHook || mockUseProskomma(),
+  importHook: props.importHook || mockUseImport({ shouldComplete: true }),
+});
+
 describe("SearchPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -62,7 +72,13 @@ describe("SearchPanel", () => {
   });
 
   it("renders search form", () => {
-    renderWithContext(<SearchPanel {...defaultProps} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
 
     expect(screen.getByPlaceholderText("Search scripture text...")).toBeInTheDocument();
     expect(screen.getByText("Search")).toBeInTheDocument();
@@ -71,13 +87,19 @@ describe("SearchPanel", () => {
   it("shows preparing search when import is not done", async () => {
     proskommaHooks.useImport.mockImplementation(() => mockUseImport({ shouldComplete: false }));
 
-    renderWithContext(<SearchPanel {...defaultProps} />);
+    renderWithContext(
+      <SearchPanel
+        {...withRequiredHooks({
+          importHook: mockUseImport({ shouldComplete: false }),
+        })}
+      />
+    );
 
     expect(screen.getByText("Preparing search...")).toBeInTheDocument();
   });
 
   it("updates search term on input change", () => {
-    renderWithContext(<SearchPanel {...defaultProps} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
 
     const searchInput = screen.getByPlaceholderText("Search scripture text...");
     fireEvent.change(searchInput, { target: { value: "Paul" } });
@@ -86,14 +108,14 @@ describe("SearchPanel", () => {
   });
 
   it("disables search button when input is empty", () => {
-    renderWithContext(<SearchPanel {...defaultProps} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
 
     const searchButton = screen.getByText("Search");
     expect(searchButton).toHaveAttribute("disabled");
   });
 
   it("enables search button when input has text", () => {
-    renderWithContext(<SearchPanel {...defaultProps} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
 
     const searchInput = screen.getByPlaceholderText("Search scripture text...");
     fireEvent.change(searchInput, { target: { value: "Paul" } });
@@ -113,7 +135,7 @@ describe("SearchPanel", () => {
       mockUseSearchForPassages({ passages: mockResults })
     );
 
-    renderWithContext(<SearchPanel {...defaultProps} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
 
     const searchInput = screen.getByPlaceholderText("Search scripture text...");
     fireEvent.change(searchInput, { target: { value: "Paul" } });
@@ -138,7 +160,7 @@ describe("SearchPanel", () => {
       mockUseSearchForPassages({ passages: [] })
     );
 
-    renderWithContext(<SearchPanel {...defaultProps} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
 
     const searchInput = screen.getByPlaceholderText("Search scripture text...");
     fireEvent.change(searchInput, { target: { value: "nonexistent" } });
@@ -229,7 +251,7 @@ describe("SearchPanel", () => {
       mockUseSearchForPassages({ passages: mockResults })
     );
 
-    renderWithContext(<SearchPanel {...defaultProps} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
 
     const searchInput = screen.getByPlaceholderText("Search scripture text...");
     fireEvent.change(searchInput, { target: { value: "Paul" } });
@@ -251,7 +273,7 @@ describe("SearchPanel", () => {
       mockUseSearchForPassages({ loading: true })
     );
 
-    renderWithContext(<SearchPanel {...defaultProps} />);
+    renderWithContext(<SearchPanel {...withRequiredHooks()} />);
 
     const searchInput = screen.getByPlaceholderText("Search scripture text...");
     fireEvent.change(searchInput, { target: { value: "Paul" } });

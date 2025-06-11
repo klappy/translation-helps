@@ -5,6 +5,8 @@
 
 import React, { useState } from "react";
 import { useOrganizations } from "../../../hooks/useOrganizations";
+import { COLORS, FONT_SIZES, FONT_WEIGHTS } from "@theme";
+import "../NavigationWizardSteps.css";
 import { SearchableGrid } from "../components/SearchableGrid";
 import { RecentSelections } from "../components/RecentSelections";
 import { useNavigationHistory } from "../hooks/useNavigationHistory";
@@ -79,34 +81,10 @@ export function OrganizationStep({ onNext, onStepChange, wizardData, isDesktop }
   }
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        padding: isDesktop ? "32px" : "16px",
-        maxWidth: isDesktop ? "800px" : "100%",
-        margin: "0 auto",
-      }}
-    >
-      <div style={{ marginBottom: "24px" }}>
-        <h2
-          style={{
-            fontSize: isDesktop ? "24px" : "20px",
-            fontWeight: "600",
-            color: "#212529",
-            margin: "0 0 8px 0",
-          }}
-        >
-          Choose Organization
-        </h2>
-        <p
-          style={{
-            fontSize: "16px",
-            color: "#6c757d",
-            margin: 0,
-          }}
-        >
+    <div className='wizard-step-container'>
+      <div className='wizard-step-header'>
+        <h2 className='wizard-step-title'>Choose Organization</h2>
+        <p className='wizard-step-desc'>
           Select the organization that provides the Bible translation resources you want to access.
         </p>
       </div>

@@ -1,0 +1,41 @@
+/* NavigationWizardSteps.css */
+
+.wizard-step-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  margin: 0 auto;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 32px;
+  background: #fff;
+}
+
+@media (max-width: 768px) {
+  .wizard-step-container {
+    padding: 16px;
+    max-width: 100%;
+  }
+}
+
+.wizard-step-header {
+  margin-bottom: 24px;
+}
+
+.wizard-step-title {
+  font-size: 2em;
+  font-weight: bold;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.wizard-step-desc {
+  font-size: 1em;
+  color: #6c757d;
+  margin: 0;
+}
+
+.wizard-step-recent {
+  margin-bottom: 32px;
+}

@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      "@theme": "/src-new/theme.js",
       // Ensure js-yaml uses the browser-compatible version
     },
   },

@@ -4,6 +4,8 @@
  */
 
 import React, { useState, useMemo } from "react";
+import { COLORS, FONT_SIZES, FONT_WEIGHTS } from "@theme";
+import "../NavigationWizardSteps.css";
 import { useNavigationHistory } from "../hooks/useNavigationHistory";
 
 export function ChapterVerseStep({
@@ -174,24 +176,15 @@ export function ChapterVerseStep({
   }, [wizardData.bookId]);
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        padding: isDesktop ? "32px" : "16px",
-        maxWidth: isDesktop ? "800px" : "100%",
-        margin: "0 auto",
-      }}
-    >
-      <div style={{ marginBottom: "24px" }}>
+    <div className='wizard-step-container'>
+      <div className='wizard-step-header'>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
           <button
             onClick={onPrevious}
             style={{
               background: "none",
               border: "none",
-              fontSize: "20px",
+              fontSize: "2em",
               cursor: "pointer",
               padding: "4px",
               color: "#007bff",
@@ -200,25 +193,9 @@ export function ChapterVerseStep({
           >
             ←
           </button>
-          <h2
-            style={{
-              fontSize: isDesktop ? "24px" : "20px",
-              fontWeight: "600",
-              color: "#212529",
-              margin: 0,
-            }}
-          >
-            Choose Chapter & Verse
-          </h2>
+          <h2 className='wizard-step-title'>Choose Chapter & Verse</h2>
         </div>
-        <p
-          style={{
-            fontSize: "16px",
-            color: "#6c757d",
-            margin: 0,
-            paddingLeft: "32px",
-          }}
-        >
+        <p className='wizard-step-desc'>
           Select the chapter and verse in <strong>{bookDisplayName}</strong> you want to study.
         </p>
       </div>

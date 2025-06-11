@@ -5,6 +5,8 @@
 
 import React, { useState } from "react";
 import { useLanguages } from "../../../hooks/useLanguages";
+import { COLORS, FONT_SIZES, FONT_WEIGHTS } from "@theme";
+import "../NavigationWizardSteps.css";
 import { SearchableGrid } from "../components/SearchableGrid";
 import { RecentSelections } from "../components/RecentSelections";
 import { useNavigationHistory } from "../hooks/useNavigationHistory";
@@ -86,24 +88,15 @@ export function LanguageStep({ onNext, onPrevious, onStepChange, wizardData, isD
   }
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        padding: isDesktop ? "32px" : "16px",
-        maxWidth: isDesktop ? "800px" : "100%",
-        margin: "0 auto",
-      }}
-    >
-      <div style={{ marginBottom: "24px" }}>
+    <div className='wizard-step-container'>
+      <div className='wizard-step-header'>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
           <button
             onClick={onPrevious}
             style={{
               background: "none",
               border: "none",
-              fontSize: "20px",
+              fontSize: "2em",
               cursor: "pointer",
               padding: "4px",
               color: "#007bff",
@@ -112,25 +105,9 @@ export function LanguageStep({ onNext, onPrevious, onStepChange, wizardData, isD
           >
             ←
           </button>
-          <h2
-            style={{
-              fontSize: isDesktop ? "24px" : "20px",
-              fontWeight: "600",
-              color: "#212529",
-              margin: 0,
-            }}
-          >
-            Choose Language
-          </h2>
+          <h2 className='wizard-step-title'>Choose Language</h2>
         </div>
-        <p
-          style={{
-            fontSize: "16px",
-            color: "#6c757d",
-            margin: 0,
-            paddingLeft: "32px",
-          }}
-        >
+        <p className='wizard-step-desc'>
           Select the language for Bible translation resources from{" "}
           <strong>{wizardData.organization}</strong>.
         </p>

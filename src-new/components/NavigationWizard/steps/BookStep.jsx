@@ -5,6 +5,8 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { SearchableGrid } from "../components/SearchableGrid";
+import { COLORS, FONT_SIZES, FONT_WEIGHTS } from "@theme";
+import "../NavigationWizardSteps.css";
 import { RecentSelections } from "../components/RecentSelections";
 import { useNavigationHistory } from "../hooks/useNavigationHistory";
 import { fetchResourceManifest } from "../../../services/manifestService";
@@ -232,10 +234,10 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
     border: "none",
     borderRadius: "8px",
     backgroundColor: isActive ? "#007bff" : "#f8f9fa",
-    color: isActive ? "#ffffff" : "#495057",
+    color: isActive ? COLORS.surface : COLORS.text,
     cursor: "pointer",
-    fontSize: isDesktop ? "14px" : "12px",
-    fontWeight: "600",
+    fontSize: isDesktop ? FONT_SIZES.sm : FONT_SIZES.xs,
+    fontWeight: FONT_WEIGHTS.bold,
     transition: "all 0.2s ease",
     display: "flex",
     alignItems: "center",
@@ -245,24 +247,15 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
   });
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        padding: isDesktop ? "32px" : "16px",
-        maxWidth: isDesktop ? "800px" : "100%",
-        margin: "0 auto",
-      }}
-    >
-      <div style={{ marginBottom: "24px" }}>
+    <div className='wizard-step-container'>
+      <div className='wizard-step-header'>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
           <button
             onClick={onPrevious}
             style={{
               background: "none",
               border: "none",
-              fontSize: "20px",
+              fontSize: "2em",
               cursor: "pointer",
               padding: "4px",
               color: "#007bff",
@@ -271,27 +264,9 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
           >
             ←
           </button>
-          <h2
-            style={{
-              fontSize: isDesktop ? "24px" : "20px",
-              fontWeight: "600",
-              color: "#212529",
-              margin: 0,
-            }}
-          >
-            Choose Book
-          </h2>
+          <h2 className='wizard-step-title'>Choose Book</h2>
         </div>
-        <p
-          style={{
-            fontSize: "16px",
-            color: "#6c757d",
-            margin: 0,
-            paddingLeft: "32px",
-          }}
-        >
-          Select the Bible book you want to study.
-        </p>
+        <p className='wizard-step-desc'>Select the Bible book you want to study.</p>
       </div>
 
       {recentBooks.length > 0 && (

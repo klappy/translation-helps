@@ -63,6 +63,15 @@ export function WizardContainer({ onComplete, isDesktop = false, initialStep = n
     verse: reference?.verse || null,
   });
 
+  // Update currentStep if initialStep changes (e.g., when wizard is reopened via breadcrumb)
+  useEffect(() => {
+    console.log("[WizardContainer] initialStep changed:", initialStep);
+    if (initialStep !== null) {
+      setCurrentStep(Math.max(0, Math.min(4, initialStep - 1)));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialStep]);
+
   // Custom hooks
   const { saveSelection, getRecentSelections } = useNavigationHistory();
   const { validateStep, canProceed } = useWizardState(wizardData);

@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from "react";
+import { COLORS, FONT_SIZES, FONT_WEIGHTS } from "../../theme";
 
 export function StepIndicator({
   currentStep,
@@ -37,21 +38,21 @@ export function StepIndicator({
     const isHovered = hoveredStep === index;
 
     // Base styles for the dot
-    let dotBackgroundColor = "#e9ecef";
-    let dotColor = "#6c757d";
+    let dotBackgroundColor = COLORS.border;
+    let dotColor = COLORS.muted;
     let dotBorder = "none";
 
     if (isActive) {
-      dotBackgroundColor = "#007bff";
-      dotColor = "#ffffff";
-      dotBorder = "2px solid #0056b3";
+      dotBackgroundColor = COLORS.secondary;
+      dotColor = COLORS.surface;
+      dotBorder = `2px solid ${COLORS.primary}`;
     } else if (isCompleted) {
-      dotBackgroundColor = "#28a745";
-      dotColor = "#ffffff";
+      dotBackgroundColor = COLORS.success;
+      dotColor = COLORS.surface;
     } else if (isHovered && canClick) {
-      dotBackgroundColor = "#f8f9fa";
-      dotColor = "#007bff";
-      dotBorder = "2px solid #007bff";
+      dotBackgroundColor = COLORS.background;
+      dotColor = COLORS.secondary;
+      dotBorder = `2px solid ${COLORS.secondary}`;
     }
 
     const dotStyles = {
@@ -61,8 +62,8 @@ export function StepIndicator({
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      fontSize: isDesktop ? "14px" : "12px",
-      fontWeight: "600",
+      fontSize: isDesktop ? FONT_SIZES.sm : FONT_SIZES.xs,
+      fontWeight: FONT_WEIGHTS.bold,
       cursor: canClick ? "pointer" : "default",
       transition: "all 0.2s ease",
       backgroundColor: dotBackgroundColor,
@@ -72,18 +73,18 @@ export function StepIndicator({
     };
 
     // Base styles for the label
-    let labelColor = "#6c757d";
+    let labelColor = COLORS.muted;
     if (isActive) {
-      labelColor = "#007bff";
+      labelColor = COLORS.secondary;
     } else if (isCompleted) {
-      labelColor = "#28a745";
+      labelColor = COLORS.success;
     } else if (isHovered && canClick) {
-      labelColor = "#007bff";
+      labelColor = COLORS.secondary;
     }
 
     const labelStyles = {
-      fontSize: isDesktop ? "14px" : "12px",
-      fontWeight: isActive ? "600" : "400",
+      fontSize: isDesktop ? FONT_SIZES.sm : FONT_SIZES.xs,
+      fontWeight: isActive ? FONT_WEIGHTS.bold : FONT_WEIGHTS.normal,
       color: labelColor,
       cursor: canClick ? "pointer" : "default",
       whiteSpace: "nowrap",
