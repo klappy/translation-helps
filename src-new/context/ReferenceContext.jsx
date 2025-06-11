@@ -3,7 +3,7 @@
  * Context to track current organization, language, resource, and book/chapter/verse reference.
  */
 
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { DEFAULT_REFERENCE } from "../utils/defaultReference";
 import { updateQueryFromContext, contextFromQuery } from "../utils/contextHelpers";
 
@@ -135,4 +135,15 @@ export function ReferenceProvider({ children }) {
       {children}
     </ReferenceContext.Provider>
   );
+}
+
+/**
+ * Custom hook to use ReferenceContext
+ */
+export function useReferenceContext() {
+  const context = useContext(ReferenceContext);
+  if (!context) {
+    throw new Error("useReferenceContext must be used within a ReferenceProvider");
+  }
+  return context;
 }
