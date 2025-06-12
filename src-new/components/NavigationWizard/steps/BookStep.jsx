@@ -5,7 +5,9 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { SearchableGrid } from "../SearchableGrid";
+import { ResourceCard } from "../components/ResourceCard";
 import { fetchResourceManifest } from "../../../services/manifestService";
+import { useResources } from "../../../hooks/useResources";
 import styles from "../NavigationWizard.module.css";
 
 // Bible book data with testament categorization
@@ -90,8 +92,13 @@ function getAllBooks() {
 export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDesktop }) {
   const [selectedTestament, setSelectedTestament] = useState("all");
   const [availableBooks, setAvailableBooks] = useState(null);
+  const [manifest, setManifest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Fetch resource data to get the repository avatar
+  const { resources } = useResources(wizardData.organization, wizardData.languageId);
+  const selectedResource = resources?.find((resource) => resource.id === wizardData.resourceId);
 
   // Fetch available books from manifest
   useEffect(() => {
@@ -137,6 +144,9 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
         );
 
         if (isMounted && manifest && manifest.projects) {
+          // Store the manifest for metadata display
+          setManifest(manifest);
+
           // Extract book information from manifest projects
           const manifestBooks = manifest.projects
             .filter((project) => project && project.identifier)
@@ -258,6 +268,20 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
         <p className={`${styles.stepDescription} ${isDesktop ? styles.desktop : ""}`}>
           Select the Bible book you want to study.
         </p>
+
+        {/* Resource Metadata using ResourceCard in wide layout */}
+        {wizardData.resourceId && (
+          <ResourceCard
+            resourceId={wizardData.resourceId}
+            organization={wizardData.organization}
+            languageId={wizardData.languageId}
+            layout='wide'
+            showMetadata={true}
+            isDesktop={isDesktop}
+            avatar={selectedResource?.avatarUrl} // Use repository avatar from DCS API
+            icon={getResourceIcon(wizardData.resourceId)}
+          />
+        )}
       </div>
 
       {/* Testament Tabs */}
@@ -402,14 +426,34 @@ function getBookIcon(bookId) {
     jas: "⚖️",
     "1pe": "🗿",
     "2pe": "🗿",
-    "1jn": "💝",
+    "1jn": "�",
     "2jn": "💝",
-    "3jn": "💝",
+    "3jn": "�",
     jud: "⚠️",
     // New Testament - Prophecy
     rev: "🌟",
   };
   return icons[bookId] || "📖";
+}
+
+function getResourceIcon(resourceId) {
+  const icons = {
+    ult: "📖",
+    ust: "📚",
+    utn: "📝",
+    utq: "❓",
+    utw: "📋",
+    uta: "🎓",
+    obs: "📚",
+    bible: "📖",
+    tn: "📝",
+    tq: "❓",
+    tw: "📋",
+    ta: "🎓",
+  };
+
+  const id = resourceId.toLowerCase();
+  return icons[id] || "📄";
 }
 
 function getTestamentBadge(bookId) {

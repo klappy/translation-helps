@@ -16,6 +16,74 @@
   }
 }
 
+/* Search context display */
+.searchContext {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+  padding: var(--spacing-3);
+  background-color: var(--color-surface-secondary, #f8f9fa);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+@media (min-width: 768px) {
+  .searchContext {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-4);
+  }
+}
+
+.searchCurrentBook {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .searchCurrentBook {
+    font-size: var(--font-size-md);
+  }
+}
+
+.searchResourceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 768px) {
+  .searchResourceInfo {
+    flex-direction: row;
+    gap: var(--spacing-3);
+    font-size: var(--font-size-sm);
+    align-items: center;
+  }
+}
+
+.searchResourceDetail {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.resourceIcon {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+}
+
+@media (min-width: 768px) {
+  .resourceIcon {
+    font-size: var(--font-size-sm);
+  }
+}
+
 .searchForm {
   display: flex;
   flex-direction: column;

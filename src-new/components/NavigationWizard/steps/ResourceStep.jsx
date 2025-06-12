@@ -6,6 +6,7 @@
 import React from "react";
 import { useResources } from "../../../hooks/useResources";
 import { SearchableGrid } from "../SearchableGrid";
+import { ResourceCard } from "../components/ResourceCard";
 import styles from "../NavigationWizard.module.css";
 
 export function ResourceStep({ onNext, onPrevious, onStepChange, wizardData, isDesktop }) {
@@ -67,6 +68,13 @@ export function ResourceStep({ onNext, onPrevious, onStepChange, wizardData, isD
           getItemSubtitle={(item) => item.description}
           getItemIcon={(item) => item.icon}
           getItemAvatar={(item) => item.avatar}
+          CustomCard={ResourceCard}
+          cardProps={{
+            layout: "narrow",
+            organization: wizardData.organization,
+            languageId: wizardData.languageId,
+            showMetadata: true, // Show metadata to showcase available information
+          }}
         />
       </div>
 

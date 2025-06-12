@@ -326,6 +326,29 @@ export default function SearchPanel({ org, lang, abbr, usfm, onResultClick }) {
 
   return (
     <div className={styles.searchPanel}>
+      {/* Search Context - show current book and resource info */}
+      <div className={styles.searchContext}>
+        <div>
+          <h4 className={styles.searchCurrentBook}>
+            {abbr ? `${abbr.toUpperCase()} Search` : "Scripture Search"}
+          </h4>
+        </div>
+        <div className={styles.searchResourceInfo}>
+          <div className={styles.searchResourceDetail}>
+            <span className={styles.resourceIcon}>🏢</span>
+            <span>unfoldingWord</span>
+          </div>
+          <div className={styles.searchResourceDetail}>
+            <span className={styles.resourceIcon}>📖</span>
+            <span>TWL v85</span>
+          </div>
+          <div className={styles.searchResourceDetail}>
+            <span className={styles.resourceIcon}>⚖️</span>
+            <span>CC BY-SA 4.0</span>
+          </div>
+        </div>
+      </div>
+
       <form onSubmit={handleSearch} className={styles.searchForm}>
         <div className={styles.searchInputGroup}>
           <input

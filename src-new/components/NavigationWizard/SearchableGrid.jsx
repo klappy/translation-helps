@@ -34,6 +34,9 @@ export function SearchableGrid({
         getItemSubtitle(item).toLowerCase().includes(term)
     );
   },
+  // Custom card component props
+  CustomCard = null,
+  cardProps = {},
 }) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -152,19 +155,30 @@ export function SearchableGrid({
 
         {/* Items grid */}
         <div className={`${styles.grid} ${isDesktop ? styles.desktop : ""}`}>
-          {filteredItems.map((item) => (
-            <div key={getItemKey(item)} className={styles.gridItem}>
-              <SelectionCard
-                title={getItemTitle(item)}
-                subtitle={getItemSubtitle(item)}
-                icon={getItemIcon(item)}
-                avatar={getItemAvatar(item)}
-                selected={selectedItem && getItemKey(selectedItem) === getItemKey(item)}
-                onClick={() => handleItemClick(item)}
-                isDesktop={isDesktop}
-              />
-            </div>
-          ))}
+          {filteredItems.map((item) => {
+            const CardComponent = CustomCard || SelectionCard;
+            const isSelected = selectedItem && getItemKey(selectedItem) === getItemKey(item);
+
+            const commonProps = {
+              key: getItemKey(item),
+              title: getItemTitle(item),
+              subtitle: getItemSubtitle(item),
+              icon: getItemIcon(item),
+              avatar: getItemAvatar(item),
+              selected: isSelected,
+              onClick: () => handleItemClick(item),
+              isDesktop,
+              // Add resourceId from item for ResourceCard
+              resourceId: item.id,
+              ...cardProps,
+            };
+
+            return (
+              <div key={getItemKey(item)} className={styles.gridItem}>
+                <CardComponent {...commonProps} />
+              </div>
+            );
+          })}
         </div>
       </>
     );
