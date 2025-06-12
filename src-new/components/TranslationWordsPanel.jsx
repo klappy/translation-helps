@@ -232,6 +232,13 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
                   })}
                 </p>
 
+                {/* Hidden full content for chat context extraction */}
+                {word.content && (
+                  <div className={styles.visuallyHidden} aria-hidden='true'>
+                    {word.content}
+                  </div>
+                )}
+
                 {word.rcUri && (
                   <p
                     className={styles.rcLink}

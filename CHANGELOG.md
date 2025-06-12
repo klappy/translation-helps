@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.13.2] - 2025-06-11
+
+### Added
+
+- **Enhanced Chat Context Extraction for Translation Words - Hidden Full Content Implementation**
+  - ✅ Implemented hidden full content extraction for translation words to enhance LLM chat context availability
+  - ✅ Added `.visuallyHidden` CSS class using standard accessibility patterns for screen reader content
+  - ✅ Enhanced `TranslationWordsPanel` to include hidden `<div>` elements containing complete article content
+  - ✅ Full article text now accessible to DOM text extraction while remaining invisible to users
+  - ✅ Users continue to see concise, readable summaries in the interface while chat context gets complete articles
+  - ✅ Hidden content includes full definitions, translation suggestions, Bible references, and contextual information
+  - ✅ Implemented using `aria-hidden="true"` attributes for proper accessibility compliance
+  - ✅ Updated component tests to handle duplicate text content (visible summary + hidden full content)
+  - ✅ All 11 TranslationWordsPanel tests passing with enhanced assertions for multiple content instances
+  - ✅ Verified DOM text extraction functionality works correctly through browser testing
+
+### Technical Implementation
+
+- **CSS Enhancement**: Added `.visuallyHidden` class with standard accessibility pattern for content that should be available to text extraction but not visible to users
+- **Component Enhancement**: Modified `TranslationWordsPanel.jsx` to render both visible summaries and hidden full content
+- **Test Updates**: Enhanced test assertions to verify both visible and hidden content are properly rendered and accessible
+- **Verification**: Created and tested proof-of-concept confirming DOM text extraction includes hidden content
+- **Files Modified**:
+  - `src-new/components/TranslationWordsPanel.module.css` - Added `.visuallyHidden` class
+  - `src-new/components/TranslationWordsPanel.jsx` - Added hidden full content rendering
+  - `src-new/components/TranslationWordsPanel.test.jsx` - Updated tests for duplicate content handling
+
+### User Experience Benefits
+
+- **Enhanced Chat Context**: LLM chat now has access to complete translation word articles including full definitions, translation suggestions, and Bible references
+- **Maintained UX**: Users continue to see concise, readable summaries without interface clutter
+- **Zero Visual Impact**: Hidden content is completely invisible to users but available for automated text extraction
+- **Accessibility Compliant**: Uses standard screen reader patterns with proper ARIA attributes
+- **Performance Optimized**: No impact on rendering performance or user interface responsiveness
+
 ## [0.13.1] - 2025-06-11
 
 ### Confirmed

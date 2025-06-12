@@ -164,9 +164,21 @@ describe("TranslationWordsPanel", () => {
       expect(screen.getByText("heaven")).toBeInTheDocument();
     });
 
-    // Check that article summaries are displayed
-    expect(screen.getByText(/The term "create" means to make something exist/)).toBeInTheDocument();
-    expect(screen.getByText(/The term "heaven" refers to where God lives/)).toBeInTheDocument();
+    // Check that article summaries are displayed in the visible summary paragraphs
+    const summaryElements = screen.getAllByText(/The term "create" means to make something exist/);
+    expect(summaryElements.length).toBeGreaterThan(0);
+    // Verify at least one is in a visible summary paragraph (not the hidden div)
+    const visibleSummary = summaryElements.find(
+      (el) => el.closest("p") && el.closest("p").classList.contains("_wordSummary_4508b4")
+    );
+    expect(visibleSummary).toBeInTheDocument();
+
+    const heavenElements = screen.getAllByText(/The term "heaven" refers to where God lives/);
+    expect(heavenElements.length).toBeGreaterThan(0);
+    const visibleHeavenSummary = heavenElements.find(
+      (el) => el.closest("p") && el.closest("p").classList.contains("_wordSummary_4508b4")
+    );
+    expect(visibleHeavenSummary).toBeInTheDocument();
 
     // Check that RC URIs are displayed
     expect(screen.getByText("rc://en/tw/dict/bible/kt/create")).toBeInTheDocument();
