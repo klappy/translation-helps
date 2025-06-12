@@ -272,13 +272,13 @@ exports.handler = async (event, context) => {
 
     // Prepare OpenAI request
     const openaiRequest = {
-      model: "gpt-4.1-nano",
+      model: "gpt-4o-mini",
       messages: messages,
-      max_tokens: 1000,
-      temperature: 0.6,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
+      max_tokens: 500,
+      temperature: 0.2,
+      top_p: 0.2,
+      frequency_penalty: 0.4,
+      presence_penalty: 0.4,
     };
 
     // Log request details (without sensitive data)

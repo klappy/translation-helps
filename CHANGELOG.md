@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.13.7] - 2025-06-12
+
+### Fixed
+
+- **LLM Chat Nested List Styling - Enhanced Visual Hierarchy**
+  - ✅ Fixed nested list items in AI responses to use normal bullet styling instead of card-based blue sidebar
+  - ✅ Only top-level list items now display with the special card styling (background, border, shadow)
+  - ✅ Nested list items render with standard disc bullets and proper indentation for cleaner visual hierarchy
+  - ✅ Added CSS rules for nested lists with proper padding and list-style inheritance
+  - ✅ Improved readability of complex hierarchical content in AI responses
+  - ✅ Maintains design system consistency while providing appropriate visual differentiation between list levels
+
+### Technical Implementation
+
+- **CSS Selector Enhancement**: Updated `.assistantMessage .messageText li` to use child combinator (`ul > li`, `ol > li`) for top-level targeting
+- **Nested List Rules**: Added specific styling for `li li` elements to reset card styling and apply standard list appearance
+- **Visual Hierarchy**: Top-level items maintain blue sidebar theme, nested items use standard disc bullets
+- **Files Modified**: `src-new/components/LLMChatPanel.module.css`
+
+### User Experience Benefits
+
+- **Clearer Content Structure**: Visual distinction between main points (card style) and sub-points (bullet style)
+- **Improved Readability**: Nested lists no longer visually compete with top-level content
+- **Professional Appearance**: Hierarchical content displays with appropriate visual weight and emphasis
+- **Design Consistency**: Maintains card-based theme while respecting traditional list formatting patterns
+
 ## [0.13.6] - 2025-06-12
 
 ### Changed

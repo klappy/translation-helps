@@ -4,7 +4,6 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-height: 600px;
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
@@ -249,7 +248,8 @@
   color: var(--help-text-color);
 }
 
-.assistantMessage .messageText li {
+.assistantMessage .messageText ul > li,
+.assistantMessage .messageText ol > li {
   margin: var(--spacing-1) 0;
   line-height: var(--line-height-relaxed);
   color: var(--help-text-color);
@@ -258,6 +258,26 @@
   border-radius: var(--help-card-border-radius);
   padding: var(--help-card-padding);
   box-shadow: var(--help-card-shadow);
+}
+
+/* Nested list items should have normal list styling */
+.assistantMessage .messageText li li {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  margin: var(--spacing-1) 0 var(--spacing-1) var(--spacing-4);
+  color: var(--help-text-color);
+  list-style: disc inside;
+}
+
+/* Nested lists should have normal padding */
+.assistantMessage .messageText li ul,
+.assistantMessage .messageText li ol {
+  padding-left: var(--spacing-4);
+  list-style: inherit;
+  margin: var(--spacing-1) 0;
 }
 
 .assistantMessage .messageText strong {
