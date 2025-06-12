@@ -162,27 +162,46 @@ export async function sendChatMessage(message, context, chatHistory = []) {
       timestamp: new Date().toISOString(),
     };
 
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
+    // Create AbortController for timeout management
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        success: true,
+        response: data.response,
+        timestamp: new Date().toISOString(),
+        contextUsed: context,
+        metadata: data.metadata || {},
+      };
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+
+      // Handle AbortError specifically
+      if (fetchError.name === "AbortError") {
+        throw new Error("Request timed out after 30 seconds");
+      }
+
+      // Re-throw other fetch errors
+      throw fetchError;
     }
-
-    const data = await response.json();
-
-    return {
-      success: true,
-      response: data.response,
-      timestamp: new Date().toISOString(),
-      contextUsed: context,
-      metadata: data.metadata || {},
-    };
   } catch (error) {
     console.error("Error sending chat message:", error);
 

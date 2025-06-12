@@ -5,6 +5,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useChat } from "../context/ChatContext";
+import { MarkdownWithRcLinks } from "../utils/markdownUtils";
 import styles from "./LLMChatPanel.module.css";
 
 export function LLMChatPanel({ reference }) {
@@ -61,6 +62,7 @@ export function LLMChatPanel({ reference }) {
   const renderMessage = (message) => {
     const isUser = message.type === "user";
     const isError = message.type === "error";
+    const isAssistant = message.type === "assistant";
 
     return (
       <div
@@ -70,7 +72,19 @@ export function LLMChatPanel({ reference }) {
         }`}
       >
         <div className={styles.messageContent}>
-          <div className={styles.messageText}>{message.content}</div>
+          <div className={styles.messageText}>
+            {isAssistant ? (
+              <MarkdownWithRcLinks
+                content={message.content}
+                onRcLinkClick={(rcLink) => {
+                  // Handle RC link clicks in chat context if needed
+                  console.log("RC link clicked in chat:", rcLink);
+                }}
+              />
+            ) : (
+              message.content
+            )}
+          </div>
           <div className={styles.messageTime}>
             {formatTimestamp(message.timestamp)}
             {message.metadata?.mock && <span className={styles.mockBadge}>MOCK</span>}

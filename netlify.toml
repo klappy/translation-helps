@@ -25,6 +25,9 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+  [functions.timeout]
+    default = 25
+
 
 # Environment variable setup (for production)
 [context.production.environment]

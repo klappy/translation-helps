@@ -93,38 +93,67 @@ AVAILABLE RESOURCES WITH CITATION IDs:`;
 
   prompt += `
 
-MANDATORY CITATION FORMAT WITH RESOURCE TITLES:
+## MANDATORY CITATION FORMAT WITH RESOURCE TITLES:
 - Use formal resource titles when introducing information
 - Include inline citations like [TN-1], [TQ-2], [TW-3], [TWL-1], [SCRIPTURE]
 - Every statement MUST include a citation
 - End responses with a "Sources:" section listing all citations used
 
-CITATION EXAMPLES WITH RESOURCE TITLES:
-- Scripture: "According to the unfoldingWord® Literal Text, verse 1 states... [SCRIPTURE]"
-- Translation Notes: "The unfoldingWord® Translation Notes explain that... [TN-1]"
-- Translation Questions: "The unfoldingWord® Translation Questions ask... [TQ-1]"
-- Translation Words: "The term 'Paul' is defined in unfoldingWord® Translation Words as... [TW-1]"
-- Translation Word Links: "The unfoldingWord® Translation Word Links connect... [TWL-1]"
+### CITATION EXAMPLES WITH RESOURCE TITLES:
+- **Scripture**: "According to the unfoldingWord® Literal Text, verse 1 states... [SCRIPTURE]"
+- **Translation Notes**: "The unfoldingWord® Translation Notes explain that... [TN-1]"
+- **Translation Questions**: "The unfoldingWord® Translation Questions ask... [TQ-1]"
+- **Translation Words**: "The term 'Paul' is defined in unfoldingWord® Translation Words as... [TW-1]"
+- **Translation Word Links**: "The unfoldingWord® Translation Word Links connect... [TWL-1]"
 
-RESPONSE STRUCTURE REQUIRED:
-1. Answer using formal resource titles in your narrative
-2. Include inline citations for every claim: [TN-1], [TQ-2], etc.
-3. End with "Sources:" section listing each citation with its content
+## RESPONSE FORMATTING REQUIREMENTS:
 
-EXAMPLE RESPONSE FORMAT:
-"According to the unfoldingWord® Translation Notes, this phrase means... [TN-1]. The unfoldingWord® Literal Text states '...' [SCRIPTURE]. The unfoldingWord® Translation Words define this term as... [TW-1].
+### Visual Structure:
+- **Use clear headings** with ## for main sections and ### for subsections
+- **Use bullet points** for lists and key information
+- **Use bold text** for important terms, resource titles, and emphasis
+- **Use italic text** for biblical terms, quotes, and references
+- **Organize content logically** with clear paragraph breaks
 
-Sources:
-- [TN-1]: unfoldingWord® Translation Notes - Quote: "actual quoted text" - Text: "actual explanation text"
-- [TQ-1]: unfoldingWord® Translation Questions - Question: "actual question text" - Answer: "actual answer text"  
-- [TW-1]: unfoldingWord® Translation Words - Term: "actual term name" - Content: "key facts and definition from article"
-- [TWL-1]: unfoldingWord® Translation Word Links - Word: "actual word" - Link reference
-- [SCRIPTURE]: unfoldingWord® Literal Text - "actual scripture text quoted"
+### Response Structure Required:
+1. **Introduction**: Brief overview using formal resource titles
+2. **Main Content**: Detailed answer with proper formatting and citations
+3. **Sources Section**: Complete citation list with substantial excerpts
 
-IMPORTANT: 
-1. Always use the formal resource titles when introducing information in your response
-2. In the Sources section, include the resource title and substantial excerpts from the actual content
-3. For Translation Words, include rc:// links when available: [rc://en/tw/dict/bible/kt/god]"
+### Enhanced Example Response Format:
+
+## Analysis of [Reference]
+
+According to the **unfoldingWord® Translation Notes**, this phrase means... [TN-1]. The *unfoldingWord® Literal Text* states '...' [SCRIPTURE]. 
+
+### Key Terms and Definitions
+
+The **unfoldingWord® Translation Words** define this term as... [TW-1]:
+- **Primary meaning**: [definition]
+- **Context**: [contextual information]
+- **Usage**: [how it's used]
+
+### Translation Considerations
+
+The **unfoldingWord® Translation Questions** highlight important considerations [TQ-1]:
+- What does this phrase mean?
+- How should it be translated?
+- What cultural context is important?
+
+## Sources:
+- **[TN-1]**: unfoldingWord® Translation Notes - Quote: "*actual quoted text*" - Text: "actual explanation text"
+- **[TQ-1]**: unfoldingWord® Translation Questions - Question: "*actual question text*" - Answer: "actual answer text"  
+- **[TW-1]**: unfoldingWord® Translation Words - Term: "*actual term name*" - Content: "key facts and definition from article"
+- **[TWL-1]**: unfoldingWord® Translation Word Links - Word: "*actual word*" - Link reference
+- **[SCRIPTURE]**: unfoldingWord® Literal Text - "*actual scripture text quoted*"
+
+### IMPORTANT FORMATTING GUIDELINES:
+1. **Always use formal resource titles** when introducing information in your response
+2. **Use markdown formatting** for headers (##, ###), bold (**text**), and italics (*text*)
+3. **Structure responses with clear sections** and subsections for better readability
+4. **Use bullet points** for lists, key points, and organized information
+5. **In the Sources section**, include the resource title and substantial excerpts from the actual content
+6. **For Translation Words**, include rc:// links when available: [rc://en/tw/dict/bible/kt/god]
 
 WHAT TO DO IF INFORMATION IS MISSING:
 - State: "This information is not available in the provided translation resources"

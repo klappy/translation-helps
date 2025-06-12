@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.13.4] - 2025-06-12
+
+### Added
+
+- **AI Response Formatting Enhancement - Enhanced Visual Clarity Through Structured Formatting**
+  - ✅ Implemented comprehensive formatting instructions in system prompt to improve AI response readability
+  - ✅ Added structured response requirements with clear headings, bullet points, and emphasis formatting
+  - ✅ Enhanced citation format with bold resource titles and organized Sources sections
+  - ✅ Implemented visual structure guidelines using markdown formatting (##, ###, **bold**, _italic_)
+  - ✅ Created enhanced example response template demonstrating proper formatting patterns
+  - ✅ Added comprehensive formatting guidelines checklist for consistent AI responses
+  - ✅ Maintained existing citation system integrity while improving visual presentation
+  - ✅ Verified functionality through testing with Genesis 1:1 showing proper markdown formatting
+  - ✅ AI responses now include professional structure: Analysis headers, Key Terms sections, Translation Considerations
+
+### Fixed
+
+- **LLM Chat Panel Timeout Issues - Production Reliability Enhancement**
+  - ✅ Fixed timeout errors where requests failed after 10 seconds but OpenAI responded seconds later
+  - ✅ Enhanced client-side service with 30-second timeout using AbortController for reliable request management
+  - ✅ Added proper timeout error handling with specific "Request timed out after 30 seconds" messaging
+  - ✅ Improved abort signal management to prevent hanging requests and memory leaks
+  - ✅ Chat panel styling aligned with resource panel design system using CSS variables
+  - ✅ Updated all chat panel components to use design system colors, spacing, and typography
+  - ✅ Enhanced markdown rendering within chat messages for consistent visual presentation
+  - ✅ Fixed responsive design for mobile and desktop chat interactions
+
+### Technical Implementation
+
+- **System Prompt Enhancement**: Extended `formatSystemPrompt()` function in `netlify/functions/chat.js`
+- **Formatting Requirements**: Added "## RESPONSE FORMATTING REQUIREMENTS" section with visual structure guidelines
+- **Example Template**: Comprehensive example showing proper heading structure and citation formatting
+- **Testing**: Validated through `scripts/test-chat-request.js` confirming AI follows new formatting guidelines
+- **Documentation**: Created `docs/ai-response-formatting-enhancement.md` with implementation details
+- **Client Timeout**: Enhanced `llmChatService.js` with AbortController and 30-second timeout for reliable request management
+- **Design System**: Aligned `LLMChatPanel.module.css` with global design variables
+- **Error Handling**: Improved timeout detection and user feedback messaging
+
+### User Experience Benefits
+
+- **Improved Readability**: Clear visual hierarchy through structured headings and sections
+- **Better Organization**: Logical content flow with Introduction, Main Content, and Sources sections
+- **Enhanced Engagement**: Professional presentation with consistent formatting patterns
+- **Easier Reference**: Well-formatted Sources sections with bold citations and substantial excerpts
+- **Educational Value**: Structured presentation improves comprehension of translation resources
+- **Reliable Chat**: Eliminated timeout failures and improved chat panel reliability
+- **Consistent Design**: Unified visual experience across all application panels
+
 ## [0.13.3] - 2025-06-12
 
 ### Fixed
@@ -796,6 +844,14 @@
 ## [Unreleased]
 
 ### Added
+
+- **Enhanced AI Response Formatting**: Implemented comprehensive markdown rendering for AI responses in chat panel
+
+  - AI responses now render markdown formatting (headings, lists, bold, italic, code blocks, etc.) as proper HTML
+  - User messages remain as plain text for clear distinction
+  - Added custom CSS styling for markdown elements within assistant message bubbles
+  - Maintained existing RC link functionality within markdown content
+  - Improved visual clarity and readability of AI responses
 
 - **Dynamic DCS Catalog API Integration - ACTUALLY IMPLEMENTED**
   - ✅ Real API calls to DCS catalog endpoints (previously hardcoded in v0.4.0)
