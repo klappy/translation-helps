@@ -123,6 +123,13 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
         setLoading(true);
         setError(null);
 
+        // Debug logging to identify language ID corruption
+        console.log("🔍 BookStep manifest fetch parameters:");
+        console.log("  - organization:", wizardData.organization);
+        console.log("  - languageId:", wizardData.languageId);
+        console.log("  - resourceId:", wizardData.resourceId);
+        console.log("  - Full wizardData:", wizardData);
+
         const manifest = await fetchResourceManifest(
           wizardData.organization,
           wizardData.languageId,

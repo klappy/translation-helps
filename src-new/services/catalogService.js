@@ -177,13 +177,22 @@ export async function fetchLanguages(owner) {
       // Extract language objects from API response
       const languages = data.data
         .filter((lang) => lang && lang.lc)
-        .map((lang) => ({
-          code: lang.lc,
-          name: lang.ln || lang.lc,
-          direction: lang.ld || "ltr",
-          raw: lang,
-        }))
+        .map((lang) => {
+          // Debug logging to identify language ID corruption
+          console.log("🔍 Raw language from API:", lang);
+          console.log("🔍 Extracted lang.lc:", lang.lc);
+
+          return {
+            code: lang.lc,
+            name: lang.ln || lang.lc,
+            direction: lang.ld || "ltr",
+            raw: lang,
+          };
+        })
         .sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code));
+
+      // Log the final transformed languages
+      console.log("🔍 Final languages array:", languages);
 
       return languages.length > 0 ? languages : fallbackLanguages;
     }
@@ -296,16 +305,26 @@ export async function fetchBibleResources(owner, language) {
           (repo) =>
             repo && repo.name && (repo.subject === "Bible" || repo.subject === "Aligned Bible")
         )
-        .map((repo) => ({
-          id: repo.name,
-          name: repo.name,
-          fullName: repo.full_name,
-          description: repo.description || repo.name,
-          subject: repo.subject,
-          repoUrl: repo.html_url || repo.repo_url,
-          avatarUrl: repo.avatar_url || null, // Repository avatar
-          owner: repo.owner || null, // Owner information
-        }))
+        .map((repo) => {
+          // Extract resource ID by removing language prefix
+          // Repository names are typically in format "{language}_{resource}" (e.g., "en_ult")
+          let resourceId = repo.name;
+          const languagePrefixPattern = new RegExp(`^${languageCode}_`);
+          if (languagePrefixPattern.test(repo.name)) {
+            resourceId = repo.name.replace(languagePrefixPattern, "");
+          }
+
+          return {
+            id: resourceId, // Use stripped resource ID (e.g., "ult" instead of "en_ult")
+            name: repo.name, // Keep full repository name for display
+            fullName: repo.full_name,
+            description: repo.description || repo.name,
+            subject: repo.subject,
+            repoUrl: repo.html_url || repo.repo_url,
+            avatarUrl: repo.avatar_url || null, // Repository avatar
+            owner: repo.owner || null, // Owner information
+          };
+        })
         .sort((a, b) => a.name.localeCompare(b.name));
 
       return resources.length > 0 ? resources : fallbackResources;

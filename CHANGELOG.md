@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.13.8] - 2025-06-12
+
+### Fixed
+
+- **Book Listing Functionality Restored - Critical Navigation Issue Resolved**
+  - ✅ Fixed broken book listing in Navigation Wizard that had been non-functional for days
+  - ✅ Corrected `catalogService.js` `extractResourceId()` function to return clean resource IDs (`"ult"`) instead of corrupted full repository names (`"en_ult"`)
+  - ✅ Fixed `ReferenceContext.jsx` default values from incorrect `"en_ult"` to proper `"ult"`
+  - ✅ Eliminated 404 errors caused by malformed DCS API URLs (`unfoldingWord/en_en_ult` → `unfoldingWord/en_ult`)
+  - ✅ Book selection now displays proper counts: "All Books 67", "Old Testament 39", "New Testament 28"
+  - ✅ Navigation wizard opens correctly and shows available books for user selection
+  - ✅ Resolved cascading failures where corrupted resource IDs prevented manifest loading
+  - ✅ Scripture content loads properly using correct resource identifiers
+  - ✅ Fixed book listing functionality across entire application
+
+### Technical Implementation
+
+- **Root Cause**: Resource ID corruption from `extractResourceId()` returning full repository names instead of clean identifiers
+- **Catalog Service Fix**: Enhanced resource ID extraction to properly parse repository names and return clean identifiers
+- **Context Default Fix**: Updated hardcoded default values to use correct resource ID format
+- **URL Generation**: Fixed DCS repository URL construction to prevent duplicate language codes
+- **Files Modified**:
+  - `src-new/services/catalogService.js` - Fixed `extractResourceId()` function
+  - `src-new/context/ReferenceContext.jsx` - Updated default resource ID values
+
+### User Experience Benefits
+
+- **Restored Navigation**: Users can now select books through the navigation wizard as intended
+- **Eliminated Errors**: No more confusing 404 errors when trying to access book listings
+- **Proper Counts**: Book tabs show accurate counts providing clear organization options
+- **Consistent Functionality**: Book selection works reliably across all navigation paths
+- **Enhanced Reliability**: Fixed underlying data corruption that affected multiple application areas
+
 ## [0.13.7] - 2025-06-12
 
 ### Fixed

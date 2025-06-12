@@ -94,6 +94,7 @@ GUIDELINES:
 4. Use the translation notes and questions to inform your responses
 5. When discussing translation choices, consider the original languages and cultural context
 6. Always be respectful of different translation approaches
+7. If you provide an incomplete list in your response, always inform the user that the list is incomplete and let them know they can request the remaining N items if needed
 
 Please answer the user's question using this contextual information.`;
 
