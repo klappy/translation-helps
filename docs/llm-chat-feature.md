@@ -9,7 +9,7 @@
 - ✅ Chat UI Component (LLMChatPanel)
 - ✅ Context Integration (ChatContext)
 - ✅ Serverless Backend (Netlify Function)
-- ✅ OpenAI GPT-4o Integration
+- ✅ OpenAI GPT-4.1-nano Integration
 - ✅ Comprehensive Testing Suite
 - ✅ Tab Integration with HelpsTabs
 - ✅ Context-aware responses
@@ -71,7 +71,7 @@ netlify.toml                          # Netlify configuration
 
 ### AI Capabilities - **ENHANCED WITH CITATION SYSTEM**
 
-- **OpenAI GPT-4o**: Powered by the latest OpenAI model
+- **OpenAI GPT-4.1-nano**: Powered by OpenAI's fastest and most cost-effective model optimized for speed and efficiency
 - **Strict Source Attribution**: Every response includes mandatory citations
 - **No Hallucination**: AI restricted to ONLY information provided in context
 - **Contextual responses**: Answers tailored to current scripture passage with citations
@@ -422,10 +422,12 @@ ChatProvider is wrapped around the app in the provider hierarchy:
 
 ### OpenAI API Usage
 
-- **Model**: GPT-4o (optimized for reasoning)
+- **Model**: GPT-4.1-nano (fastest and most cost-effective model)
 - **Token Usage**: Estimated 500-2000 tokens per conversation
-- **Cost**: Approximately $0.01-0.06 per conversation
+- **Cost**: Approximately $0.0002-0.001 per conversation (up to 98% cost reduction)
 - **Rate Limits**: 500 requests per minute (depending on API tier)
+- **Context Window**: 1M tokens with max output of 32.8K tokens
+- **Speed**: ~150.0 tokens/second for optimal real-time performance
 
 ### Optimization Strategies
 

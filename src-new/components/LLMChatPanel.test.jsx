@@ -8,10 +8,17 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { LLMChatPanel } from "./LLMChatPanel";
 import { ChatProvider } from "../context/ChatContext";
+import { ResourcesProvider } from "../context/ResourcesContext";
+import { ReferenceProvider } from "../context/ReferenceContext";
 
 // Mock the chat service
 vi.mock("../services/llmChatService", () => ({
   sendMessage: vi.fn(),
+}));
+
+// Mock the emoji enhancer
+vi.mock("../utils/emojiEnhancer", () => ({
+  enhanceLLMResponse: vi.fn((content) => content),
 }));
 
 // Mock reference data for testing
@@ -21,8 +28,14 @@ const mockReference = {
   verse: 1,
 };
 
-// Test wrapper with context
-const TestWrapper = ({ children }) => <ChatProvider>{children}</ChatProvider>;
+// Test wrapper with all required contexts
+const TestWrapper = ({ children }) => (
+  <ReferenceProvider>
+    <ResourcesProvider>
+      <ChatProvider>{children}</ChatProvider>
+    </ResourcesProvider>
+  </ReferenceProvider>
+);
 
 describe("LLMChatPanel", () => {
   beforeEach(() => {
@@ -105,7 +118,7 @@ describe("LLMChatPanel", () => {
 
     // Should show the assistant interface
     expect(screen.getByText("Welcome to Translation Assistant!")).toBeInTheDocument();
-    expect(screen.getByText("Development Mode - Using Mock Responses")).toBeInTheDocument();
+    expect(screen.getByText("Powered by AI")).toBeInTheDocument();
   });
 
   it("handles empty reference gracefully", () => {

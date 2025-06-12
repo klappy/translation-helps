@@ -118,9 +118,9 @@ export async function sendChatMessage(message, context, chatHistory = []) {
     const estimatedInputTokens = Math.ceil((contextSize + messageSize + historySize) / 4);
     const estimatedOutputTokens = 500; // Assume average response length
 
-    // GPT-4o pricing: $2.50/million input, $10.00/million output
-    const inputCost = (estimatedInputTokens / 1000000) * 2.5;
-    const outputCost = (estimatedOutputTokens / 1000000) * 10.0;
+    // GPT-4.1-nano pricing: $0.10/million input, $0.40/million output
+    const inputCost = (estimatedInputTokens / 1000000) * 0.1;
+    const outputCost = (estimatedOutputTokens / 1000000) * 0.4;
     const totalCost = inputCost + outputCost;
 
     // Analyze resources being sent

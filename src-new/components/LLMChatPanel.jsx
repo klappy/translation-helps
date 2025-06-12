@@ -6,6 +6,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useChat } from "../context/ChatContext";
 import { MarkdownWithRcLinks } from "../utils/markdownUtils";
+import { enhanceLLMResponse } from "../utils/emojiEnhancer";
 import styles from "./LLMChatPanel.module.css";
 
 export function LLMChatPanel({ reference }) {
@@ -75,7 +76,11 @@ export function LLMChatPanel({ reference }) {
           <div className={styles.messageText}>
             {isAssistant ? (
               <MarkdownWithRcLinks
-                content={message.content}
+                content={enhanceLLMResponse(message.content, {
+                  enabled: true,
+                  maxEmojisPerResponse: 6,
+                  excludeCategories: [],
+                })}
                 onRcLinkClick={(rcLink) => {
                   // Handle RC link clicks in chat context if needed
                   console.log("RC link clicked in chat:", rcLink);

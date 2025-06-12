@@ -174,10 +174,18 @@
 .assistantMessage .messageContent {
   background-color: var(--help-card-background);
   color: var(--color-text);
-  border-radius: 18px 18px 18px 4px;
-  padding: var(--spacing-3) var(--spacing-4);
+  border-left: var(--help-card-border);
+  border-radius: var(--help-card-border-radius);
+  padding: var(--help-card-padding);
+  box-shadow: var(--help-card-shadow);
   border: 1px solid var(--color-border);
   font-size: var(--font-size-sm);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.assistantMessage .messageContent:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .errorMessage .messageContent {
@@ -205,7 +213,7 @@
 .assistantMessage .messageText h5,
 .assistantMessage .messageText h6 {
   margin: var(--spacing-4) 0 var(--spacing-2) 0;
-  color: var(--color-text);
+  color: var(--help-quote-color);
   font-weight: var(--font-weight-semibold);
 }
 
@@ -230,27 +238,36 @@
 .assistantMessage .messageText p {
   margin: 0 0 var(--spacing-2) 0;
   line-height: var(--line-height-relaxed);
+  color: var(--help-text-color);
 }
 
 .assistantMessage .messageText ul,
 .assistantMessage .messageText ol {
   margin: var(--spacing-2) 0;
-  padding-left: var(--spacing-5);
+  padding-left: 0;
+  list-style: none;
+  color: var(--help-text-color);
 }
 
 .assistantMessage .messageText li {
   margin: var(--spacing-1) 0;
-  line-height: var(--line-height-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--help-text-color);
+  background-color: var(--help-card-background);
+  border-left: var(--help-card-border);
+  border-radius: var(--help-card-border-radius);
+  padding: var(--help-card-padding);
+  box-shadow: var(--help-card-shadow);
 }
 
 .assistantMessage .messageText strong {
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
+  color: var(--help-quote-color);
 }
 
 .assistantMessage .messageText em {
   font-style: italic;
-  color: var(--color-text-light);
+  color: var(--help-meta-color);
 }
 
 .assistantMessage .messageText code {
@@ -282,10 +299,13 @@
 
 .assistantMessage .messageText blockquote {
   margin: var(--spacing-2) 0;
-  padding-left: var(--spacing-3);
-  border-left: 3px solid var(--color-primary);
+  padding: var(--help-quote-padding);
+  border-left: var(--help-card-border);
+  border-radius: var(--help-quote-border-radius);
+  background-color: var(--help-quote-background);
   font-style: italic;
-  color: var(--color-text-light);
+  color: var(--help-quote-color);
+  font-family: monospace;
 }
 
 .assistantMessage .messageText hr {
@@ -312,6 +332,28 @@
   text-decoration: none;
 }
 
+/* Emoji styling within assistant messages */
+.assistantMessage .messageText {
+  /* Ensure emojis render consistently */
+  font-variant-emoji: emoji;
+}
+
+/* General emoji styling across all messages */
+.messageText {
+  /* Ensure consistent emoji rendering */
+  font-feature-settings: "emoji" 1;
+}
+
+/* Emoji enhancements for better visual appeal */
+.messageText span[role="img"],
+.messageText .emoji {
+  display: inline-block;
+  font-size: 1.1em;
+  line-height: 1;
+  vertical-align: baseline;
+  margin: 0 2px;
+}
+
 .messageTime {
   font-size: var(--help-meta-size);
   opacity: 0.7;
@@ -336,8 +378,10 @@
 
 .loadingMessage .messageContent {
   background-color: var(--help-card-background);
-  border-radius: 18px 18px 18px 4px;
-  padding: var(--spacing-3) var(--spacing-4);
+  border-left: var(--help-card-border);
+  border-radius: var(--help-card-border-radius);
+  padding: var(--help-card-padding);
+  box-shadow: var(--help-card-shadow);
   border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
