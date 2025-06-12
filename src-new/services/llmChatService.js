@@ -163,21 +163,76 @@ export async function sendChatMessage(message, context, chatHistory = []) {
  * @returns {Object} Mock response
  */
 export function createMockResponse(message, context) {
-  const responses = [
-    `Based on the translation resources for ${context.reference.citation}, I can help explain this verse. The translation notes provide valuable insight into the original text and cultural context.`,
-    `Looking at the translation questions for this verse, there are several important considerations for translators to keep in mind.`,
-    `The translation words linked to this passage offer important background on key terms and concepts.`,
-    `This verse has several translation challenges that the notes and questions help address.`,
-  ];
+  const { resources } = context;
+
+  // Create example responses with proper citation format
+  const responses = [];
+
+  if (resources.scripture) {
+    responses.push(
+      `According to the scripture text, "${resources.scripture.substring(
+        0,
+        50
+      )}..." [SCRIPTURE]. ` +
+        `This passage shows important themes for translation.\n\n` +
+        `Sources:\n- [SCRIPTURE]: ${resources.scripture.substring(0, 100)}...`
+    );
+  }
+
+  if (resources.translationNotes?.length > 0) {
+    const firstNote = resources.translationNotes[0];
+    responses.push(
+      `The translation notes explain that "${
+        firstNote.quote || "this phrase"
+      }" has specific meaning [TN-1]. ` +
+        `This guidance helps translators understand the original intent.\n\n` +
+        `Sources:\n- [TN-1]: Quote: "${firstNote.quote || "N/A"}" - Text: "${
+          firstNote.text || "N/A"
+        }"`
+    );
+  }
+
+  if (resources.translationQuestions?.length > 0) {
+    const firstQuestion = resources.translationQuestions[0];
+    responses.push(
+      `Translation teams should consider: "${firstQuestion.question}" [TQ-1]. ` +
+        `This question helps ensure accurate meaning transfer.\n\n` +
+        `Sources:\n- [TQ-1]: Question: "${firstQuestion.question}" Answer: "${
+          firstQuestion.answer || "See context"
+        }"`
+    );
+  }
+
+  if (resources.translationWords?.length > 0) {
+    const firstWord = resources.translationWords[0];
+    responses.push(
+      `The key term "${firstWord.term || firstWord.title}" means "${firstWord.definition?.substring(
+        0,
+        50
+      )}..." [TW-1]. ` +
+        `Understanding this concept is crucial for accurate translation.\n\n` +
+        `Sources:\n- [TW-1]: Term: "${firstWord.term || firstWord.title}" Definition: "${
+          firstWord.definition || "N/A"
+        }"`
+    );
+  }
+
+  // Fallback response if no resources available
+  if (responses.length === 0) {
+    responses.push(
+      `This information is not available in the provided translation resources for ${context.reference.citation}. ` +
+        `To answer your question, I would need access to translation notes, questions, or word definitions for this verse.`
+    );
+  }
 
   const randomResponse = responses[Math.floor(Math.random() * responses.length)];
 
   return {
     success: true,
-    response: `${randomResponse}\n\n*This is a mock response for development. The actual feature will use OpenAI GPT-4o.*`,
+    response: `${randomResponse}\n\n*This is a mock response demonstrating the new citation format. The actual feature will use OpenAI GPT-4o with strict source attribution.*`,
     timestamp: new Date().toISOString(),
     contextUsed: context,
-    metadata: { mock: true },
+    metadata: { mock: true, citationFormat: "enabled" },
   };
 }
 

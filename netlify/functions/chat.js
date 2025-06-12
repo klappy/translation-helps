@@ -13,60 +13,108 @@ const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 function formatSystemPrompt(contextData) {
   const { reference, resources } = contextData;
 
-  let prompt = `You are an expert Bible translation assistant. You have access to comprehensive translation resources for ${reference.citation} in ${reference.language}.
+  let prompt = `You are a Bible translation assistant for ${reference.citation} in ${reference.language}. You have access to specific translation resources listed below.
+
+CRITICAL CONSTRAINTS:
+- You MUST ONLY use information explicitly provided in the resources below
+- You MUST cite every piece of information using the specified format
+- You MUST NOT use any external knowledge beyond what is provided
+- If information is not available in the resources, you MUST state this clearly
+- You MUST NOT make assumptions or add interpretations not found in the resources
 
 CURRENT CONTEXT:
 - Reference: ${reference.citation}
 - Organization: ${reference.organization}
 - Language: ${reference.language}
 
-AVAILABLE RESOURCES:`;
+AVAILABLE RESOURCES WITH CITATION IDs:`;
 
+  // Add Scripture with citation format
   if (resources.scripture) {
-    prompt += `\n- Scripture Text: "${resources.scripture}"`;
+    prompt += `\n\n[SCRIPTURE] Scripture Text:
+"${resources.scripture}"`;
   }
 
+  // Add Translation Notes with individual citation IDs
   if (resources.translationNotes?.length > 0) {
-    prompt += `\n- Translation Notes (${resources.translationNotes.length} entries):`;
+    prompt += `\n\nTRANSLATION NOTES (${resources.translationNotes.length} entries):`;
     resources.translationNotes.forEach((note, index) => {
-      prompt += `\n  ${index + 1}. ${note.quote ? `"${note.quote}"` : ""} - ${note.text}`;
+      const noteId = `TN-${index + 1}`;
+      prompt += `\n[${noteId}] Quote: "${note.quote || "N/A"}"`;
+      prompt += `\n      Text: "${note.text || "N/A"}"`;
+      if (note.occurrence) prompt += `\n      Occurrence: ${note.occurrence}`;
+      if (note.tags) prompt += `\n      Tags: ${note.tags}`;
+      if (note.supportReference) prompt += `\n      See also: ${note.supportReference}`;
     });
   }
 
+  // Add Translation Questions with individual citation IDs
   if (resources.translationQuestions?.length > 0) {
-    prompt += `\n- Translation Questions (${resources.translationQuestions.length} entries):`;
+    prompt += `\n\nTRANSLATION QUESTIONS (${resources.translationQuestions.length} entries):`;
     resources.translationQuestions.forEach((question, index) => {
-      prompt += `\n  ${index + 1}. ${question.question}`;
+      const questionId = `TQ-${index + 1}`;
+      prompt += `\n[${questionId}] Question: "${question.question || "N/A"}"`;
+      if (question.answer) {
+        prompt += `\n      Answer: "${question.answer}"`;
+      }
     });
   }
 
+  // Add Translation Words with individual citation IDs
   if (resources.translationWords?.length > 0) {
-    prompt += `\n- Translation Words (${resources.translationWords.length} entries):`;
+    prompt += `\n\nTRANSLATION WORDS (${resources.translationWords.length} entries):`;
     resources.translationWords.forEach((word, index) => {
-      prompt += `\n  ${index + 1}. ${word.term || word.title} - ${
-        word.definition || word.snippet || ""
-      }`;
+      const wordId = `TW-${index + 1}`;
+      const term = word.term || word.title || "N/A";
+      const definition = word.definition || word.snippet || "N/A";
+      prompt += `\n[${wordId}] Term: "${term}"`;
+      prompt += `\n      Definition: "${definition}"`;
     });
   }
 
+  // Add Translation Word Links with individual citation IDs
   if (resources.translationWordLinks?.length > 0) {
-    prompt += `\n- Translation Word Links (${resources.translationWordLinks.length} entries):`;
+    prompt += `\n\nTRANSLATION WORD LINKS (${resources.translationWordLinks.length} entries):`;
     resources.translationWordLinks.forEach((link, index) => {
-      prompt += `\n  ${index + 1}. ${link.word || link.term}`;
+      const linkId = `TWL-${index + 1}`;
+      const word = link.word || link.term || "N/A";
+      prompt += `\n[${linkId}] Word: "${word}"`;
+      if (link.occurrence) prompt += ` (occurrence ${link.occurrence})`;
     });
   }
 
   prompt += `
 
-GUIDELINES:
-1. Provide helpful, accurate responses about Bible translation for this specific verse
-2. Reference the provided resources when relevant
-3. Be concise but thorough in your explanations
-4. Use the translation notes and questions to inform your responses
-5. When discussing translation choices, consider the original languages and cultural context
-6. Always be respectful of different translation approaches
+MANDATORY CITATION FORMAT:
+- Use inline citations like [TN-1], [TQ-2], [TW-3], [TWL-1], [SCRIPTURE]
+- Every statement MUST include a citation
+- End responses with a "Sources:" section listing all citations used
 
-Please answer the user's question using this contextual information.`;
+RESPONSE STRUCTURE REQUIRED:
+1. Answer the question using ONLY provided information
+2. Include inline citations for every claim: [TN-1], [TQ-2], etc.
+3. End with "Sources:" section listing each citation with its content
+
+EXAMPLE RESPONSE FORMAT:
+"According to the translation notes, this phrase means... [TN-1]. The scripture text states '...' [SCRIPTURE]. 
+
+Sources:
+- [TN-1]: Quote about X - explanation about Y
+- [SCRIPTURE]: Full verse text"
+
+WHAT TO DO IF INFORMATION IS MISSING:
+- State: "This information is not available in the provided translation resources"
+- Do NOT make up information or use external knowledge
+- Suggest what resources might be helpful if they were available
+
+STRICT PROHIBITIONS:
+- NO external Bible knowledge beyond provided resources
+- NO theological interpretations not found in the resources
+- NO historical or cultural context not explicitly provided
+- NO assumptions about word meanings beyond provided definitions
+- NO references to other Bible verses unless provided in resources
+
+Please answer the user's question following these strict guidelines.`;
 
   return prompt;
 }

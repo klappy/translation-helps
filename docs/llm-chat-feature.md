@@ -66,12 +66,75 @@ netlify.toml                          # Netlify configuration
 - **Resource packaging**: Translation notes, questions, and other resources can be included in context
 - **Dynamic updates**: Context updates when user navigates to different verses
 
-### AI Capabilities
+### AI Capabilities - **ENHANCED WITH CITATION SYSTEM**
 
 - **OpenAI GPT-4o**: Powered by the latest OpenAI model
-- **Contextual responses**: Answers tailored to current scripture passage
-- **Translation assistance**: Helps with understanding translation notes and questions
-- **Biblical knowledge**: Extensive knowledge of Bible content and interpretation
+- **Strict Source Attribution**: Every response includes mandatory citations
+- **No Hallucination**: AI restricted to ONLY information provided in context
+- **Contextual responses**: Answers tailored to current scripture passage with citations
+- **Translation assistance**: Helps with understanding translation notes and questions with proper attribution
+- **Citation Format**: All responses include inline citations [TN-1], [TQ-2], [TW-3], [TWL-1], [SCRIPTURE]
+
+### Citation System - **NEW FEATURE**
+
+The LLM Chat now includes a comprehensive citation system to prevent hallucination and ensure all responses are grounded in the provided translation resources.
+
+#### Citation Format
+
+**Inline Citations:**
+
+- `[SCRIPTURE]` - Direct quotes from the scripture text
+- `[TN-1]`, `[TN-2]`, etc. - Translation Notes (numbered sequentially)
+- `[TQ-1]`, `[TQ-2]`, etc. - Translation Questions (numbered sequentially)
+- `[TW-1]`, `[TW-2]`, etc. - Translation Words (numbered sequentially)
+- `[TWL-1]`, `[TWL-2]`, etc. - Translation Word Links (numbered sequentially)
+
+#### Response Structure
+
+All AI responses follow this mandatory structure:
+
+```
+[Answer with inline citations]
+
+Sources:
+- [TN-1]: Quote: "quoted text" - Text: "explanation text"
+- [TQ-1]: Question: "question text" Answer: "answer text"
+- [TW-1]: Term: "term name" Definition: "definition text"
+- [SCRIPTURE]: "quoted scripture text"
+```
+
+#### Example Response
+
+**User Question:** "What does this verse mean?"
+
+**AI Response:**
+
+```
+According to the scripture text, "In the beginning God created the heavens and the earth" [SCRIPTURE]. The translation notes explain that "created" has specific theological significance [TN-1]. Translation teams should consider how to convey the completeness of God's creative act [TQ-1].
+
+Sources:
+- [SCRIPTURE]: "In the beginning God created the heavens and the earth"
+- [TN-1]: Quote: "created" - Text: "The Hebrew word 'bara' indicates creation from nothing"
+- [TQ-1]: Question: "How can you show that God created everything?" Answer: "Emphasize the totality of 'heavens and the earth'"
+```
+
+#### System Constraints
+
+The AI is programmed with strict constraints:
+
+1. **No External Knowledge**: Cannot use Bible knowledge beyond provided resources
+2. **Mandatory Citations**: Every statement must include a citation
+3. **Missing Information Protocol**: Must state when information is unavailable
+4. **No Assumptions**: Cannot make interpretations not found in resources
+5. **Source Verification**: All claims must trace back to specific resources
+
+#### Benefits
+
+- **Transparency**: Users can verify every claim against source materials
+- **Accuracy**: Eliminates hallucinated information
+- **Educational**: Helps users understand how to use translation resources
+- **Trust**: Builds confidence in AI responses through verifiable sources
+- **Consistency**: Ensures all responses follow the same attribution standards
 
 ## Real Data Implementation Details - VERIFIED v0.13.1
 
