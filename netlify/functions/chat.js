@@ -72,70 +72,68 @@ Please answer the user's question using this contextual information.`;
 }
 
 /**
- * Main handler for chat requests using modern Netlify function format
+ * Main handler for chat requests using traditional Netlify function format
  */
-export default async (req, context) => {
+exports.handler = async (event, context) => {
   // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response("", {
-      status: 200,
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
       },
-    });
+      body: "",
+    };
   }
 
   // Only allow POST requests
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
       },
-    });
+      body: JSON.stringify({ error: "Method not allowed" }),
+    };
   }
 
   try {
     // Parse request body
-    const { message, context: translationContext, chatHistory = [] } = await req.json();
+    const { message, context: translationContext, chatHistory = [] } = JSON.parse(event.body);
 
     // Validate required fields
     if (!message || !translationContext) {
-      return new Response(
-        JSON.stringify({
+      return {
+        statusCode: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({
           error: "Missing required fields: message and context",
         }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
-      );
+      };
     }
 
     // Check for OpenAI API key
-    const apiKey = Netlify.env.get("OPENAI_API_KEY");
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       console.error("OPENAI_API_KEY environment variable not set");
-      return new Response(
-        JSON.stringify({
+      return {
+        statusCode: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({
           error: "Server configuration error: Missing API key",
         }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
-      );
+      };
     }
 
     // Format the system prompt with translation context
@@ -207,19 +205,17 @@ export default async (req, context) => {
         error: errorData,
       });
 
-      return new Response(
-        JSON.stringify({
+      return {
+        statusCode: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({
           error: "Failed to get response from AI service",
-          details: Netlify.env.get("NODE_ENV") === "development" ? errorData : undefined,
+          details: process.env.NODE_ENV === "development" ? errorData : undefined,
         }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
-      );
+      };
     }
 
     const openaiData = await openaiResponse.json();
@@ -228,18 +224,16 @@ export default async (req, context) => {
     const aiResponse = openaiData.choices?.[0]?.message?.content;
     if (!aiResponse) {
       console.error("Unexpected OpenAI response format:", openaiData);
-      return new Response(
-        JSON.stringify({
+      return {
+        statusCode: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({
           error: "Invalid response from AI service",
         }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
-      );
+      };
     }
 
     // Log successful response
@@ -250,8 +244,13 @@ export default async (req, context) => {
     });
 
     // Return successful response
-    return new Response(
-      JSON.stringify({
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
         response: aiResponse,
         metadata: {
           tokensUsed: openaiData.usage?.total_tokens,
@@ -260,29 +259,20 @@ export default async (req, context) => {
           timestamp: new Date().toISOString(),
         },
       }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-      }
-    );
+    };
   } catch (error) {
     console.error("Chat function error:", error);
 
-    return new Response(
-      JSON.stringify({
+    return {
+      statusCode: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
         error: "Internal server error",
-        details: Netlify.env.get("NODE_ENV") === "development" ? error.message : undefined,
+        details: process.env.NODE_ENV === "development" ? error.message : undefined,
       }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-      }
-    );
+    };
   }
 };
