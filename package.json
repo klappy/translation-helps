@@ -1,7 +1,7 @@
 {
   "name": "translation-helps",
   "homepage": "https://klappy.github.io/translation-helps/",
-  "version": "0.13.2",
+  "version": "0.13.3",
   "private": false,
   "dependencies": {
     "@emotion/react": "^11.10.5",
@@ -29,7 +29,8 @@
   },
   "scripts": {
     "codex-version-guard": "node scripts/codex-version-guard.js",
-    "dev": "vite",
+    "dev:app": "vite",
+    "dev": "netlify dev",
     "build": "vite build",
     "test": "node --max-old-space-size=4096 ./node_modules/.bin/vitest --run",
     "lint": "eslint --ext .ts,.tsx src"

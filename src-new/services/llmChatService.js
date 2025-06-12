@@ -1,44 +1,8 @@
 /**
  * llmChatService.js
- * Service module for LLM chat functionality with context packaging
+ * Service module for LLM chat functionality integrated with ResourcesContext
+ * NOTE: Context packaging is now handled by ResourcesContext.getFormattedContext()
  */
-
-/**
- * Packages all current translation resources into context for LLM
- * @param {Object} reference - Current verse reference
- * @param {Object} resources - All loaded resources
- * @returns {Object} Packaged context object
- */
-export function packageContext(reference, resources = {}) {
-  const { bookId, chapter, verse, organization, languageId } = reference;
-
-  const context = {
-    reference: {
-      book: bookId,
-      chapter: parseInt(chapter),
-      verse: parseInt(verse),
-      organization,
-      language: languageId,
-      citation: `${bookId} ${chapter}:${verse}`,
-    },
-    resources: {
-      scripture: resources.scripture || null,
-      translationNotes: resources.translationNotes || [],
-      translationQuestions: resources.translationQuestions || [],
-      translationWords: resources.translationWords || [],
-      translationWordLinks: resources.translationWordLinks || [],
-    },
-    metadata: {
-      timestamp: new Date().toISOString(),
-      contextSize: 0, // Will be calculated after stringification
-    },
-  };
-
-  // Calculate context size for monitoring
-  context.metadata.contextSize = JSON.stringify(context).length;
-
-  return context;
-}
 
 /**
  * Formats system prompt with context for the LLM
@@ -78,9 +42,39 @@ AVAILABLE RESOURCES:`;
   if (resources.translationWords?.length > 0) {
     prompt += `\n- Translation Words (${resources.translationWords.length} entries):`;
     resources.translationWords.forEach((word, index) => {
-      prompt += `\n  ${index + 1}. ${word.term || word.title} - ${
-        word.definition || word.snippet || ""
-      }`;
+      // Debug individual word structure
+      console.log(`🔍 TW Word ${index + 1} Structure:`, {
+        availableKeys: Object.keys(word),
+        title: word.title,
+        term: word.term,
+        contentLength: word.content?.length || 0,
+        contentPreview: word.content?.substring(0, 100) || "No content",
+      });
+
+      prompt += `\n  ${index + 1}. ${word.term || word.title}`;
+
+      // Include full article content if available
+      if (word.content) {
+        prompt += `\n     Content: ${word.content}`;
+      } else if (word.definition) {
+        prompt += `\n     Definition: ${word.definition}`;
+      } else if (word.snippet) {
+        prompt += `\n     Snippet: ${word.snippet}`;
+      } else {
+        // Debug what fields are available when no content found
+        console.log(`⚠️ No content found for word:`, word);
+      }
+
+      // Include additional fields that might contain detailed information
+      if (word.facts) {
+        prompt += `\n     Facts: ${word.facts}`;
+      }
+      if (word.references) {
+        prompt += `\n     Bible References: ${word.references}`;
+      }
+      if (word.examples) {
+        prompt += `\n     Examples: ${word.examples}`;
+      }
     });
   }
 
@@ -115,6 +109,50 @@ Please answer the user's question using this contextual information.`;
  */
 export async function sendChatMessage(message, context, chatHistory = []) {
   try {
+    // Estimate cost for this request
+    const contextSize = JSON.stringify(context).length;
+    const messageSize = message.length;
+    const historySize = JSON.stringify(chatHistory).length;
+
+    // Rough token estimation: 1 token ≈ 4 characters for English text
+    const estimatedInputTokens = Math.ceil((contextSize + messageSize + historySize) / 4);
+    const estimatedOutputTokens = 500; // Assume average response length
+
+    // GPT-4o pricing: $2.50/million input, $10.00/million output
+    const inputCost = (estimatedInputTokens / 1000000) * 2.5;
+    const outputCost = (estimatedOutputTokens / 1000000) * 10.0;
+    const totalCost = inputCost + outputCost;
+
+    // Analyze resources being sent
+    const resources = context?.resources || {};
+    const resourceSummary = {
+      scripture: resources.scripture ? "✓" : "✗",
+      translationNotes: resources.translationNotes?.length || 0,
+      translationQuestions: resources.translationQuestions?.length || 0,
+      translationWords: resources.translationWords?.length || 0,
+      translationWordLinks: resources.translationWordLinks?.length || 0,
+    };
+
+    // Debug translation words structure
+    if (resources.translationWords?.length > 0) {
+      console.log(`🔍 Translation Words Debug:`, {
+        count: resources.translationWords.length,
+        firstWordKeys: Object.keys(resources.translationWords[0] || {}),
+        firstWordSample: resources.translationWords[0],
+      });
+    }
+
+    console.log(`💰 LLM Request Cost Estimate:`, {
+      contextSize: `${(contextSize / 1000).toFixed(1)}KB`,
+      estimatedInputTokens: estimatedInputTokens.toLocaleString(),
+      estimatedOutputTokens: estimatedOutputTokens.toLocaleString(),
+      inputCost: `$${inputCost.toFixed(4)}`,
+      outputCost: `$${outputCost.toFixed(4)}`,
+      totalCost: `$${totalCost.toFixed(4)}`,
+      reference: context?.reference?.citation || "Unknown",
+      resources: resourceSummary,
+    });
+
     const endpoint = import.meta.env.VITE_CHAT_API_ENDPOINT || "/.netlify/functions/chat";
 
     const requestBody = {
@@ -258,7 +296,7 @@ export function validateChatRequest(message, context) {
   }
 
   const contextSize = JSON.stringify(context).length;
-  if (contextSize > 50000) {
+  if (contextSize > 300000) {
     errors.push("Context too large for processing");
   }
 
@@ -269,7 +307,6 @@ export function validateChatRequest(message, context) {
 }
 
 export default {
-  packageContext,
   formatSystemPrompt,
   sendChatMessage,
   createMockResponse,

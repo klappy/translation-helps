@@ -66,9 +66,17 @@ AVAILABLE RESOURCES WITH CITATION IDs:`;
     resources.translationWords.forEach((word, index) => {
       const wordId = `TW-${index + 1}`;
       const term = word.term || word.title || "N/A";
-      const definition = word.definition || word.snippet || "N/A";
+
+      // Use full content if available, fallback to other fields
+      const content = word.content || word.definition || word.snippet || "N/A";
+
       prompt += `\n[${wordId}] Term: "${term}"`;
-      prompt += `\n      Definition: "${definition}"`;
+      prompt += `\n      Content: "${content}"`;
+
+      // Include rc:// link if available
+      if (word.rcLink || word.rcUri) {
+        prompt += `\n      RC Link: ${word.rcLink || word.rcUri}`;
+      }
     });
   }
 
@@ -85,22 +93,38 @@ AVAILABLE RESOURCES WITH CITATION IDs:`;
 
   prompt += `
 
-MANDATORY CITATION FORMAT:
-- Use inline citations like [TN-1], [TQ-2], [TW-3], [TWL-1], [SCRIPTURE]
+MANDATORY CITATION FORMAT WITH RESOURCE TITLES:
+- Use formal resource titles when introducing information
+- Include inline citations like [TN-1], [TQ-2], [TW-3], [TWL-1], [SCRIPTURE]
 - Every statement MUST include a citation
 - End responses with a "Sources:" section listing all citations used
 
+CITATION EXAMPLES WITH RESOURCE TITLES:
+- Scripture: "According to the unfoldingWord® Literal Text, verse 1 states... [SCRIPTURE]"
+- Translation Notes: "The unfoldingWord® Translation Notes explain that... [TN-1]"
+- Translation Questions: "The unfoldingWord® Translation Questions ask... [TQ-1]"
+- Translation Words: "The term 'Paul' is defined in unfoldingWord® Translation Words as... [TW-1]"
+- Translation Word Links: "The unfoldingWord® Translation Word Links connect... [TWL-1]"
+
 RESPONSE STRUCTURE REQUIRED:
-1. Answer the question using ONLY provided information
+1. Answer using formal resource titles in your narrative
 2. Include inline citations for every claim: [TN-1], [TQ-2], etc.
 3. End with "Sources:" section listing each citation with its content
 
 EXAMPLE RESPONSE FORMAT:
-"According to the translation notes, this phrase means... [TN-1]. The scripture text states '...' [SCRIPTURE]. 
+"According to the unfoldingWord® Translation Notes, this phrase means... [TN-1]. The unfoldingWord® Literal Text states '...' [SCRIPTURE]. The unfoldingWord® Translation Words define this term as... [TW-1].
 
 Sources:
-- [TN-1]: Quote about X - explanation about Y
-- [SCRIPTURE]: Full verse text"
+- [TN-1]: unfoldingWord® Translation Notes - Quote: "actual quoted text" - Text: "actual explanation text"
+- [TQ-1]: unfoldingWord® Translation Questions - Question: "actual question text" - Answer: "actual answer text"  
+- [TW-1]: unfoldingWord® Translation Words - Term: "actual term name" - Content: "key facts and definition from article"
+- [TWL-1]: unfoldingWord® Translation Word Links - Word: "actual word" - Link reference
+- [SCRIPTURE]: unfoldingWord® Literal Text - "actual scripture text quoted"
+
+IMPORTANT: 
+1. Always use the formal resource titles when introducing information in your response
+2. In the Sources section, include the resource title and substantial excerpts from the actual content
+3. For Translation Words, include rc:// links when available: [rc://en/tw/dict/bible/kt/god]"
 
 WHAT TO DO IF INFORMATION IS MISSING:
 - State: "This information is not available in the provided translation resources"

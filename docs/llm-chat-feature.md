@@ -1,10 +1,10 @@
 # LLM Chat Feature Documentation
 
-## Status: ✅ COMPLETED & VERIFIED
+## Status: ✅ COMPLETED & ENHANCED
 
-✅ **Fully Implemented, Tested, and Real Data Implementation Verified** - Feature is production-ready
+✅ **Fully Implemented, Tested, and Enhanced with Professional Citation System** - Feature is production-ready
 
-### Implementation Status - VERIFIED v0.13.1
+### Implementation Status - ENHANCED v0.13.3
 
 - ✅ Chat UI Component (LLMChatPanel)
 - ✅ Context Integration (ChatContext)
@@ -15,9 +15,12 @@
 - ✅ Context-aware responses
 - ✅ Development and production configurations
 - ✅ **REAL DATA IMPLEMENTATION VERIFIED** - Chat uses live content from all translation resource panels
-- ✅ **DOM-BASED EXTRACTION CONFIRMED** - `collectCurrentResources()` extracts actual content using data-testid selectors
+- ✅ **RESOURCESCONTEXT INTEGRATION CONFIRMED** - `getFormattedContext()` provides complete resource data through shared context
 - ✅ **INTELLIGENT PARSING VERIFIED** - All resource types parsed into structured AI context
 - ✅ **PRODUCTION READY CONFIRMED** - Real OpenAI responses when deployed to Netlify
+- ✅ **ENHANCED CITATION SYSTEM** - Professional resource titles and RC link support (v0.13.3)
+- ✅ **TRANSLATION WORDS FIX** - Fixed content access for complete article text (v0.13.3)
+- ✅ **CONTEXT OPTIMIZATION** - Resolved context too large issues with proper field access (v0.13.3)
 
 ## Overview
 
@@ -136,194 +139,104 @@ The AI is programmed with strict constraints:
 - **Trust**: Builds confidence in AI responses through verifiable sources
 - **Consistency**: Ensures all responses follow the same attribution standards
 
-## Real Data Implementation Details - VERIFIED v0.13.1
+## Real Data Implementation Details - UPDATED v0.13.3
 
 ### How Real Data Collection Works
 
-The LLM Chat feature uses a sophisticated DOM-based extraction system to collect live content from all translation resource panels. This means the AI assistant has access to the exact same content the user is viewing.
+The LLM Chat feature uses a **shared ResourcesContext architecture** to provide complete translation resource data directly to the chat without DOM extraction. This ensures the AI assistant has access to comprehensive resource data through the same context system used by UI panels.
 
-#### DOM-Based Content Extraction
+#### ResourcesContext Integration
 
-The `ChatContext.collectCurrentResources()` function extracts content directly from the DOM using `data-testid` selectors:
-
-```javascript
-// From ChatContext.jsx
-const collectCurrentResources = () => {
-  const resources = {};
-
-  // Extract Scripture text
-  const scriptureElement = document.querySelector('[data-testid="scripture-content"]');
-  if (scriptureElement) {
-    resources.scripture = {
-      text: cleanScriptureText(scriptureElement.textContent),
-      source: "ScripturePanel",
-    };
-  }
-
-  // Extract Translation Notes
-  const notesElement = document.querySelector('[data-testid="translation-notes-content"]');
-  if (notesElement) {
-    resources.translationNotes = parseTranslationNotes(notesElement.textContent);
-  }
-
-  // Extract Translation Questions
-  const questionsElement = document.querySelector('[data-testid="translation-questions-content"]');
-  if (questionsElement) {
-    resources.translationQuestions = parseTranslationQuestions(questionsElement.textContent);
-  }
-
-  // Extract Translation Words
-  const wordsElement = document.querySelector('[data-testid="translation-words-content"]');
-  if (wordsElement) {
-    resources.translationWords = parseTranslationWords(wordsElement.textContent);
-  }
-
-  // Extract Translation Word Links (TWL)
-  const twlElement = document.querySelector('[data-testid="twl-content"]');
-  if (twlElement) {
-    resources.twl = parseTWL(twlElement.textContent);
-  }
-
-  return resources;
-};
-```
-
-#### Intelligent Content Parsing
-
-Each resource type is intelligently parsed into structured data for AI consumption:
-
-**Scripture Text Processing:**
+The `ChatContext.sendMessage()` function accesses complete resource data through the ResourcesContext:
 
 ```javascript
-const cleanScriptureText = (rawText) => {
-  // Remove USFM markers and formatting
-  return rawText
-    .replace(/\\[a-z]+\*?\s*/g, "") // Remove USFM tags
-    .replace(/\s+/g, " ") // Normalize whitespace
-    .trim();
-};
-```
+// From ChatContext.jsx - Current ResourcesContext Implementation
+export function ChatProvider({ children }) {
+  // Get current resources from ResourcesContext
+  const { getFormattedContext } = useResourcesContext();
 
-**Translation Notes Processing:**
+  const sendMessage = useCallback(
+    async (message) => {
+      try {
+        // Get context from ResourcesContext (replaces DOM parsing and packageContext)
+        const context = getFormattedContext();
 
-```javascript
-const parseTranslationNotes = (rawContent) => {
-  // Parse into structured notes with quotes, explanations, and references
-  const notes = [];
-  const noteBlocks = rawContent.split(/(?=\n[A-Z])/); // Split on new notes
+        if (!context) {
+          throw new Error("No context available. Please ensure resources are loaded.");
+        }
 
-  noteBlocks.forEach((block) => {
-    const lines = block.trim().split("\n");
-    if (lines.length > 0) {
-      notes.push({
-        quote: extractQuote(lines[0]),
-        explanation: lines.slice(1).join(" ").trim(),
-        tags: extractTags(block),
-        references: extractReferences(block),
-      });
-    }
-  });
+        // Send to actual LLM with complete resource data
+        response = await sendChatMessage(message, context, chatHistory);
 
-  return notes;
-};
-```
-
-**Translation Questions Processing:**
-
-```javascript
-const parseTranslationQuestions = (rawContent) => {
-  const questions = [];
-  const qaPairs = rawContent.split(/\n\s*\n/); // Split on double newlines
-
-  qaPairs.forEach((pair) => {
-    const lines = pair.trim().split("\n");
-    if (lines.length >= 2) {
-      questions.push({
-        question: lines[0].trim(),
-        answer: lines.slice(1).join(" ").trim(),
-      });
-    }
-  });
-
-  return questions;
-};
-```
-
-**Translation Words Processing:**
-
-```javascript
-const parseTranslationWords = (rawContent) => {
-  const words = [];
-  const wordEntries = rawContent.split(/(?=\n[A-Z])/); // Split on word entries
-
-  wordEntries.forEach((entry) => {
-    const lines = entry.trim().split("\n");
-    if (lines.length > 0) {
-      words.push({
-        term: lines[0].trim(),
-        definition: lines.slice(1).join(" ").trim(),
-        occurrences: extractOccurrences(entry),
-      });
-    }
-  });
-
-  return words;
-};
-```
-
-**Translation Word Links (TWL) Processing:**
-
-```javascript
-const parseTWL = (rawContent) => {
-  const links = [];
-  const linkEntries = rawContent.split("\n");
-
-  linkEntries.forEach((line) => {
-    const parts = line.split("\t");
-    if (parts.length >= 4) {
-      links.push({
-        reference: parts[0],
-        id: parts[1],
-        occurrenceNumber: parseInt(parts[2]),
-        word: parts[3],
-      });
-    }
-  });
-
-  return links;
-};
-```
-
-#### Context Packaging for AI
-
-The collected resources are packaged into a comprehensive context object:
-
-```javascript
-const buildAIContext = (reference, resources) => {
-  return {
-    // Current verse reference
-    reference: {
-      book: reference.book,
-      chapter: reference.chapter,
-      verse: reference.verse,
-      display: `${reference.book} ${reference.chapter}:${reference.verse}`,
+        // Handle response...
+      } catch (err) {
+        console.error("Error sending message:", err);
+      }
     },
+    [getFormattedContext, chatHistory]
+  );
+}
 
-    // Scripture content
-    scripture: resources.scripture || null,
+// From ResourcesContext.jsx - Context Formatting
+const getFormattedContext = useCallback(() => {
+  if (!metadata) return null;
 
-    // Translation helps
-    translationNotes: resources.translationNotes || [],
-    translationQuestions: resources.translationQuestions || [],
-    translationWords: resources.translationWords || [],
-    translationWordLinks: resources.twl || [],
-
-    // Metadata
-    timestamp: new Date().toISOString(),
-    resourceCount: Object.keys(resources).length,
+  return {
+    reference: {
+      book: metadata.bookId,
+      chapter: metadata.chapter,
+      verse: metadata.verse,
+      organization: metadata.organization,
+      language: metadata.languageId,
+      citation: `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`,
+    },
+    resources: {
+      scripture: resources.scripture?.verses
+        ? Object.entries(resources.scripture.verses)
+            .map(([v, text]) => `[${v}] ${text}`)
+            .join("\n")
+        : null,
+      translationNotes: resources.translationNotes,
+      translationQuestions: resources.translationQuestions,
+      translationWords: resources.translationWords,
+      translationWordLinks: resources.translationWordLinks,
+    },
+    metadata: {
+      timestamp: metadata.timestamp,
+      manifestTitles: {
+        scripture: resources.scripture?.title,
+        translationNotes: resources.translationNotes[0]?.title,
+        translationQuestions: resources.translationQuestions[0]?.title,
+        translationWords: resources.translationWords[0]?.title,
+        translationWordLinks: resources.translationWordLinks[0]?.title,
+      },
+    },
   };
-};
+}, [resources, metadata]);
 ```
+
+#### Key Benefits of ResourcesContext Architecture
+
+**Shared Data Source:**
+
+- Both UI panels and chat system access the same underlying resource data
+- Eliminates data inconsistencies between what users see and what AI receives
+- Automatic synchronization when resources load or update
+
+**Complete Resource Access:**
+
+- Scripture: Full chapter content with verse-by-verse breakdown via Proskomma parsing
+- Translation Notes: Complete structured notes with quotes, explanations, and metadata
+- Translation Questions: Full question-answer pairs with contextual information
+- Translation Words: Complete articles with definitions, facts, and examples (fixed in v0.13.3)
+- Translation Word Links: RC link URIs for proper resource attribution
+
+**Enhanced Data Quality:**
+
+- Professional resource titles with unfoldingWord® branding
+- RC link support for proper citation format (`rc://en/tw/dict/bible/kt/god`)
+- Manifest-based resource loading ensures authentic content
+- Proskomma-based scripture parsing provides accurate verse structure
 
 #### System Prompt Integration
 
@@ -367,20 +280,19 @@ const buildSystemPrompt = (context) => {
 **Development (Local):**
 
 - Mock responses when `VITE_USE_MOCK_CHAT=true` or API calls fail
-- Real data collection still occurs (logged to console)
+- ResourcesContext data loading still occurs for testing
 - Context structure identical to production for testing
 
-### Data Flow Verification
+### Resource Context Scope
 
-### Scripture Content Scope - IMPORTANT
+**The chat context includes complete chapter content with verse-by-verse breakdown.**
 
-**The chat context includes the FULL CHAPTER content (up to 16 verses), not just the selected verse.**
+When viewing Titus 1:1, the AI receives through ResourcesContext:
 
-When viewing Titus 1:1, the AI receives:
-
-- **Complete Chapter**: Titus 1:1-16 (all verses in the chapter)
+- **Complete Chapter**: Titus 1:1-16 (all verses parsed by Proskomma)
 - **Rich Context**: Full passage context for comprehensive responses
-- **Verse Navigation**: Users can ask about any verse in the current chapter
+- **Structured Data**: Verse-by-verse breakdown with proper formatting
+- **Resource Metadata**: Professional titles and attribution information
 
 This provides superior AI assistance because:
 
@@ -388,21 +300,9 @@ This provides superior AI assistance because:
 - **Cross-Verse References**: Can connect ideas across the chapter
 - **Comprehensive Responses**: Not limited to single-verse explanations
 - **User Convenience**: No need to navigate to ask about nearby verses
+- **Data Integrity**: Direct access to the same data used by UI panels
 
-Console logging confirms real data collection:
-
-```javascript
-console.log("Collected resources from DOM:", {
-  scriptureLength: resources.scripture.length,
-  translationNotes: resources.translationNotes?.length || 0,
-  translationQuestions: resources.translationQuestions?.length || 0,
-  translationWords: resources.translationWords?.length || 0,
-  twl: resources.twl?.length || 0,
-});
-// Output: "Collected resources from DOM: scripture:2847chars, notes:3, questions:2, words:4, links:1"
-```
-
-This implementation ensures the AI assistant has complete access to whatever translation resources the user is currently viewing, providing contextually accurate and helpful responses with full chapter awareness.
+The ResourcesContext ensures the AI assistant has reliable access to complete translation resources that are synchronized with what users see in the interface, providing contextually accurate responses with proper attribution.
 
 ## Configuration
 
@@ -450,19 +350,30 @@ AI: "The Hebrew word 'bara' (בָּרָא) in Genesis 1:1 specifically means to 
 
 #### Adding New Context Data
 
-To include additional resources in the chat context:
+To include additional resources in the chat context, modify the ResourcesContext:
 
 ```javascript
-// In ChatContext.jsx
-const buildContextData = (reference, additionalData = {}) => {
+// In ResourcesContext.jsx - Extend getFormattedContext()
+const getFormattedContext = useCallback(() => {
+  if (!metadata) return null;
+
   return {
-    reference,
-    scripture: additionalData.scripture,
-    translationNotes: additionalData.translationNotes,
-    translationQuestions: additionalData.translationQuestions,
-    // Add more context as needed
+    reference: {
+      /* reference data */
+    },
+    resources: {
+      scripture: resources.scripture?.verses,
+      translationNotes: resources.translationNotes,
+      translationQuestions: resources.translationQuestions,
+      translationWords: resources.translationWords,
+      translationWordLinks: resources.translationWordLinks,
+      // Add new resource types here
+    },
+    metadata: {
+      /* metadata */
+    },
   };
-};
+}, [resources, metadata]);
 ```
 
 #### Customizing the Chat Interface

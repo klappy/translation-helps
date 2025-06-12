@@ -6,6 +6,7 @@
 import React, { useContext, useState, useRef, createContext } from "react";
 import { ReferenceContext } from "../context/ReferenceContext";
 import { ManifestsContext } from "../context/MultiManifestsContext";
+import { ResourcesProvider } from "../context/ResourcesContext";
 
 import { ScripturePanel } from "./ScripturePanel";
 import { HelpsTabs } from "./HelpsTabs";
@@ -139,49 +140,51 @@ export function MainView() {
   };
 
   return (
-    <main data-testid='main-view' className={styles.mainView}>
-      {/* Mobile Tab Navigation */}
-      <div className={styles.mobileTabNav}>
-        <button
-          className={`${styles.mobileTab} ${
-            activeMobileTab === "scripture" ? styles.mobileTabActive : ""
-          }`}
-          onClick={() => setActiveMobileTab("scripture")}
-        >
-          Scripture
-        </button>
-        <button
-          className={`${styles.mobileTab} ${
-            activeMobileTab === "resources" ? styles.mobileTabActive : ""
-          }`}
-          onClick={() => setActiveMobileTab("resources")}
-        >
-          Resources
-        </button>
-      </div>
-
-      {/* Main Content Area */}
-      <div className={styles.contentArea}>
-        {/* Scripture Panel */}
-        <div
-          className={`${styles.scripturePanel} ${
-            activeMobileTab === "scripture" ? styles.mobilePanelActive : ""
-          }`}
-        >
-          <ScripturePanel reference={reference} onVerseClick={handleVerseClick} />
+    <ResourcesProvider>
+      <main data-testid='main-view' className={styles.mainView}>
+        {/* Mobile Tab Navigation */}
+        <div className={styles.mobileTabNav}>
+          <button
+            className={`${styles.mobileTab} ${
+              activeMobileTab === "scripture" ? styles.mobileTabActive : ""
+            }`}
+            onClick={() => setActiveMobileTab("scripture")}
+          >
+            Scripture
+          </button>
+          <button
+            className={`${styles.mobileTab} ${
+              activeMobileTab === "resources" ? styles.mobileTabActive : ""
+            }`}
+            onClick={() => setActiveMobileTab("resources")}
+          >
+            Resources
+          </button>
         </div>
 
-        {/* Translation Helps */}
-        <div
-          className={`${styles.helpsPanel} ${
-            activeMobileTab === "resources" ? styles.mobilePanelActive : ""
-          }`}
-        >
-          <RcLinkContext.Provider value={{ handleRcLinkClick }}>
-            <HelpsTabs ref={helpsTabsRef} reference={reference} />
-          </RcLinkContext.Provider>
+        {/* Main Content Area */}
+        <div className={styles.contentArea}>
+          {/* Scripture Panel */}
+          <div
+            className={`${styles.scripturePanel} ${
+              activeMobileTab === "scripture" ? styles.mobilePanelActive : ""
+            }`}
+          >
+            <ScripturePanel reference={reference} onVerseClick={handleVerseClick} />
+          </div>
+
+          {/* Translation Helps */}
+          <div
+            className={`${styles.helpsPanel} ${
+              activeMobileTab === "resources" ? styles.mobilePanelActive : ""
+            }`}
+          >
+            <RcLinkContext.Provider value={{ handleRcLinkClick }}>
+              <HelpsTabs ref={helpsTabsRef} reference={reference} />
+            </RcLinkContext.Provider>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </ResourcesProvider>
   );
 }

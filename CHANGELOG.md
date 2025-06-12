@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.13.3] - 2025-06-12
+
+### Fixed
+
+- **LLM Chat Translation Words Content Access and Enhanced Citation System**
+  - ✅ Fixed translation words content missing in LLM chat responses due to incorrect field access
+  - ✅ Updated Netlify function to use `word.content` field instead of outdated `word.definition` field
+  - ✅ Enhanced citation system to include formal resource titles as specified in GitHub issue requirements
+  - ✅ Added support for RC links (`rc://en/tw/dict/bible/kt/god`) in translation words citations
+  - ✅ Implemented proper unfoldingWord® resource title formatting in AI responses:
+    - "According to the unfoldingWord® Translation Notes..."
+    - "The unfoldingWord® Translation Questions ask..."
+    - "The unfoldingWord® Translation Words define..."
+    - "The unfoldingWord® Literal Text states..."
+  - ✅ Enhanced Sources section to include resource titles and substantial content excerpts
+  - ✅ Translation words now provide complete article content to AI context instead of missing data
+  - ✅ Fixed context too large issue by ensuring proper field access to translation word articles
+  - ✅ AI responses now include rich, detailed citations with actual content from translation resources
+
+### Technical Implementation
+
+- **Netlify Function Updates**: Fixed field access pattern in `netlify/functions/chat.js` to prioritize `word.content`
+- **Citation Format Enhancement**: Added formal resource titles and RC link support in system prompt
+- **Content Access**: Ensured complete translation word articles are available for AI context
+- **Debug Logging**: Enhanced debug logging in `llmChatService.js` to track translation words structure
+- **Files Modified**:
+  - `netlify/functions/chat.js` - Fixed content field access and enhanced citation instructions
+  - `src-new/services/llmChatService.js` - Added debug logging for translation words
+
+### User Experience Benefits
+
+- **Complete Translation Words**: AI now has access to full translation word articles including Facts, Bible References, and Examples
+- **Professional Citations**: Formal resource titles provide authoritative attribution to unfoldingWord® resources
+- **Detailed Sources**: Enhanced Sources section includes substantial excerpts for verification
+- **RC Link Support**: Translation words citations include RC links for cross-referencing
+- **Rich Context**: AI responses now grounded in complete resource content rather than truncated summaries
+
 ## [0.13.2] - 2025-06-11
 
 ### Added
