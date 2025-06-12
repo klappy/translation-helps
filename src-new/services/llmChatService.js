@@ -176,13 +176,31 @@ export async function sendChatMessage(message, context, chatHistory = []) {
 
       const data = await response.json();
 
+      // Update cost estimate with actual token counts if available
+      let finalCostEstimate = { ...costEstimate };
+      if (data.metadata?.actualOutputTokens) {
+        finalCostEstimate = {
+          ...costEstimate,
+          estimatedOutputTokens: data.metadata.actualOutputTokens,
+          actualOutputTokens: data.metadata.actualOutputTokens,
+          actualInputTokens: data.metadata.actualInputTokens,
+          // Recalculate costs with actual output tokens
+          outputCost: (data.metadata.actualOutputTokens / 1000000) * 0.6,
+        };
+        finalCostEstimate.totalCost = finalCostEstimate.inputCost + finalCostEstimate.outputCost;
+        finalCostEstimate.outputPercentage = (
+          (data.metadata.actualOutputTokens / 128000) *
+          100
+        ).toFixed(2);
+      }
+
       return {
         success: true,
         response: data.response,
         timestamp: new Date().toISOString(),
         contextUsed: context,
         metadata: data.metadata || {},
-        costEstimate: costEstimate,
+        costEstimate: finalCostEstimate,
       };
     } catch (fetchError) {
       clearTimeout(timeoutId);
@@ -278,16 +296,21 @@ export function createMockResponse(message, context) {
 
   const randomResponse = responses[Math.floor(Math.random() * responses.length)];
 
-  // Create mock cost estimate
+  // Create mock cost estimate with actual output tokens simulation
+  const mockActualOutputTokens = Math.floor(randomResponse.length / 4); // Simulate actual token count based on response length
+  const mockActualInputTokens = Math.floor(Math.random() * 5000) + 10000;
+
   const mockCostEstimate = {
     contextSize: `${(JSON.stringify(context).length / 1000).toFixed(1)}KB`,
-    estimatedInputTokens: Math.floor(Math.random() * 5000) + 10000,
-    estimatedOutputTokens: Math.floor(Math.random() * 1000) + 300,
-    inputCost: Math.random() * 0.002 + 0.001,
-    outputCost: Math.random() * 0.0005 + 0.0001,
+    estimatedInputTokens: mockActualInputTokens,
+    estimatedOutputTokens: mockActualOutputTokens, // Use actual instead of hardcoded 500
+    actualOutputTokens: mockActualOutputTokens, // Include actual output tokens
+    actualInputTokens: mockActualInputTokens, // Include actual input tokens
+    inputCost: (mockActualInputTokens / 1000000) * 0.15,
+    outputCost: (mockActualOutputTokens / 1000000) * 0.6,
     totalCost: 0,
-    inputPercentage: Math.random() * 15,
-    outputPercentage: Math.random() * 5,
+    inputPercentage: ((mockActualInputTokens / 128000) * 100).toFixed(2),
+    outputPercentage: ((mockActualOutputTokens / 128000) * 100).toFixed(2),
     reference: context?.reference?.citation || "Unknown",
     resources: {
       scripture: resources.scripture ? "✓" : "✗",

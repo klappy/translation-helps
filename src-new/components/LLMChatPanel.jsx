@@ -133,12 +133,16 @@ export function LLMChatPanel({ reference }) {
                 className={`${styles.messageCost} ${getCostColor(message.costEstimate.totalCost)}`}
                 title={`Message Cost Breakdown
 Context: ${message.costEstimate.contextSize}
-Input: ${message.costEstimate.estimatedInputTokens.toLocaleString()} tokens ($${message.costEstimate.inputCost.toFixed(
-                  4
-                )})
-Output: ${message.costEstimate.estimatedOutputTokens.toLocaleString()} tokens ($${message.costEstimate.outputCost.toFixed(
-                  4
-                )})
+Input: ${
+                  message.costEstimate.actualInputTokens
+                    ? `${message.costEstimate.actualInputTokens.toLocaleString()} tokens (actual)`
+                    : `${message.costEstimate.estimatedInputTokens.toLocaleString()} tokens (estimated)`
+                } ($${message.costEstimate.inputCost.toFixed(4)})
+Output: ${
+                  message.costEstimate.actualOutputTokens
+                    ? `${message.costEstimate.actualOutputTokens.toLocaleString()} tokens (actual)`
+                    : `${message.costEstimate.estimatedOutputTokens.toLocaleString()} tokens (estimated)`
+                } ($${message.costEstimate.outputCost.toFixed(4)})
 Total: ${formatCostDisplay(message.costEstimate.totalCost)}
 
 Resources Used:

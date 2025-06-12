@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.13.10] - 2025-06-12
+
+### Fixed
+
+- **LLM Chat Actual Token Display Enhancement**
+  - ✅ Fixed output tokens always showing hardcoded 500 instead of actual response token counts
+  - ✅ Enhanced Netlify function to return detailed token usage: `actualInputTokens` and `actualOutputTokens` from OpenAI API
+  - ✅ Updated llmChatService.js to use actual token counts when available for cost calculations
+  - ✅ Enhanced LLMChatPanel to display "actual" vs "estimated" tokens in cost tooltips
+  - ✅ Mock responses now simulate realistic token counts based on response length for development
+  - ✅ Cost estimates now accurately reflect true API usage instead of approximations
+  - ✅ Improved transparency showing exact tokens consumed by each AI interaction
+
+### Technical Implementation
+
+- **Netlify Function Enhancement**: Added `actualInputTokens` and `actualOutputTokens` to response metadata from OpenAI usage data
+- **Service Layer Update**: Enhanced llmChatService.js to recalculate costs using actual token counts when available
+- **UI Enhancement**: Updated cost tooltip to distinguish between estimated and actual token counts with "(actual)" labels
+- **Mock System**: Improved development experience with realistic token count simulation based on response length
+- **Files Modified**:
+  - `netlify/functions/chat.js` - Added detailed token usage to response metadata
+  - `src-new/services/llmChatService.js` - Updated cost calculations with actual tokens
+  - `src-new/components/LLMChatPanel.jsx` - Enhanced cost tooltip display
+
+### User Experience Benefits
+
+- **Accurate Cost Tracking**: Users now see exact token consumption instead of estimates
+- **Transparent Billing**: Real-time display of actual API costs for informed usage decisions
+- **Improved Development**: Mock responses provide realistic token count simulation for testing
+- **Better Planning**: Accurate token counts help users understand conversation costs
+
 ## [0.13.9] - 2025-06-12
 
 ### Fixed

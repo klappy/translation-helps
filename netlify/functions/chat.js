@@ -355,6 +355,8 @@ exports.handler = async (event, context) => {
         response: aiResponse,
         metadata: {
           tokensUsed: openaiData.usage?.total_tokens,
+          actualInputTokens: openaiData.usage?.prompt_tokens,
+          actualOutputTokens: openaiData.usage?.completion_tokens,
           model: openaiRequest.model,
           contextReference: translationContext.reference?.citation,
           timestamp: new Date().toISOString(),
