@@ -32,16 +32,16 @@
   --font-size-xl: 1.25rem; /* 20px */
   --font-size-2xl: 1.5rem; /* 24px */
 
-  /* Spacing */
+  /* Spacing - Optimized for better screen real estate usage */
   --spacing-1: 0.25rem; /* 4px */
   --spacing-2: 0.5rem; /* 8px */
-  --spacing-3: 0.75rem; /* 12px */
-  --spacing-4: 1rem; /* 16px */
-  --spacing-5: 1.25rem; /* 20px */
-  --spacing-6: 1.5rem; /* 24px */
-  --spacing-8: 2rem; /* 32px */
-  --spacing-10: 2.5rem; /* 40px */
-  --spacing-12: 3rem; /* 48px */
+  --spacing-3: 0.6rem; /* 10px - reduced from 12px */
+  --spacing-4: 0.75rem; /* 12px - reduced from 16px */
+  --spacing-5: 1rem; /* 16px - reduced from 20px */
+  --spacing-6: 1.125rem; /* 18px - reduced from 24px */
+  --spacing-8: 1.5rem; /* 24px - reduced from 32px */
+  --spacing-10: 2rem; /* 32px - reduced from 40px */
+  --spacing-12: 2.25rem; /* 36px - reduced from 48px */
 
   /* Border Radius */
   --border-radius-sm: 0.25rem;
@@ -112,9 +112,9 @@
   padding: var(--spacing-6);
 }
 
-/* Step header */
+/* Step header - Reduced spacing for better screen utilization */
 .stepHeader {
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
 }
 
 .stepTitle {
@@ -621,16 +621,16 @@
   margin-top: var(--spacing-6);
 }
 
-/* Tab Container and Tabs */
+/* Tab Container and Tabs - Optimized spacing */
 .tabContainer {
   display: flex;
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-white);
 }
 
 .tabContainer.desktop {
-  margin-bottom: var(--spacing-8);
+  margin-bottom: var(--spacing-5);
 }
 
 .tab {

@@ -5,9 +5,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { SearchableGrid } from "../SearchableGrid";
-import { ResourceCard } from "../components/ResourceCard";
 import { fetchResourceManifest } from "../../../services/manifestService";
-import { useResources } from "../../../hooks/useResources";
 import styles from "../NavigationWizard.module.css";
 
 // Bible book data with testament categorization
@@ -95,10 +93,6 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
   const [manifest, setManifest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Fetch resource data to get the repository avatar
-  const { resources } = useResources(wizardData.organization, wizardData.languageId);
-  const selectedResource = resources?.find((resource) => resource.id === wizardData.resourceId);
 
   // Fetch available books from manifest
   useEffect(() => {
@@ -268,20 +262,6 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
         <p className={`${styles.stepDescription} ${isDesktop ? styles.desktop : ""}`}>
           Select the Bible book you want to study.
         </p>
-
-        {/* Resource Metadata using ResourceCard in wide layout */}
-        {wizardData.resourceId && (
-          <ResourceCard
-            resourceId={wizardData.resourceId}
-            organization={wizardData.organization}
-            languageId={wizardData.languageId}
-            layout='wide'
-            showMetadata={true}
-            isDesktop={isDesktop}
-            avatar={selectedResource?.avatarUrl} // Use repository avatar from DCS API
-            icon={getResourceIcon(wizardData.resourceId)}
-          />
-        )}
       </div>
 
       {/* Testament Tabs */}
@@ -324,7 +304,7 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
           getItemTitle={(item) => item.title}
           getItemSubtitle={(item) => item.description}
           getItemIcon={(item) => item.icon}
-          columns={isDesktop ? 3 : 2}
+          columns={isDesktop ? 5 : 3}
         />
       </div>
 
