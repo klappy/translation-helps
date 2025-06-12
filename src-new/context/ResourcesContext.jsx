@@ -182,8 +182,30 @@ export function ResourcesProvider({ children }) {
         // Translation Notes
         getNotesForVerse(bookId, chapter, verse, organization, languageId).catch(() => []),
 
-        // Translation Questions
-        getQuestionsForVerse(bookId, chapter, verse, organization, languageId).catch(() => []),
+        // Translation Questions (with custom file path from manifest)
+        currentManifests.tq
+          ? (async () => {
+              // Extract custom file path from manifest (same logic as TranslationQuestionsPanel)
+              let customFilePath = null;
+              const tqManifest = currentManifests.tq;
+
+              if (tqManifest) {
+                const project = tqManifest.projects?.find((p) => p.identifier === bookId);
+                if (project && project.path) {
+                  customFilePath = project.path.replace("./", "");
+                }
+              }
+
+              return getQuestionsForVerse(
+                bookId,
+                chapter,
+                verse,
+                organization,
+                languageId,
+                customFilePath
+              );
+            })().catch(() => [])
+          : Promise.resolve([]),
 
         // Translation Word Links (get rc:// URIs)
         currentManifests.twl
@@ -286,6 +308,31 @@ export function ResourcesProvider({ children }) {
   const getFormattedContext = useCallback(() => {
     if (!metadata) return null;
 
+    // Get the verse text for the specific verse requested
+    const getVerseText = () => {
+      if (!resources.scripture) return null;
+
+      if (resources.scripture.verses && Object.keys(resources.scripture.verses).length > 0) {
+        // Return the specific verse if available
+        const verseText = resources.scripture.verses[verse];
+        if (verseText) {
+          return `[${verse}] ${verseText}`;
+        }
+
+        // If specific verse not found, return all verses in the chapter
+        return Object.entries(resources.scripture.verses)
+          .map(([v, text]) => `[${v}] ${text}`)
+          .join("\n");
+      }
+
+      // Fallback to raw USFM if verses not parsed yet
+      if (resources.scripture.usfm) {
+        return `Raw USFM Data: ${resources.scripture.usfm.substring(0, 500)}... (truncated)`;
+      }
+
+      return null;
+    };
+
     return {
       reference: {
         book: metadata.bookId,
@@ -296,11 +343,7 @@ export function ResourcesProvider({ children }) {
         citation: `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`,
       },
       resources: {
-        scripture: resources.scripture?.verses
-          ? Object.entries(resources.scripture.verses)
-              .map(([v, text]) => `[${v}] ${text}`)
-              .join("\n")
-          : null,
+        scripture: getVerseText(),
         translationNotes: resources.translationNotes,
         translationQuestions: resources.translationQuestions,
         translationWords: resources.translationWords,
@@ -316,9 +359,16 @@ export function ResourcesProvider({ children }) {
           translationWords: resources.translationWords[0]?.title,
           translationWordLinks: resources.translationWordLinks[0]?.title,
         },
+        resourceLoadingStatus: {
+          scripture: !isLoading && !!resources.scripture && !usfmLoading,
+          translationNotes: !isLoading && resources.translationNotes.length > 0,
+          translationQuestions: !isLoading && resources.translationQuestions.length > 0,
+          translationWords: !isLoading && resources.translationWords.length > 0,
+          translationWordLinks: !isLoading && resources.translationWordLinks.length > 0,
+        },
       },
     };
-  }, [resources, metadata]);
+  }, [resources, metadata, usfmLoading, error, isLoading, manifests, verse]);
 
   const value = {
     resources,
@@ -327,14 +377,39 @@ export function ResourcesProvider({ children }) {
     isLoading: isLoading || usfmLoading,
     error,
     getFormattedContext,
-    // Expose loading states
+    // Expose loading states with more detailed information
     loadingStates: {
-      manifests: Object.keys(manifests).length === 0,
-      scripture: !resources.scripture || usfmLoading,
-      translationNotes: resources.translationNotes.length === 0 && !error,
-      translationQuestions: resources.translationQuestions.length === 0 && !error,
-      translationWords: resources.translationWords.length === 0 && !error,
-      translationWordLinks: resources.translationWordLinks.length === 0 && !error,
+      manifests: Object.keys(manifests).length === 0 && isLoading,
+      scripture: (!resources.scripture || usfmLoading) && isLoading,
+      translationNotes: resources.translationNotes.length === 0 && isLoading,
+      translationQuestions: resources.translationQuestions.length === 0 && isLoading,
+      translationWords: resources.translationWords.length === 0 && isLoading,
+      translationWordLinks: resources.translationWordLinks.length === 0 && isLoading,
+    },
+    // Add diagnostic information for debugging
+    diagnostics: {
+      manifestsAvailable: {
+        ult: !!manifests.ult,
+        tn: !!manifests.tn,
+        tq: !!manifests.tq,
+        tw: !!manifests.tw,
+        twl: !!manifests.twl,
+      },
+      resourceCounts: {
+        scripture: resources.scripture ? 1 : 0,
+        translationNotes: resources.translationNotes.length,
+        translationQuestions: resources.translationQuestions.length,
+        translationWords: resources.translationWords.length,
+        translationWordLinks: resources.translationWordLinks.length,
+      },
+      currentReference: metadata
+        ? `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`
+        : null,
+      usfmParsingStatus: {
+        loading: usfmLoading,
+        ready: usfmReady,
+        versesCount: scriptureVerses ? Object.keys(scriptureVerses).length : 0,
+      },
     },
   };
 

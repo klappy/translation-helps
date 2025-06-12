@@ -272,7 +272,7 @@ exports.handler = async (event, context) => {
 
     // Prepare OpenAI request
     const openaiRequest = {
-      model: "gpt-4o-mini",
+      model: "gpt-4o-mini", // Updated to GPT-4o-mini for improved output consistency
       messages: messages,
       max_tokens: 500,
       temperature: 0.2,

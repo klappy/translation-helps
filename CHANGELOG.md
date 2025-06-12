@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.13.9] - 2025-06-12
+
+### Fixed
+
+- **LLM Chat Context Missing Translation Questions - Critical ResourcesContext Synchronization Issue Resolved**
+  - ✅ Fixed translation questions showing as `translationQuestions: 0` in LLM cost estimates when questions were available in the UI
+  - ✅ Resolved synchronization mismatch between TranslationQuestionsPanel and ResourcesContext loading logic
+  - ✅ **Root Cause**: ResourcesContext was calling `getQuestionsForVerse()` without custom file path while TranslationQuestionsPanel used manifest to extract custom paths (e.g., `tq_TIT.tsv`)
+  - ✅ **Solution**: Added identical custom file path extraction logic to ResourcesContext matching TranslationQuestionsPanel implementation:
+    - Extract custom file path from tQ manifest (`project.path.replace("./", "")`)
+    - Pass custom file path to `getQuestionsForVerse()` for consistent data access
+    - Added debug logging to track file path resolution: `ResourcesContext tQ: Using manifest file path: ${customFilePath}`
+  - ✅ Translation questions now properly included in LLM chat context when available
+  - ✅ Cost estimates now show accurate `translationQuestions: [actual_count]` instead of `translationQuestions: 0`
+  - ✅ Enhanced LLM responses with complete contextual information from all translation resources
+  - ✅ Improved chat accuracy and relevance with access to verse-specific translation questions
+
+### Technical Implementation
+
+- **ResourcesContext Enhancement**: Added manifest-based custom file path extraction identical to TranslationQuestionsPanel
+- **Synchronization Fix**: Both UI panel and chat context now use the same file path resolution logic
+- **Debug Logging**: Added comprehensive logging to verify correct file path usage: `ResourcesContext tQ: Using manifest file path: tq_TIT.tsv`
+- **Data Consistency**: Ensured ResourcesContext and UI panels access identical translation question data sources
+- **Files Modified**: `src-new/context/ResourcesContext.jsx` - Added custom file path extraction logic for translation questions
+
+### User Experience Benefits
+
+- **Complete Chat Context**: LLM now has access to all available translation resources including questions
+- **Accurate Cost Estimates**: Cost display shows true resource counts reflecting actual context sent to AI
+- **Enhanced AI Responses**: More comprehensive and accurate responses with access to verse-specific translation questions
+- **Consistent Data Access**: UI and chat context now synchronized for reliable translation question availability
+- **Improved Translation Assistance**: AI can reference and discuss translation questions relevant to current verse
+
 ## [0.13.8] - 2025-06-12
 
 ### Fixed

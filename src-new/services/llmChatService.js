@@ -42,15 +42,6 @@ AVAILABLE RESOURCES:`;
   if (resources.translationWords?.length > 0) {
     prompt += `\n- Translation Words (${resources.translationWords.length} entries):`;
     resources.translationWords.forEach((word, index) => {
-      // Debug individual word structure
-      console.log(`🔍 TW Word ${index + 1} Structure:`, {
-        availableKeys: Object.keys(word),
-        title: word.title,
-        term: word.term,
-        contentLength: word.content?.length || 0,
-        contentPreview: word.content?.substring(0, 100) || "No content",
-      });
-
       prompt += `\n  ${index + 1}. ${word.term || word.title}`;
 
       // Include full article content if available
@@ -119,10 +110,14 @@ export async function sendChatMessage(message, context, chatHistory = []) {
     const estimatedInputTokens = Math.ceil((contextSize + messageSize + historySize) / 4);
     const estimatedOutputTokens = 500; // Assume average response length
 
-    // GPT-4.1-nano pricing: $0.10/million input, $0.40/million output
-    const inputCost = (estimatedInputTokens / 1000000) * 0.1;
-    const outputCost = (estimatedOutputTokens / 1000000) * 0.4;
+    // GPT-4o-mini pricing: $0.15/million input, $0.60/million output (updated June 2025)
+    const inputCost = (estimatedInputTokens / 1000000) * 0.15;
+    const outputCost = (estimatedOutputTokens / 1000000) * 0.6;
     const totalCost = inputCost + outputCost;
+    // Token limit for GPT-4o-mini (128k context window)
+    const tokenLimit = 128000;
+    const inputPercentage = ((estimatedInputTokens / tokenLimit) * 100).toFixed(2);
+    const outputPercentage = ((estimatedOutputTokens / tokenLimit) * 100).toFixed(2);
 
     // Analyze resources being sent
     const resources = context?.resources || {};
@@ -134,25 +129,21 @@ export async function sendChatMessage(message, context, chatHistory = []) {
       translationWordLinks: resources.translationWordLinks?.length || 0,
     };
 
-    // Debug translation words structure
-    if (resources.translationWords?.length > 0) {
-      console.log(`🔍 Translation Words Debug:`, {
-        count: resources.translationWords.length,
-        firstWordKeys: Object.keys(resources.translationWords[0] || {}),
-        firstWordSample: resources.translationWords[0],
-      });
-    }
-
-    console.log(`💰 LLM Request Cost Estimate:`, {
+    // Create cost estimate object for UI display
+    const costEstimate = {
       contextSize: `${(contextSize / 1000).toFixed(1)}KB`,
-      estimatedInputTokens: estimatedInputTokens.toLocaleString(),
-      estimatedOutputTokens: estimatedOutputTokens.toLocaleString(),
-      inputCost: `$${inputCost.toFixed(4)}`,
-      outputCost: `$${outputCost.toFixed(4)}`,
-      totalCost: `$${totalCost.toFixed(4)}`,
+      estimatedInputTokens: estimatedInputTokens,
+      estimatedOutputTokens: estimatedOutputTokens,
+      inputCost: inputCost,
+      outputCost: outputCost,
+      totalCost: totalCost,
+      inputPercentage: parseFloat(inputPercentage),
+      outputPercentage: parseFloat(outputPercentage),
       reference: context?.reference?.citation || "Unknown",
       resources: resourceSummary,
-    });
+      model: "GPT-4o-mini",
+      timestamp: new Date().toISOString(),
+    };
 
     const endpoint = import.meta.env.VITE_CHAT_API_ENDPOINT || "/.netlify/functions/chat";
 
@@ -191,6 +182,7 @@ export async function sendChatMessage(message, context, chatHistory = []) {
         timestamp: new Date().toISOString(),
         contextUsed: context,
         metadata: data.metadata || {},
+        costEstimate: costEstimate,
       };
     } catch (fetchError) {
       clearTimeout(timeoutId);
@@ -210,6 +202,7 @@ export async function sendChatMessage(message, context, chatHistory = []) {
       success: false,
       error: error.message,
       timestamp: new Date().toISOString(),
+      costEstimate: null,
     };
   }
 }
@@ -285,12 +278,37 @@ export function createMockResponse(message, context) {
 
   const randomResponse = responses[Math.floor(Math.random() * responses.length)];
 
+  // Create mock cost estimate
+  const mockCostEstimate = {
+    contextSize: `${(JSON.stringify(context).length / 1000).toFixed(1)}KB`,
+    estimatedInputTokens: Math.floor(Math.random() * 5000) + 10000,
+    estimatedOutputTokens: Math.floor(Math.random() * 1000) + 300,
+    inputCost: Math.random() * 0.002 + 0.001,
+    outputCost: Math.random() * 0.0005 + 0.0001,
+    totalCost: 0,
+    inputPercentage: Math.random() * 15,
+    outputPercentage: Math.random() * 5,
+    reference: context?.reference?.citation || "Unknown",
+    resources: {
+      scripture: resources.scripture ? "✓" : "✗",
+      translationNotes: resources.translationNotes?.length || 0,
+      translationQuestions: resources.translationQuestions?.length || 0,
+      translationWords: resources.translationWords?.length || 0,
+      translationWordLinks: resources.translationWordLinks?.length || 0,
+    },
+    model: "GPT-4o-mini (Mock)",
+    timestamp: new Date().toISOString(),
+  };
+
+  mockCostEstimate.totalCost = mockCostEstimate.inputCost + mockCostEstimate.outputCost;
+
   return {
     success: true,
     response: `${randomResponse}\n\n*This is a mock response demonstrating the new citation format. The actual feature will use OpenAI GPT-4o with strict source attribution.*`,
     timestamp: new Date().toISOString(),
     contextUsed: context,
     metadata: { mock: true, citationFormat: "enabled" },
+    costEstimate: mockCostEstimate,
   };
 }
 

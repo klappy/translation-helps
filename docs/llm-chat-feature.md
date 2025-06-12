@@ -4,7 +4,7 @@
 
 ✅ **Fully Implemented, Tested, and Enhanced with Professional Citation System** - Feature is production-ready
 
-### Implementation Status - ENHANCED v0.13.3
+### Implementation Status - ENHANCED v0.13.4
 
 - ✅ Chat UI Component (LLMChatPanel)
 - ✅ Context Integration (ChatContext)
@@ -21,6 +21,9 @@
 - ✅ **ENHANCED CITATION SYSTEM** - Professional resource titles and RC link support (v0.13.3)
 - ✅ **TRANSLATION WORDS FIX** - Fixed content access for complete article text (v0.13.3)
 - ✅ **CONTEXT OPTIMIZATION** - Resolved context too large issues with proper field access (v0.13.3)
+- ✅ **RESOURCE LOADING FIXES** - Enhanced resource readiness checks and loading state management (v0.13.4)
+- ✅ **SCRIPTURE & TQ AVAILABILITY** - Fixed scripture parsing and translation questions loading issues (v0.13.4)
+- ✅ **UI IMPROVEMENTS** - Added resource loading indicators and better user feedback (v0.13.4)
 
 ## Overview
 
@@ -71,7 +74,7 @@ netlify.toml                          # Netlify configuration
 
 ### AI Capabilities - **ENHANCED WITH CITATION SYSTEM**
 
-- **OpenAI GPT-4.1-nano**: Powered by OpenAI's fastest and most cost-effective model optimized for speed and efficiency
+- **OpenAI GPT-4o-mini**: Powered by OpenAI's model optimized for improved output consistency and alignment with expectations, despite slightly higher cost
 - **Strict Source Attribution**: Every response includes mandatory citations
 - **No Hallucination**: AI restricted to ONLY information provided in context
 - **Contextual responses**: Answers tailored to current scripture passage with citations
@@ -422,12 +425,12 @@ ChatProvider is wrapped around the app in the provider hierarchy:
 
 ### OpenAI API Usage
 
-- **Model**: GPT-4.1-nano (fastest and most cost-effective model)
+- **Model**: GPT-4o-mini (optimized for improved output consistency)
 - **Token Usage**: Estimated 500-2000 tokens per conversation
-- **Cost**: Approximately $0.0002-0.001 per conversation (up to 98% cost reduction)
+- **Cost**: Approximately $0.0003-0.0012 per conversation (slightly higher cost for better performance)
 - **Rate Limits**: 500 requests per minute (depending on API tier)
-- **Context Window**: 1M tokens with max output of 32.8K tokens
-- **Speed**: ~150.0 tokens/second for optimal real-time performance
+- **Context Window**: 128K tokens with max output of 16K tokens
+- **Speed**: ~120.0 tokens/second for reliable performance
 
 ### Optimization Strategies
 
@@ -524,6 +527,17 @@ ChatProvider is wrapped around the app in the provider hierarchy:
 | "API key not configured" | Missing OPENAI_API_KEY | Set environment variable            |
 | "Rate limit exceeded"    | Too many API calls     | Wait and retry, or upgrade API plan |
 | "Failed to send message" | Network or API error   | Check connection and retry          |
+
+## Recent Fixes
+
+### v0.13.9 - ResourcesContext Synchronization Issue
+
+**Fixed**: Translation questions showing in UI but missing from LLM chat context
+
+- **Issue**: Cost estimates showed `translationQuestions: 0` even when questions were available
+- **Root Cause**: Synchronization mismatch between UI panels and chat context loading logic
+- **Solution**: Added manifest-based custom file path extraction to ResourcesContext
+- **Documentation**: See [ResourcesContext Synchronization Fix](./resourcescontext-synchronization-fix.md)
 
 ## Support and Maintenance
 

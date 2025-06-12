@@ -14,7 +14,24 @@ export function LLMChatPanel({ reference }) {
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
-  const { chatHistory, isLoading, error, sendMessage, clearChat, getContextInfo } = useChat();
+  const {
+    chatHistory,
+    isLoading,
+    error,
+    sendMessage,
+    clearChat,
+    getContextInfo,
+    areResourcesReady,
+    getResourceStatus,
+    resourceChangeNotification,
+    dismissResourceChangeNotification,
+    startNewConversation,
+    sessionCost,
+    getSessionCostInfo,
+  } = useChat();
+
+  // Get resource status for UI display
+  const resourceStatus = getResourceStatus();
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -33,7 +50,7 @@ export function LLMChatPanel({ reference }) {
   }, [inputMessage]);
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+    if (!inputMessage.trim() || isLoading || !areResourcesReady()) return;
 
     const message = inputMessage.trim();
     setInputMessage("");
@@ -58,6 +75,25 @@ export function LLMChatPanel({ reference }) {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const formatCostDisplay = (cost) => {
+    if (cost < 0.0001) {
+      return "<$0.0001";
+    }
+    return `$${cost.toFixed(4)}`;
+  };
+
+  const getCostColor = (cost) => {
+    if (cost < 0.01) return styles.costLow;
+    if (cost < 0.1) return styles.costMedium;
+    return styles.costHigh;
+  };
+
+  const getSessionCostColor = (total) => {
+    if (total < 0.01) return styles.sessionCostLow;
+    if (total < 0.1) return styles.sessionCostMedium;
+    return styles.sessionCostHigh;
   };
 
   const renderMessage = (message) => {
@@ -92,6 +128,39 @@ export function LLMChatPanel({ reference }) {
           </div>
           <div className={styles.messageTime}>
             {formatTimestamp(message.timestamp)}
+            {isAssistant && message.costEstimate && (
+              <div
+                className={`${styles.messageCost} ${getCostColor(message.costEstimate.totalCost)}`}
+                title={`Message Cost Breakdown
+Context: ${message.costEstimate.contextSize}
+Input: ${message.costEstimate.estimatedInputTokens.toLocaleString()} tokens ($${message.costEstimate.inputCost.toFixed(
+                  4
+                )})
+Output: ${message.costEstimate.estimatedOutputTokens.toLocaleString()} tokens ($${message.costEstimate.outputCost.toFixed(
+                  4
+                )})
+Total: ${formatCostDisplay(message.costEstimate.totalCost)}
+
+Resources Used:
+${message.costEstimate.resources.scripture === "✓" ? "✓" : "✗"} Scripture
+${message.costEstimate.resources.translationNotes ? "✓" : "✗"} Notes (${
+                  message.costEstimate.resources.translationNotes
+                })
+${message.costEstimate.resources.translationQuestions ? "✓" : "✗"} Questions (${
+                  message.costEstimate.resources.translationQuestions
+                })
+${message.costEstimate.resources.translationWords ? "✓" : "✗"} Words (${
+                  message.costEstimate.resources.translationWords
+                })
+${message.costEstimate.resources.translationWordLinks ? "✓" : "✗"} Links (${
+                  message.costEstimate.resources.translationWordLinks
+                })
+
+Model: ${message.costEstimate.model}`}
+              >
+                💰 {formatCostDisplay(message.costEstimate.totalCost)}
+              </div>
+            )}
             {message.metadata?.mock && <span className={styles.mockBadge}>MOCK</span>}
           </div>
         </div>
@@ -110,12 +179,36 @@ export function LLMChatPanel({ reference }) {
           <span className={styles.subtitle}>Powered by AI</span>
         </div>
         <div className={styles.headerActions}>
-          {contextInfo && (
+          {resourceStatus?.ready && contextInfo && (
             <div className={styles.contextIndicator} title='Current context loaded'>
               <span className={styles.contextIcon}>📚</span>
               <span className={styles.contextText}>
                 {contextInfo.reference} ({contextInfo.resourceCount} resources)
               </span>
+            </div>
+          )}
+          {resourceStatus?.loading && (
+            <div className={styles.loadingIndicator} title='Loading translation resources...'>
+              <span className={styles.loadingIcon}>⏳</span>
+              <span className={styles.loadingText}>Loading resources...</span>
+            </div>
+          )}
+          {sessionCost.total > 0 && (
+            <div
+              className={`${styles.sessionCostIndicator} ${getSessionCostColor(sessionCost.total)}`}
+              title={`Session Cost Summary
+Messages: ${sessionCost.messageCount} AI responses
+Total Input: ${sessionCost.totalTokens.input.toLocaleString()} tokens
+Total Output: ${sessionCost.totalTokens.output.toLocaleString()} tokens
+Total Cost: ${formatCostDisplay(sessionCost.total)}
+Average/Message: ${formatCostDisplay(
+                sessionCost.messageCount > 0 ? sessionCost.total / sessionCost.messageCount : 0
+              )}
+
+Model: GPT-4o-mini`}
+            >
+              <span className={styles.sessionCostIcon}>💰</span>
+              <span className={styles.sessionCostText}>{formatCostDisplay(sessionCost.total)}</span>
             </div>
           )}
           <button
@@ -129,8 +222,113 @@ export function LLMChatPanel({ reference }) {
         </div>
       </div>
 
+      {/* Resource Change Notification */}
+      {resourceChangeNotification && (
+        <div className={styles.resourceChangeNotification}>
+          <div className={styles.notificationContent}>
+            <span className={styles.notificationIcon}>🔄</span>
+            <div className={styles.notificationText}>
+              <strong>Reference Changed</strong>
+              <p>
+                From {resourceChangeNotification.previousReference} to{" "}
+                {resourceChangeNotification.newReference}
+              </p>
+              <p>Would you like to start a new conversation with the updated resources?</p>
+            </div>
+            <div className={styles.notificationActions}>
+              <button onClick={startNewConversation} className={styles.primaryButton}>
+                Start New Chat
+              </button>
+              <button
+                onClick={dismissResourceChangeNotification}
+                className={styles.secondaryButton}
+              >
+                Continue Current
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Resource Loading Status */}
+      {!resourceStatus?.ready && resourceStatus?.loading && (
+        <div className={styles.resourceLoadingStatus}>
+          <div className={styles.loadingHeader}>
+            <span className={styles.loadingIcon}>📚</span>
+            <span>Loading Translation Resources...</span>
+          </div>
+          <div className={styles.resourceDetails}>
+            <div className={styles.resourceItem}>
+              <span className={resourceStatus.details.scripture ? styles.ready : styles.loading}>
+                {resourceStatus.details.scripture ? "✓" : "⏳"}
+              </span>
+              <span>Scripture Text</span>
+              {resourceStatus.resourceCounts?.scripture > 0 && (
+                <span className={styles.count}>({resourceStatus.resourceCounts.scripture})</span>
+              )}
+            </div>
+            <div className={styles.resourceItem}>
+              <span
+                className={resourceStatus.details.translationNotes ? styles.ready : styles.loading}
+              >
+                {resourceStatus.details.translationNotes ? "✓" : "⏳"}
+              </span>
+              <span>Translation Notes</span>
+              {resourceStatus.resourceCounts?.translationNotes > 0 && (
+                <span className={styles.count}>
+                  ({resourceStatus.resourceCounts.translationNotes})
+                </span>
+              )}
+            </div>
+            <div className={styles.resourceItem}>
+              <span
+                className={
+                  resourceStatus.details.translationQuestions ? styles.ready : styles.loading
+                }
+              >
+                {resourceStatus.details.translationQuestions ? "✓" : "⏳"}
+              </span>
+              <span>Translation Questions</span>
+              {resourceStatus.resourceCounts?.translationQuestions > 0 && (
+                <span className={styles.count}>
+                  ({resourceStatus.resourceCounts.translationQuestions})
+                </span>
+              )}
+            </div>
+            <div className={styles.resourceItem}>
+              <span
+                className={resourceStatus.details.translationWords ? styles.ready : styles.loading}
+              >
+                {resourceStatus.details.translationWords ? "✓" : "⏳"}
+              </span>
+              <span>Translation Words</span>
+              {resourceStatus.resourceCounts?.translationWords > 0 && (
+                <span className={styles.count}>
+                  ({resourceStatus.resourceCounts.translationWords})
+                </span>
+              )}
+            </div>
+            <div className={styles.resourceItem}>
+              <span
+                className={
+                  resourceStatus.details.translationWordLinks ? styles.ready : styles.loading
+                }
+              >
+                {resourceStatus.details.translationWordLinks ? "✓" : "⏳"}
+              </span>
+              <span>Translation Word Links</span>
+              {resourceStatus.resourceCounts?.translationWordLinks > 0 && (
+                <span className={styles.count}>
+                  ({resourceStatus.resourceCounts.translationWordLinks})
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Welcome Message */}
-      {chatHistory.length === 0 && (
+      {chatHistory.length === 0 && resourceStatus?.ready && (
         <div className={styles.welcomeMessage}>
           <div className={styles.welcomeIcon}>🤖</div>
           <h4>Welcome to Translation Assistant!</h4>
@@ -143,9 +341,56 @@ export function LLMChatPanel({ reference }) {
             <li>Cultural and historical context</li>
             <li>Translation questions and challenges</li>
           </ul>
+          <div className={styles.availableResources}>
+            <p>
+              <strong>Available Resources:</strong>
+            </p>
+            <div className={styles.resourcesList}>
+              {resourceStatus.resourceCounts?.scripture > 0 && (
+                <span className={styles.resourceTag}>Scripture ✓</span>
+              )}
+              {resourceStatus.resourceCounts?.translationNotes > 0 && (
+                <span className={styles.resourceTag}>
+                  Notes ({resourceStatus.resourceCounts.translationNotes}) ✓
+                </span>
+              )}
+              {resourceStatus.resourceCounts?.translationQuestions > 0 && (
+                <span className={styles.resourceTag}>
+                  Questions ({resourceStatus.resourceCounts.translationQuestions}) ✓
+                </span>
+              )}
+              {resourceStatus.resourceCounts?.translationWords > 0 && (
+                <span className={styles.resourceTag}>
+                  Words ({resourceStatus.resourceCounts.translationWords}) ✓
+                </span>
+              )}
+              {resourceStatus.resourceCounts?.translationWordLinks > 0 && (
+                <span className={styles.resourceTag}>
+                  Links ({resourceStatus.resourceCounts.translationWordLinks}) ✓
+                </span>
+              )}
+            </div>
+          </div>
           <p className={styles.promptSuggestion}>
             Try asking: "What are the key translation challenges for this verse?"
           </p>
+        </div>
+      )}
+
+      {/* Resources Not Ready Message */}
+      {chatHistory.length === 0 && !resourceStatus?.ready && !resourceStatus?.loading && (
+        <div className={styles.notReadyMessage}>
+          <div className={styles.notReadyIcon}>⚠️</div>
+          <h4>Resources Not Available</h4>
+          <p>
+            Translation resources are not currently available for this verse. Please check your
+            connection or try a different verse.
+          </p>
+          {resourceStatus?.error && (
+            <div className={styles.errorDetails}>
+              <strong>Error:</strong> {resourceStatus.error}
+            </div>
+          )}
         </div>
       )}
 
@@ -183,20 +428,28 @@ export function LLMChatPanel({ reference }) {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder='Ask about translation notes, word meanings, context...'
+            placeholder={
+              !areResourcesReady()
+                ? "Waiting for translation resources to load..."
+                : "Ask about translation notes, word meanings, context..."
+            }
             className={styles.messageInput}
-            disabled={isLoading}
+            disabled={isLoading || !areResourcesReady()}
             rows={1}
             maxLength={4000}
           />
           <button
             onClick={handleSendMessage}
             className={styles.sendButton}
-            disabled={!inputMessage.trim() || isLoading}
-            title='Send message (Enter)'
+            disabled={!inputMessage.trim() || isLoading || !areResourcesReady()}
+            title={
+              !areResourcesReady() ? "Waiting for resources to load..." : "Send message (Enter)"
+            }
           >
             {isLoading ? (
               <span className={styles.loadingSpinner}>⏳</span>
+            ) : !areResourcesReady() ? (
+              <span className={styles.waitingSpinner}>⏳</span>
             ) : (
               <span className={styles.sendIcon}>➤</span>
             )}
