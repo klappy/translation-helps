@@ -25,7 +25,8 @@
     "remark-gfm": "^3.0.1",
     "remark-parse": "^10.0.1",
     "simple-text-editor-rcl": "^6.16.0",
-    "usfm-js": "^3.4.3"
+    "usfm-js": "^3.4.3",
+    "vite": "^4.2.1"
   },
   "scripts": {
     "codex-version-guard": "node scripts/codex-version-guard.js",
@@ -63,7 +64,6 @@
     "playwright": "^1.52.0",
     "prettier": "^2.8.8",
     "typescript": "^4.9.5",
-    "vite": "^4.2.1",
     "vitest": "^0.34.0"
   }
 }
