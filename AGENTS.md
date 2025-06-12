@@ -49,6 +49,7 @@ description: An application for viewing unfoldingWord Bible translation resource
 - For Dev Server issues (blank page), refer to the "Debugging Dev Server Blank Screen" section in README.md.
 - The app now uses `js-yaml` for YAML parsing (`load()` API); remove any legacy `yaml` aliasing in `vite.config.ts` and add `js-yaml` to `optimizeDeps.include` if needed.
 - **⚠️ CRITICAL: Use Proskomma React Hooks for USFM rendering** - See `docs/proskomma-hooks-enhancement.md` for details. Proskomma handles all USFM parsing and rendering.
+- **LLM Chat Environment Variables**: Use `VITE_USE_MOCK_CHAT=true` to enable mock responses, `VITE_USE_MOCK_CHAT=false` or unset to use real OpenAI API. Requires `OPENAI_API_KEY` in environment for real API usage.
 
 ## 🔄 GitFlow Branch Strategy
 

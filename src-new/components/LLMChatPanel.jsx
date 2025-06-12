@@ -185,8 +185,8 @@ export function LLMChatPanel({ reference }) {
         </div>
         <div className={styles.inputFooter}>
           <span className={styles.charCount}>{inputMessage.length}/4000</span>
-          {import.meta.env.DEV && (
-            <span className={styles.devIndicator}>Development Mode - Using Mock Responses</span>
+          {import.meta.env.VITE_USE_MOCK_CHAT === "true" && (
+            <span className={styles.devIndicator}>Using Mock Responses</span>
           )}
         </div>
       </div>

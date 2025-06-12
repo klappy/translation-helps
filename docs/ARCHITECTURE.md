@@ -86,6 +86,7 @@ App (Context Providers)
             ├── TranslationQuestionsPanel
             ├── TranslationWordsPanel
             ├── TWLPanel
+            ├── LLMChatPanel (AI Assistant)
             └── ArticlePanel
 ```
 
@@ -95,7 +96,8 @@ App (Context Providers)
 ReferenceContext (Global reference state)
 ├── ManifestsContext (Resource manifests)
 │   └── MultiManifestsContext (Multi-org support)
-└── ResourcesContext (Loaded content)
+├── ResourcesContext (Loaded content)
+└── ChatContext (AI chat state & DOM extraction)
 ```
 
 ---
@@ -176,6 +178,7 @@ Return Structured Data
 | `twService`        | Translation Words articles             | `getArticlesForLinks()`                  |
 | `twlService`       | Translation Words Links                | `getLinksForVerse()`                     |
 | `taService`        | Translation Academy articles           | `getArticleByPath()`                     |
+| `llmChatService`   | AI chat communication & context        | `sendMessage()`, `collectResources()`    |
 
 ### Service Interface Pattern
 
@@ -357,18 +360,57 @@ const resourcePath = `${organization}/${languageId}_${resourceType}`;
 
 ```javascript
 // RC Link Pattern
-const
-```
+const rcLinkPattern = /^rc:\/\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/;
 
 // RC Link Resolution
 const resolveRcLink = (rcUri, organization, languageId) => {
-const [, lang, resourceType, category, path] = rcUri.match(rcLinkPattern);
-return `${organization}/${languageId}_${resourceType}/${category}/${path}.md`;
+  const [, lang, resourceType, category, path] = rcUri.match(rcLinkPattern);
+  return `${organization}/${languageId}_${resourceType}/${category}/${path}.md`;
 };
 
 // Example:
 // rc://en/tw/dict/bible/kt/create
 // → unfoldingWord/en_tw/dict/bible/kt/create.md
+```
+
+### LLM Chat Integration
+
+```javascript
+// AI Chat Service Integration
+const llmChatService = {
+  // Serverless function endpoint
+  endpoint: "/.netlify/functions/chat",
+
+  // DOM-based resource extraction
+  collectCurrentResources: () => {
+    const resources = {};
+
+    // Extract from all translation resource panels
+    ["scripture", "translation-notes", "translation-questions", "translation-words", "twl"].forEach(
+      (type) => {
+        const element = document.querySelector(`[data-testid="${type}-content"]`);
+        if (element) {
+          resources[type] = parseResourceContent(element.textContent, type);
+        }
+      }
+    );
+
+    return resources;
+  },
+
+  // Context packaging for AI
+  buildContext: (reference, resources) => ({
+    reference: {
+      book: reference.bookId,
+      chapter: reference.chapter,
+      verse: reference.verse,
+      display: `${reference.bookId} ${reference.chapter}:${reference.verse}`,
+    },
+    resources,
+    timestamp: new Date().toISOString(),
+  }),
+};
+```
 
 ````
 

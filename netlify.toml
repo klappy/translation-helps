@@ -1,25 +1,26 @@
 [build]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "yarn install && yarn run build"
   functions = "netlify/functions"
   publish = "dist"
 
 [dev]
-  command = "npm run dev:app"
-  port = 5173
+  command = "yarn dev"
+  port = 5174
   targetPort = 5173
   autoLaunch = true
+  functionsPort = 7000
 
 # Redirect API calls to Netlify functions
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
   status = 200
 
 # SPA fallback for client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+#[[redirects]]
+#  from = "/*"
+#  to = "/index.html"
+#  status = 200
 
 [functions]
   directory = "netlify/functions"
