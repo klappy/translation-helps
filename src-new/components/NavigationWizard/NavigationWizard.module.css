@@ -466,6 +466,17 @@
   margin-right: var(--spacing-3);
 }
 
+/* Informational notice */
+.notice {
+  background-color: var(--color-warning);
+  color: var(--color-dark);
+  padding: var(--spacing-3);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .wizardContainer {
