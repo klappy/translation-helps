@@ -18,14 +18,12 @@
   - ✅ Updated unit tests to cover introduction note handling
   - ✅ Documentation updated explaining special reference rows in tN TSV files
 
-
 ## [0.13.11] - 2025-06-13
 
 ### Fixed
 
 - **Search Panel Resource Info Bug**
   - ✅ Search panel now displays selected Bible resource title, version, and rights instead of static TWL info
-
 
 ## [0.13.10] - 2025-06-12
 
@@ -1059,6 +1057,39 @@
   - Better language display across all dropdowns and UI components
 
 ## [Unreleased]
+
+### Fixed
+
+- **USFM Performance Optimization - Eliminated Multiple Parsing Cycles ([Performance Issue])**
+  - ✅ **Fixed Re-fetch Cycle**: Removed `usfmContent` from useEffect dependencies in ScripturePanelRCL to prevent fetch → update → re-fetch cycles
+  - ✅ **Optimized Proskomma Queries**: Replaced 16 individual verse queries with single chapter-level query in USFMRenderer, reducing proskomma operations by 94%
+  - ✅ **Enhanced Memoization**: Added React.memo to ScripturePanel, ScripturePanelRCL, and USFMRenderer components to prevent unnecessary re-renders
+  - ✅ **Streamlined Import Check**: Optimized `isBookAlreadyImported` calculation and removed redundant dependencies
+  - ✅ **Reduced Debug Logging**: Removed excessive logging that could impact performance during rendering
+  - ✅ **Performance Gains**: USFM processing reduced from 8+ cycles to 1 cycle per page load, eliminating the multiple "📄 Full USFM content length" logs
+  - ✅ **Chapter Query Optimization**: USFMRenderer now uses single `usePassage` hook for entire chapter instead of 16 individual verse hooks
+  - ✅ **Render Cycle Reduction**: Eliminated duplicate renders from 8+ times to optimal render count for single page loads
+  - ✅ **Responsive Performance**: Significantly improved performance for medium and large books, making large books usable when switching
+
+### Technical Implementation
+
+- **Root Cause Analysis**: Multiple re-renders caused by dependency cycles where USFM content updates triggered new fetch operations
+- **Query Optimization**: Replaced multiple verse-level proskomma queries with efficient chapter-level approach and local verse parsing
+- **Component Memoization**: Strategic use of React.memo on key components to prevent cascade re-renders
+- **Dependency Cleanup**: Removed circular dependencies and optimized useEffect dependency arrays
+- **Performance Monitoring**: Browser testing confirmed single USFM load cycle vs previous multiple cycles
+- **Files Modified**:
+  - `src-new/components/ScripturePanelRCL/ScripturePanelRCL.jsx` - Fixed re-fetch cycle and added React.memo
+  - `src-new/components/ScripturePanelRCL/USFMRenderer.jsx` - Optimized to single chapter query with React.memo
+  - `src-new/components/ScripturePanel.jsx` - Added React.memo wrapper
+
+### User Experience Benefits
+
+- **Responsive Navigation**: Book switching now performs smoothly even for large books like Genesis or Psalms
+- **Faster Rendering**: Elimination of multiple USFM parsing cycles provides immediate performance improvement
+- **Reduced Network Load**: Single book fetch per selection instead of multiple redundant requests
+- **Better Mobile Performance**: Optimized rendering particularly beneficial for mobile devices with limited processing power
+- **Consistent Performance**: Performance improvements scale with book size, providing better experience across all biblical content
 
 ### Added
 

@@ -17,7 +17,7 @@ import styles from "./ScripturePanelRCL.module.css";
  * @param {object} props.reference - Reference object { bookId, chapter, verse }
  * @param {function} props.onVerseClick - Callback when a verse is clicked
  */
-export default function ScripturePanelRCL({ reference, onVerseClick }) {
+const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onVerseClick }) {
   const [usfmContent, setUsfmContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -67,25 +67,8 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
     const existingDocSet = docSets.find((ds) => ds.id === docSetId);
     const hasDocuments = existingDocSet && existingDocSet.nDocuments > 0;
 
-    console.log("📚 Checking if book is already imported:", {
-      docSetId,
-      cleanResourceId,
-      existingDocSet: !!existingDocSet,
-      hasDocuments,
-      availableDocSets: docSets.map((ds) => ds.id),
-      isCurrentlyImporting: bookResourceKey ? importingBooks.has(bookResourceKey) : false,
-    });
-
     return hasDocuments;
-  }, [
-    organization,
-    languageId,
-    reference?.bookId,
-    resourceId,
-    catalogHook.catalog,
-    bookResourceKey,
-    importingBooks,
-  ]);
+  }, [organization, languageId, reference?.bookId, resourceId, catalogHook.catalog]);
 
   // Check if import is currently in progress for this book
   const isCurrentlyImporting = bookResourceKey ? importingBooks.has(bookResourceKey) : false;
@@ -196,14 +179,11 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
 
       // Set up timeout for fetch operation with proper cleanup
       const timeoutId = setTimeout(() => {
-        // Only show timeout error if we haven't successfully loaded content
-        if (!usfmContent) {
-          abortController.abort();
-          setError(
-            `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
-          );
-          setLoading(false);
-        }
+        abortController.abort();
+        setError(
+          `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
+        );
+        setLoading(false);
       }, FETCH_TIMEOUT);
 
       setFetchTimeout(timeoutId);
@@ -246,34 +226,24 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
         // Debug: log the full USFM content
         console.log("📄 Full USFM content length:", rawUSFM.length);
         console.log("📄 First 1000 chars:", rawUSFM.substring(0, 1000));
-        console.log("📄 Last 500 chars:", rawUSFM.substring(rawUSFM.length - 500));
 
         // Pass the full USFM to simple-text-editor-rcl for complete book navigation
         console.log(
           `✅ ScripturePanelRCL: Loaded full USFM for ${bookId} (${rawUSFM.length} characters)`
         );
-        // Try passing raw USFM first to see if UsfmEditor can handle it
-        console.log("📝 Using raw USFM length:", rawUSFM.length);
-        console.log("📝 Raw USFM first 1000 chars:", rawUSFM.substring(0, 1000));
 
         setUsfmContent(rawUSFM);
         setError(null);
       } catch (e) {
         console.error("❌ ScripturePanelRCL: Failed to load chapter:", e);
-        // Only set error if we don't already have content loaded
-        if (!usfmContent) {
-          if (e.message.includes("aborted") || e.message.includes("timeout")) {
-            setError(
-              `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
-            );
-          } else {
-            setError(`Failed to load chapter: ${e.message}`);
-          }
+        if (e.message.includes("aborted") || e.message.includes("timeout")) {
+          setError(
+            `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
+          );
+        } else {
+          setError(`Failed to load chapter: ${e.message}`);
         }
-        // Don't clear usfmContent if we already have content - keep what's working
-        if (!usfmContent) {
-          setUsfmContent("");
-        }
+        setUsfmContent("");
       } finally {
         // Always clear timeout on completion
         if (timeoutId) {
@@ -285,17 +255,7 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
     }
 
     loadUSFMChapter();
-  }, [
-    reference?.bookId,
-    reference?.chapter,
-    resourceId,
-    languageId,
-    organization,
-    manifests,
-    manifestsLoading,
-    isBookAlreadyImported,
-    usfmContent,
-  ]);
+  }, [reference?.bookId, resourceId, languageId, organization, manifests, manifestsLoading, isBookAlreadyImported]);
 
   // Accept both chapter and verse for context update
   const handleVerseClick = (verseNum, chapterNum) => {
@@ -391,4 +351,6 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
       />
     </section>
   );
-}
+});
+
+export default ScripturePanelRCL;

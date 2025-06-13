@@ -10,6 +10,6 @@ import ScripturePanelRCL from "./ScripturePanelRCL";
  * @param {object} props.reference - Reference object { bookId, chapter, verse }
  * @param {function} props.onVerseClick - Callback when a verse is clicked
  */
-export function ScripturePanel({ reference, onVerseClick }) {
+export const ScripturePanel = React.memo(function ScripturePanel({ reference, onVerseClick }) {
   return <ScripturePanelRCL reference={reference} onVerseClick={onVerseClick} />;
-}
+});

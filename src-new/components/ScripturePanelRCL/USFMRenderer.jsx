@@ -1,64 +1,161 @@
 /**
  * USFMRenderer.jsx
- * Enhanced USFM renderer using proskomma-react-hooks for optimized verse-by-verse rendering
- * Uses usePassage with individual verse queries for precise verse-level control
+ * Optimized USFM renderer with proper memoization to prevent excessive re-renders
+ * Uses efficient USFM parsing and caching to improve performance
  */
-import React, { useContext, useMemo, useEffect, useState } from "react";
+import React, { useContext, useMemo, useCallback, useState, useEffect } from "react";
 import { ReferenceContext } from "../../context/ReferenceContext";
-import { useProskomma, useImport, usePassage } from "proskomma-react-hooks";
 import styles from "./USFMRenderer.module.css";
 
-// Timeout constants
-const IMPORT_TIMEOUT = 5000; // 5 seconds for import
-const PASSAGE_TIMEOUT = 3000; // 3 seconds for passage queries
+// Cache for parsed verses to avoid re-parsing on every render
+const versesCache = new Map();
 
-// Custom hook for managing multiple verse queries
-function useVerseQueries(proskommaHook, abbr, chapter, maxVerses = 16) {
-  const verseQueries = useMemo(() => {
-    if (!abbr || !chapter) return [];
-    const queries = [];
-    for (let verse = 1; verse <= maxVerses; verse++) {
-      queries.push({
-        verse,
-        reference: `${abbr.toUpperCase()} ${chapter}:${verse}`,
-      });
-    }
-    return queries;
-  }, [abbr, chapter, maxVerses]);
+// Generate cache key for USFM content
+function generateCacheKey(usfm, chapter) {
+  return `${usfm?.length || 0}-${chapter}-${usfm?.substring(0, 100) || ""}`;
+}
 
-  // Create individual usePassage hooks for each verse
-  const verseHooks = verseQueries.map(({ verse, reference }) =>
-    usePassage({
-      ...proskommaHook,
-      reference,
-      verbose: false, // Reduce logging noise
-    })
-  );
+// Optimized USFM parsing function with caching
+function parseUSFMToVerses(usfm, chapter) {
+  if (!usfm || !chapter) return {};
 
-  // Process results into a clean verses object
-  const verses = useMemo(() => {
-    const result = {};
-    verseHooks.forEach((hook, index) => {
-      const verse = verseQueries[index]?.verse;
-      if (hook.passages && hook.passages.length > 0 && verse) {
-        const passage = hook.passages[0];
-        if (passage.text && passage.text.trim()) {
-          result[verse] = {
-            text: passage.text.trim(),
-            reference: passage.reference,
-            verse: verse,
-          };
-        }
+  const cacheKey = generateCacheKey(usfm, chapter);
+
+  // Return cached result if available
+  if (versesCache.has(cacheKey)) {
+    console.log("📚 Using cached verses for chapter", chapter);
+    return versesCache.get(cacheKey);
+  }
+
+  console.log("🔄 Parsing USFM for chapter", chapter, "- Content length:", usfm.length);
+
+  const verses = {};
+  const lines = usfm.split("\n");
+  let currentChapter = null;
+  let currentVerse = null;
+  let currentVerseContent = "";
+  let inTargetChapter = false;
+  const targetChapter = parseInt(chapter); // Ensure target is an integer
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Track chapter markers
+    const chapterMatch = line.match(/^\\c (\d+)/);
+    if (chapterMatch) {
+      const chapterNum = parseInt(chapterMatch[1]);
+
+      // Save previous verse before switching chapters
+      if (currentVerse && currentVerseContent && inTargetChapter) {
+        const cleanedText = cleanUSFMText(currentVerseContent.trim());
+        verses[currentVerse] = {
+          text: cleanedText,
+          verse: currentVerse,
+        };
       }
-    });
-    return result;
-  }, [verseHooks, verseQueries]);
 
-  return {
-    verses,
-    loading: verseHooks.some((hook) => !hook.passages || hook.passages.length === 0),
-    errors: verseHooks.flatMap((hook) => hook.errors || []),
-  };
+      // Update chapter tracking
+      currentChapter = chapterNum;
+      inTargetChapter = chapterNum === targetChapter;
+
+      // If we've moved past our target chapter, stop processing
+      if (chapterNum > targetChapter && Object.keys(verses).length > 0) {
+        break;
+      }
+
+      // Reset verse tracking
+      currentVerse = null;
+      currentVerseContent = "";
+      continue;
+    }
+
+    // Only process content if we're in the target chapter
+    if (!inTargetChapter) {
+      continue;
+    }
+
+    // Track verse markers within our target chapter
+    const verseMatch = line.match(/^\\v (\d+)(.*)$/);
+    if (verseMatch) {
+      // Save previous verse if we have one
+      if (currentVerse && currentVerseContent) {
+        const cleanedText = cleanUSFMText(currentVerseContent.trim());
+        verses[currentVerse] = {
+          text: cleanedText,
+          verse: currentVerse,
+        };
+      }
+
+      // Start new verse
+      currentVerse = parseInt(verseMatch[1]);
+      currentVerseContent = verseMatch[2] || "";
+      continue;
+    }
+
+    // Accumulate verse content for current verse
+    if (currentVerse) {
+      // Include lines that don't start with \ (continuation of verse text)
+      // Also include \w tags (word markup) and \zaln tags but skip other USFM tags
+      if (!line.startsWith("\\") || line.includes("\\w ") || line.includes("\\zaln")) {
+        currentVerseContent += " " + line;
+      }
+    }
+  }
+
+  // Don't forget the last verse
+  if (currentVerse && currentVerseContent && inTargetChapter) {
+    const cleanedText = cleanUSFMText(currentVerseContent.trim());
+    verses[currentVerse] = {
+      text: cleanedText,
+      verse: currentVerse,
+    };
+  }
+
+  console.log("✅ Parsed", Object.keys(verses).length, "verses for chapter", chapter);
+
+  // Cache the result
+  versesCache.set(cacheKey, verses);
+
+  // Clean old cache entries (keep last 5)
+  if (versesCache.size > 5) {
+    const keys = Array.from(versesCache.keys());
+    const oldKey = keys[0];
+    versesCache.delete(oldKey);
+  }
+
+  return verses;
+}
+
+// Clean USFM markup to get readable text
+function cleanUSFMText(text) {
+  if (!text) return "";
+
+  let cleanText = text;
+
+  // Extract text from \w tags - handle both formats:
+  // \w word|attributes\w* and \w word \w*
+  cleanText = cleanText.replace(/\\w\s+([^\\]*?)(?:\|[^\\]*?)?\\w\*/g, (match, word) => {
+    return word.trim();
+  });
+
+  // Remove alignment markers and other USFM tags
+  cleanText = cleanText.replace(/\\zaln-s[^\\]*?\\?\*/g, " ");
+  cleanText = cleanText.replace(/\\zaln-e\\?\*/g, " ");
+
+  // Remove any remaining USFM tags
+  cleanText = cleanText.replace(/\\[a-z]+[-\w]*\s*[^\\]*?\*/g, " ");
+  cleanText = cleanText.replace(/\\[a-z]+[-\w]*\s*/g, " ");
+
+  // Remove pipe-separated attributes
+  cleanText = cleanText.replace(/\|[^|]*?\*/g, "");
+
+  // Normalize whitespace and punctuation
+  cleanText = cleanText
+    .replace(/\s*,\s*/g, ", ") // Fix comma spacing
+    .replace(/\s+/g, " ") // Normalize whitespace
+    .trim();
+
+  return cleanText;
 }
 
 /**
@@ -71,7 +168,7 @@ function useVerseQueries(proskommaHook, abbr, chapter, maxVerses = 16) {
  * @param {string} props.usfm - USFM content
  * @param {number} props.chapter - Current chapter to display
  */
-export default function USFMRenderer({
+const USFMRenderer = React.memo(function USFMRenderer({
   selectedVerse,
   onVerseClick,
   org,
@@ -81,134 +178,37 @@ export default function USFMRenderer({
   chapter,
 }) {
   const { updateReference } = useContext(ReferenceContext);
-  const [importTimedOut, setImportTimedOut] = useState(false);
-  const [passageTimedOut, setPassageTimedOut] = useState(false);
 
-  // Create proskomma instance
-  const proskommaHook = useProskomma({ verbose: false });
+  // Parse USFM directly to verses for this chapter - much faster than proskomma
+  const verses = useMemo(() => {
+    if (!usfm || !chapter) return {};
 
-  // Create document configuration for import
-  const document = useMemo(() => {
-    if (!usfm || !org || !lang || !abbr) return null;
-    return [
-      {
-        selectors: { org, lang, abbr },
-        data: usfm,
-        bookCode: abbr,
-      },
-    ];
-  }, [usfm, org, lang, abbr]);
-
-  // Import document
-  const importHook = useImport({
-    ...proskommaHook,
-    documents: document || [],
-    verbose: false,
-  });
-
-  // Set up import timeout
-  useEffect(() => {
-    if (importHook.importing && !importHook.done) {
-      const timeoutId = setTimeout(() => {
-        if (importHook.importing && !importHook.done) {
-          setImportTimedOut(true);
-        }
-      }, IMPORT_TIMEOUT);
-
-      return () => clearTimeout(timeoutId);
-    } else {
-      setImportTimedOut(false);
-    }
-  }, [importHook.importing, importHook.done]);
-
-  // Use our custom verse queries hook with proskomma instance
-  const {
-    verses,
-    loading: versesLoading,
-    errors: verseErrors,
-  } = useVerseQueries(
-    proskommaHook,
-    abbr,
-    chapter,
-    16 // Max verses for Titus 1
-  );
-
-  // Set up passage query timeout
-  useEffect(() => {
-    if (versesLoading && Object.keys(verses).length === 0) {
-      const timeoutId = setTimeout(() => {
-        if (versesLoading && Object.keys(verses).length === 0) {
-          setPassageTimedOut(true);
-        }
-      }, PASSAGE_TIMEOUT);
-
-      return () => clearTimeout(timeoutId);
-    } else {
-      setPassageTimedOut(false);
-    }
-  }, [versesLoading, verses]);
+    // Use our optimized parsing function with caching
+    return parseUSFMToVerses(usfm, chapter);
+  }, [usfm, chapter]);
 
   // Handle loading states
-  if (!usfm || !org || !lang || !abbr) {
+  if (!usfm || !chapter) {
     return (
       <div data-testid='usfm-renderer' className={styles["error-state"]}>
-        Missing scripture context.
+        Missing scripture content or chapter.
       </div>
     );
   }
 
-  if (importTimedOut) {
-    return (
-      <div data-testid='usfm-renderer' className={styles["error-state"]}>
-        Scripture import timed out. Please try again.
-      </div>
-    );
-  }
+  // Handle verse click with memoized callback
+  const handleVerseClick = useCallback(
+    (verseNum) => {
+      updateReference({ chapter: chapter, verse: verseNum });
+      if (onVerseClick) onVerseClick(verseNum, chapter);
+    },
+    [chapter, updateReference, onVerseClick]
+  );
 
-  if (importHook.importing || !importHook.done) {
-    return (
-      <div data-testid='usfm-renderer' className={styles["loading-additional"]}>
-        Loading scripture...
-      </div>
-    );
-  }
-
-  if (importHook.errors && importHook.errors.length > 0) {
-    return (
-      <div data-testid='usfm-renderer' className={styles["error-state"]}>
-        Error importing scripture: {importHook.errors[0].message || String(importHook.errors[0])}
-      </div>
-    );
-  }
-
-  if (passageTimedOut) {
-    return (
-      <div data-testid='usfm-renderer' className={styles["error-state"]}>
-        Loading chapter timed out. Please try again.
-      </div>
-    );
-  }
-
-  if (versesLoading && Object.keys(verses).length === 0) {
-    return (
-      <div data-testid='usfm-renderer' className={styles["loading-additional"]}>
-        Loading chapter {chapter}...
-      </div>
-    );
-  }
-
-  if (verseErrors.length > 0) {
-    return (
-      <div data-testid='usfm-renderer' className={styles["error-state"]}>
-        Error loading verses: {verseErrors[0]}
-      </div>
-    );
-  }
-
-  // Render verse-by-verse using proskomma-react-hooks data
+  // Render verses directly from USFM parsing
   return (
     <div className={styles["usfm-renderer"]} data-testid='usfm-renderer'>
-      {chapter && Object.keys(verses).length > 0 ? (
+      {Object.keys(verses).length > 0 ? (
         <div className={styles.chapter} key={chapter}>
           <div className={styles["chapter-header"]}>Chapter {chapter}</div>
           <div className={styles.verses}>
@@ -220,19 +220,13 @@ export default function USFMRenderer({
                     verseData.verse === selectedVerse ? styles.selected : ""
                   }`}
                   key={verseData.verse}
-                  onClick={() => {
-                    updateReference({ chapter: chapter, verse: verseData.verse });
-                    if (onVerseClick) onVerseClick(verseData.verse, chapter);
-                  }}
+                  onClick={() => handleVerseClick(verseData.verse)}
                 >
                   <span className={styles["verse-number"]}>{verseData.verse}</span>
                   <span className={styles["verse-text"]}>{verseData.text}</span>
                 </div>
               ))}
           </div>
-          {versesLoading && (
-            <div className={styles["loading-additional"]}>Loading additional verses...</div>
-          )}
         </div>
       ) : (
         <div data-testid='usfm-renderer' className={styles["empty-state"]}>
@@ -241,4 +235,6 @@ export default function USFMRenderer({
       )}
     </div>
   );
-}
+});
+
+export default USFMRenderer;
