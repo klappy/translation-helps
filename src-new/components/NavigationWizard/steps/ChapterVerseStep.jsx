@@ -5,79 +5,37 @@
 
 import React, { useState, useMemo } from "react";
 import styles from "../NavigationWizard.module.css";
+import { parseNaturalReference } from "../../../utils/parseNaturalReference";
 
 export function ChapterVerseStep({
-  onNext,
   onPrevious,
   onComplete,
   onStepChange,
   wizardData,
   isDesktop,
 }) {
-  const [selectedChapter, setSelectedChapter] = useState(wizardData.chapter || 1);
-  const [selectedVerse, setSelectedVerse] = useState(wizardData.verse || 1);
+  const [inputValue, setInputValue] = useState(
+    wizardData.bookId && wizardData.chapter
+      ? `${wizardData.bookId.toUpperCase()} ${wizardData.chapter}:${wizardData.verse}`
+      : ""
+  );
+  const [error, setError] = useState(null);
 
-  // Get chapter count from BIBLE_BOOKS data (simplified for demo)
-  const getChapterCount = (bookId) => {
-    const chapterCounts = {
-      gen: 50,
-      exo: 40,
-      lev: 27,
-      num: 36,
-      deu: 34,
-      jos: 24,
-      jdg: 21,
-      rut: 4,
-      "1sa": 31,
-      "2sa": 24,
-      mat: 28,
-      mrk: 16,
-      luk: 24,
-      jhn: 21,
-      act: 28,
-      rom: 16,
-      "1co": 16,
-      "2co": 13,
-      gal: 6,
-      eph: 6,
-      tit: 3,
-      phm: 1,
-      rev: 22,
-    };
-    return chapterCounts[bookId] || 25; // Default fallback
-  };
+  const parsedReference = useMemo(() => parseNaturalReference(inputValue), [inputValue]);
 
-  // Simplified verse count (in reality this would come from Bible API)
-  const getVerseCount = (bookId, chapter) => {
-    // This is a simplified version - in practice, this would be fetched from an API
-    return 30; // Default verse count for demo
-  };
-
-  const chapterCount = getChapterCount(wizardData.bookId);
-  const verseCount = getVerseCount(wizardData.bookId, selectedChapter);
-
-  const handleChapterSelect = (chapter) => {
-    setSelectedChapter(chapter);
-    setSelectedVerse(1); // Reset verse when chapter changes
-    onStepChange(4, {
-      bookId: wizardData.bookId,
-      chapter: chapter,
-      verse: 1,
-    });
-  };
-
-  const handleVerseSelect = (verse) => {
-    setSelectedVerse(verse);
-    onStepChange(4, {
-      bookId: wizardData.bookId,
-      chapter: selectedChapter,
-      verse: verse,
-    });
-  };
-
-  const handleComplete = () => {
-    if (onComplete) {
-      onComplete();
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const parsed = parseNaturalReference(inputValue);
+    if (parsed) {
+      setError(null);
+      onStepChange(4, {
+        bookId: parsed.bookId,
+        chapter: parsed.chapter,
+        verse: parsed.verse,
+      });
+      if (onComplete) onComplete();
+    } else {
+      setError("Invalid reference. Use format 'JHN 3:16'");
     }
   };
 
@@ -98,29 +56,6 @@ export function ChapterVerseStep({
     return bookNames[wizardData.bookId] || wizardData.bookId?.toUpperCase();
   }, [wizardData.bookId]);
 
-  const renderNumberGrid = (count, selected, onSelect, label) => {
-    const numbers = Array.from({ length: count }, (_, i) => i + 1);
-
-    return (
-      <div className={`${styles.numberGridSection} ${isDesktop ? styles.desktop : ""}`}>
-        <h3 className={`${styles.numberGridTitle} ${isDesktop ? styles.desktop : ""}`}>{label}</h3>
-        <div className={`${styles.numberGrid} ${isDesktop ? styles.desktop : ""}`}>
-          {numbers.map((num) => (
-            <button
-              key={num}
-              onClick={() => onSelect(num)}
-              className={`${styles.numberButton} ${selected === num ? styles.selected : ""} ${
-                isDesktop ? styles.desktop : ""
-              }`}
-              data-testid={`${label.toLowerCase()}-${num}`}
-            >
-              {num}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className={`${styles.stepContainer} ${isDesktop ? styles.desktop : ""}`}>
@@ -136,19 +71,25 @@ export function ChapterVerseStep({
 
       {/* Content area */}
       <div className={`${styles.stepContent} ${isDesktop ? styles.desktop : ""}`}>
-        {/* Chapter Selection */}
-        {renderNumberGrid(chapterCount, selectedChapter, handleChapterSelect, "Chapter")}
+        <form onSubmit={handleSubmit} id='referenceForm' className={styles.referenceForm}>
+          <input
+            type='text'
+            className={styles.referenceInput}
+            placeholder='e.g., JHN 3:16'
+            value={inputValue}
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              setError(null);
+            }}
+            data-testid='reference-input'
+          />
+          {error && <div className={styles.errorMessage}>{error}</div>}
+        </form>
 
-        {/* Verse Selection */}
-        {renderNumberGrid(verseCount, selectedVerse, handleVerseSelect, "Verse")}
-
-        {/* Summary */}
         <div className={`${styles.summarySection} ${isDesktop ? styles.desktop : ""}`}>
-          <div className={`${styles.summaryTitle} ${isDesktop ? styles.desktop : ""}`}>
-            Selected Reference
-          </div>
-          <div className={`${styles.summaryReference} ${isDesktop ? styles.desktop : ""}`}>
-            {bookDisplayName} {selectedChapter}:{selectedVerse}
+          <div className={`${styles.summaryTitle} ${isDesktop ? styles.desktop : ""}`}>Selected Reference</div>
+          <div className={`${styles.summaryReference} ${isDesktop ? styles.desktop : ""}`}> 
+            {parsedReference ? `${parsedReference.bookId.toUpperCase()} ${parsedReference.chapter}:${parsedReference.verse}` : ""}
           </div>
         </div>
       </div>
@@ -165,11 +106,11 @@ export function ChapterVerseStep({
           Back
         </button>
         <button
-          type='button'
+          type='submit'
           className={`${styles.navigationButton} ${styles.primary} ${styles.complete} ${
             isDesktop ? styles.desktop : ""
           }`}
-          onClick={handleComplete}
+          form='referenceForm'
           data-testid='complete-button'
         >
           Complete Selection
