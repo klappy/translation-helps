@@ -11,6 +11,7 @@ This directory contains developer-facing documentation for the translationHelps 
 | `lifecycle.md`                          | Describes the application startup process, context propagation, resource fetching, and offline/caching behavior. |
 | `component-map.md`                      | Lists core React components with file paths and responsibilities.                                                |
 | `Resource_Integration_Overview.md`      | Summarizes how translation resources (tN, tQ, tW, TWL, OBS, etc.) are integrated and linked.                     |
+| `book-list-fallback.md`                 | Explains dynamic book list loading and the default fallback mechanism.                                          |
 | `TWL_Integration_Documentation.md`      | Details the Translation Words Links (TWL) format and its integration.                                            |
 | `Translation_Notes_Implementation.md`   | Outlines how Translation Notes (tN) are implemented and rendered.                                                |
 | `DCS_Integration_Documentation.md`      | Explains integration with the Door43 Content Service (DCS).                                                      |

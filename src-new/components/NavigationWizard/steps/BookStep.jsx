@@ -3,9 +3,9 @@
  * Fourth step of the wizard: Book selection with Testament categorization
  */
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import { SearchableGrid } from "../SearchableGrid";
-import { fetchResourceManifest } from "../../../services/manifestService";
+import { ManifestsContext } from "../../../context/MultiManifestsContext";
 import styles from "../NavigationWizard.module.css";
 
 // Bible book data with testament categorization
@@ -93,21 +93,19 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
   const [manifest, setManifest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [usingFallback, setUsingFallback] = useState(false);
+  const { manifests, isLoading: manifestsLoading } = useContext(ManifestsContext);
 
-  // Fetch available books from manifest
+  // Determine available books from manifests (with fallback to default list)
   useEffect(() => {
     let isMounted = true;
 
-    const loadAvailableBooks = async () => {
-      // Validate required parameters before attempting to fetch
+    const updateBooks = () => {
       if (!wizardData.organization || !wizardData.languageId || !wizardData.resourceId) {
         if (isMounted) {
           setLoading(false);
-          // Set helpful error message when resourceId is missing
           if (!wizardData.resourceId && wizardData.organization && wizardData.languageId) {
-            setError(
-              "Please select a Bible resource from the previous step to view available books."
-            );
+            setError("Please select a Bible resource from the previous step to view available books.");
           } else if (!wizardData.organization) {
             setError("Please select an organization from the first step.");
           } else if (!wizardData.languageId) {
@@ -116,96 +114,67 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
             setError(null);
           }
           setAvailableBooks([]);
+          setUsingFallback(false);
         }
         return;
       }
 
-      try {
+      if (manifestsLoading) {
         setLoading(true);
-        setError(null);
+        return;
+      }
 
-        // Debug logging to identify language ID corruption
-        console.log("🔍 BookStep manifest fetch parameters:");
-        console.log("  - organization:", wizardData.organization);
-        console.log("  - languageId:", wizardData.languageId);
-        console.log("  - resourceId:", wizardData.resourceId);
-        console.log("  - Full wizardData:", wizardData);
+      const manifest = manifests[wizardData.resourceId];
 
-        const manifest = await fetchResourceManifest(
-          wizardData.organization,
-          wizardData.languageId,
-          wizardData.resourceId
-        );
+      if (manifest && manifest.projects?.length) {
+        const manifestBooks = manifest.projects
+          .filter((project) => project && project.identifier)
+          .map((project) => {
+            const bookId = project.identifier.toLowerCase();
+            const fallbackBook = getAllBooks().find((b) => b.id === bookId);
 
-        if (isMounted && manifest && manifest.projects) {
-          // Store the manifest for metadata display
+            return {
+              id: bookId,
+              name: project.title || (fallbackBook ? fallbackBook.name : bookId.toUpperCase()),
+              chapters: project.chapters?.length || (fallbackBook ? fallbackBook.chapters : 1),
+              sort: project.sort || (fallbackBook ? getAllBooks().findIndex((b) => b.id === bookId) : 999),
+              categories: project.categories || [],
+              versification: project.versification,
+            };
+          })
+          .sort((a, b) => a.sort - b.sort);
+
+        if (isMounted) {
           setManifest(manifest);
-
-          // Extract book information from manifest projects
-          const manifestBooks = manifest.projects
-            .filter((project) => project && project.identifier)
-            .map((project) => {
-              const bookId = project.identifier.toLowerCase();
-              const fallbackBook = getAllBooks().find((b) => b.id === bookId);
-
-              return {
-                id: bookId,
-                name: project.title || (fallbackBook ? fallbackBook.name : bookId.toUpperCase()),
-                chapters: project.chapters?.length || (fallbackBook ? fallbackBook.chapters : 1),
-                sort:
-                  project.sort ||
-                  (fallbackBook ? getAllBooks().findIndex((b) => b.id === bookId) : 999),
-                categories: project.categories || [],
-                versification: project.versification,
-              };
-            })
-            .sort((a, b) => a.sort - b.sort);
-
           setAvailableBooks(manifestBooks);
-        } else if (isMounted) {
-          setError("No books found in the selected resource manifest.");
-          setAvailableBooks([]);
+          setUsingFallback(false);
+          setError(null);
+          setLoading(false);
         }
-      } catch (err) {
+      } else {
         if (isMounted) {
-          console.warn("Failed to load manifest books:", err);
-
-          // Provide more specific error messages
-          if (err.message.includes("404")) {
-            setError(
-              `The selected Bible resource (${wizardData.resourceId}) was not found for ${wizardData.organization}/${wizardData.languageId}. Please go back and select a different resource.`
-            );
-          } else if (err.message.includes("Failed to fetch")) {
-            setError(
-              "Unable to load book list. Please check your internet connection and try again."
-            );
-          } else {
-            setError(`Failed to load books: ${err.message}`);
-          }
-
-          setAvailableBooks([]);
-        }
-      } finally {
-        if (isMounted) {
+          setManifest(null);
+          setAvailableBooks(getAllBooks());
+          setUsingFallback(true);
+          setError("Dynamic book list unavailable. Showing default book list.");
           setLoading(false);
         }
       }
     };
 
-    loadAvailableBooks();
+    updateBooks();
 
     return () => {
       isMounted = false;
     };
-  }, [wizardData.organization, wizardData.languageId, wizardData.resourceId]);
+  }, [wizardData.organization, wizardData.languageId, wizardData.resourceId, manifests, manifestsLoading]);
 
   const handleBookSelect = (book) => {
     onStepChange(4, { bookId: book.id });
   };
 
-  // Only use books from the manifest - no fallback to hardcoded books
   const currentBooks = availableBooks || [];
-  const isUsingDynamicBooks = availableBooks !== null && availableBooks.length > 0;
+  const isUsingDynamicBooks = !usingFallback && availableBooks !== null && availableBooks.length > 0;
 
   const { oldTestamentBooks, newTestamentBooks } = useMemo(() => {
     if (isUsingDynamicBooks) {
@@ -290,6 +259,11 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
 
       {/* Content area */}
       <div className={`${styles.stepContent} ${isDesktop ? styles.desktop : ""}`}>
+        {usingFallback && (
+          <div className={styles.notice} data-testid='fallback-notice'>
+            Dynamic book list unavailable. Displaying default list.
+          </div>
+        )}
         <SearchableGrid
           items={bookItems}
           selectedItem={selectedBook}
@@ -299,7 +273,7 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
           emptyIcon='📖'
           isDesktop={isDesktop}
           isLoading={loading}
-          error={error}
+          error={usingFallback ? null : error}
           getItemKey={(item) => item.id}
           getItemTitle={(item) => item.title}
           getItemSubtitle={(item) => item.description}

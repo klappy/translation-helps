@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.13.15] - 2025-06-13
+
+### Fixed
+
+- **Book Manifest Loading Failure**
+  - ✅ Updated `BookStep` to use manifests from `MultiManifestsContext`
+  - ✅ Added fallback to default 66-book list when manifests fail
+  - ✅ Displayed notice when fallback list is used
+  - ✅ Documented behavior in `docs/book-list-fallback.md`
+
 ## [0.13.14] - 2025-06-13
 
 ### Fixed
