@@ -104,6 +104,8 @@ GEN	1	1	abc1	1:1	בְּרֵאשִׁ֖ית	1	In the beginning	This refers to...
 GEN	1	1	def2	1:1	בָּרָ֣א	1	created	God made...
 ```
 
+Book and chapter introduction rows also appear in the TSV using special references. A book introduction uses `front:intro` while a chapter introduction uses `<chapter>:intro`. These notes apply to the entire book or chapter and are included along with verse notes when loaded by `tnService`.
+
 ### Parsing Logic
 
 ```javascript
