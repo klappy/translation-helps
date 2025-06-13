@@ -24,6 +24,15 @@ export default function SearchPanel({ org, lang, abbr, usfm, onResultClick }) {
   const debounceTimeoutRef = useRef(null);
   const { updateReference } = useContext(ReferenceContext);
 
+  const parseReferenceString = useCallback((ref) => {
+    if (!ref) return { chapter: "?", verse: "?" };
+    const match = ref.match(/\s(\d+):(\d+(?:-\d+)?)/);
+    if (match) {
+      return { chapter: parseInt(match[1]), verse: match[2] };
+    }
+    return { chapter: "?", verse: "?" };
+  }, []);
+
   // Create proskomma instance
   const proskommaHook = useProskomma({ verbose: false });
 
@@ -302,19 +311,28 @@ export default function SearchPanel({ org, lang, abbr, usfm, onResultClick }) {
   };
 
   const handleResultClick = (result) => {
-    // Extract chapter and verse from the result's scope labels
+    let chapter;
+    let verse;
     if (result.scopeLabels && Array.isArray(result.scopeLabels)) {
       const chapterMatch = result.scopeLabels.find((label) => label.startsWith("chapter/"));
       const verseMatch = result.scopeLabels.find((label) => label.startsWith("verse/"));
-
       if (chapterMatch && verseMatch) {
-        const chapter = parseInt(chapterMatch.split("/")[1]);
-        const verse = parseInt(verseMatch.split("/")[1]);
+        chapter = parseInt(chapterMatch.split("/")[1]);
+        verse = verseMatch.split("/")[1];
+      }
+    }
 
-        updateReference({ chapter, verse });
-        if (onResultClick) {
-          onResultClick(verse, chapter, result);
-        }
+    if (!chapter || !verse) {
+      const parsed = parseReferenceString(result.reference);
+      chapter = parsed.chapter !== "?" ? parsed.chapter : undefined;
+      verse = parsed.verse !== "?" ? parsed.verse : undefined;
+    }
+
+    if (chapter && verse) {
+      const verseNum = parseInt(String(verse).split("-")[0]);
+      updateReference({ chapter, verse: verseNum });
+      if (onResultClick) {
+        onResultClick(verseNum, chapter, result);
       }
     }
   };
@@ -387,15 +405,23 @@ export default function SearchPanel({ org, lang, abbr, usfm, onResultClick }) {
               {/* Proskomma results first */}
               {searchHook.passages &&
                 searchHook.passages.map((result, index) => {
-                  // Extract chapter and verse info
                   const chapterMatch = result.scopeLabels?.find((label) =>
                     label.startsWith("chapter/")
                   );
                   const verseMatch = result.scopeLabels?.find((label) =>
                     label.startsWith("verse/")
                   );
-                  const chapter = chapterMatch ? parseInt(chapterMatch.split("/")[1]) : "?";
-                  const verse = verseMatch ? verseMatch.split("/")[1] : "?";
+                  let chapter = chapterMatch ? parseInt(chapterMatch.split("/")[1]) : undefined;
+                  let verse = verseMatch ? verseMatch.split("/")[1] : undefined;
+
+                  if (!chapter || !verse) {
+                    const parsed = parseReferenceString(result.reference);
+                    if (!chapter) chapter = parsed.chapter;
+                    if (!verse) verse = parsed.verse;
+                  }
+
+                  chapter = chapter ?? "?";
+                  verse = verse ?? "?";
 
                   return (
                     <div
