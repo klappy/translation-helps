@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.11] - 2025-06-13
+
+### Fixed
+
+- **Search Panel Resource Info Bug**
+  - ✅ Search panel now displays selected Bible resource title, version, and rights instead of static TWL info
+
+
 ## [0.13.10] - 2025-06-12
 
 ### Fixed
