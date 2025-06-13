@@ -9,7 +9,6 @@ import { ReferenceProvider } from "../context/ReferenceContext";
 import { MultiManifestsProvider } from "../context/MultiManifestsContext";
 import { ResourcesProvider } from "../context/ResourcesContext";
 import { ChatProvider } from "../context/ChatContext";
-import { ProskommaProvider } from "../context/ProskommaContext";
 import { NavigationBar } from "./NavigationBar";
 import { MainView } from "./MainView";
 import { NavigationWizard } from "./NavigationWizard/index.jsx";
@@ -38,24 +37,22 @@ export function App() {
       <MultiManifestsProvider>
         <ResourcesProvider>
           <ChatProvider>
-            <ProskommaProvider>
-              <div style={{ backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-                <NavigationBar onOpenWizard={handleOpenWizard} />
-                <Routes>
-                  <Route path='/' element={<MainView />} />
-                  <Route path='*' element={<div style={{ padding: "20px" }}>Page Not Found</div>} />
-                </Routes>
+            <div style={{ backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
+              <NavigationBar onOpenWizard={handleOpenWizard} />
+              <Routes>
+                <Route path='/' element={<MainView />} />
+                <Route path='*' element={<div style={{ padding: "20px" }}>Page Not Found</div>} />
+              </Routes>
 
-                {/* Navigation Wizard Modal */}
-                {isWizardOpen && (
-                  <NavigationWizard
-                    onComplete={handleWizardComplete}
-                    onClose={handleCloseWizard}
-                    initialStep={wizardInitialStep}
-                  />
-                )}
-              </div>
-            </ProskommaProvider>
+              {/* Navigation Wizard Modal */}
+              {isWizardOpen && (
+                <NavigationWizard
+                  onComplete={handleWizardComplete}
+                  onClose={handleCloseWizard}
+                  initialStep={wizardInitialStep}
+                />
+              )}
+            </div>
           </ChatProvider>
         </ResourcesProvider>
       </MultiManifestsProvider>

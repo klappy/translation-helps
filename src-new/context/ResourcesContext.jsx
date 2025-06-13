@@ -4,9 +4,8 @@
  * Serves as single source of truth for scripture, translation notes, questions, words, and TWL
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useReferenceContext } from "./ReferenceContext";
-import { useProskomma, useImport, usePassage } from "proskomma-react-hooks";
 
 // Import existing services
 import { fetchBook } from "../services/scriptureService";
@@ -25,69 +24,6 @@ export const useResourcesContext = () => {
   }
   return context;
 };
-
-/**
- * Custom hook for parsing USFM to verses using Proskomma
- * Reuses the same logic as USFMRenderer for consistency
- */
-function useUSFMParser(usfm, org, lang, abbr, chapter) {
-  const proskommaHook = useProskomma({ verbose: false });
-
-  // Create document configuration for import
-  const document = useMemo(() => {
-    if (!usfm || !org || !lang || !abbr) return null;
-    return [
-      {
-        selectors: { org, lang, abbr },
-        data: usfm,
-        bookCode: abbr,
-      },
-    ];
-  }, [usfm, org, lang, abbr]);
-
-  // Import document
-  const importHook = useImport({
-    ...proskommaHook,
-    documents: document || [],
-    verbose: false,
-  });
-
-  // Parse verses for the specific chapter using usePassage
-  const passageHook = usePassage({
-    ...proskommaHook,
-    reference: `${abbr?.toUpperCase()} ${chapter}`,
-    verbose: false,
-  });
-
-  // Extract verses from passage data
-  const verses = useMemo(() => {
-    if (!passageHook.passages || passageHook.passages.length === 0) return {};
-
-    const passage = passageHook.passages[0];
-    if (!passage.text) return {};
-
-    // Simple verse extraction - this could be enhanced
-    const verseMap = {};
-    const lines = passage.text.split("\n");
-
-    lines.forEach((line) => {
-      const verseMatch = line.match(/^(\d+)\s+(.+)/);
-      if (verseMatch) {
-        const [, verseNum, text] = verseMatch;
-        verseMap[parseInt(verseNum)] = text.trim();
-      }
-    });
-
-    return verseMap;
-  }, [passageHook.passages]);
-
-  return {
-    verses,
-    loading: importHook.importing || !importHook.done || !passageHook.passages,
-    error: importHook.errors?.length > 0 ? importHook.errors[0] : null,
-    ready: importHook.done && !importHook.importing && passageHook.passages?.length > 0,
-  };
-}
 
 export function ResourcesProvider({ children }) {
   const { reference } = useReferenceContext();
@@ -147,13 +83,6 @@ export function ResourcesProvider({ children }) {
       return {};
     }
   }, [languageId, organization]);
-
-  // Parse USFM to get verse text
-  const {
-    verses: scriptureVerses,
-    loading: usfmLoading,
-    ready: usfmReady,
-  } = useUSFMParser(resources.scripture?.usfm, organization, languageId, bookId, chapter);
 
   // Load all resources for the current reference
   const loadResources = useCallback(async () => {
@@ -286,19 +215,6 @@ export function ResourcesProvider({ children }) {
     }
   }, [bookId, chapter, verse, organization, languageId, loadManifests]);
 
-  // Update scripture verses when USFM is parsed
-  useEffect(() => {
-    if (usfmReady && scriptureVerses && resources.scripture) {
-      setResources((prev) => ({
-        ...prev,
-        scripture: {
-          ...prev.scripture,
-          verses: scriptureVerses,
-        },
-      }));
-    }
-  }, [usfmReady, scriptureVerses, resources.scripture?.usfm]);
-
   // Load resources when reference changes
   useEffect(() => {
     loadResources();
@@ -360,7 +276,7 @@ export function ResourcesProvider({ children }) {
           translationWordLinks: resources.translationWordLinks[0]?.title,
         },
         resourceLoadingStatus: {
-          scripture: !isLoading && !!resources.scripture && !usfmLoading,
+          scripture: !isLoading && !!resources.scripture,
           translationNotes: !isLoading && resources.translationNotes.length > 0,
           translationQuestions: !isLoading && resources.translationQuestions.length > 0,
           translationWords: !isLoading && resources.translationWords.length > 0,
@@ -368,19 +284,19 @@ export function ResourcesProvider({ children }) {
         },
       },
     };
-  }, [resources, metadata, usfmLoading, error, isLoading, manifests, verse]);
+  }, [resources, metadata, error, isLoading, manifests, verse]);
 
   const value = {
     resources,
     metadata,
     manifests,
-    isLoading: isLoading || usfmLoading,
+    isLoading,
     error,
     getFormattedContext,
     // Expose loading states with more detailed information
     loadingStates: {
       manifests: Object.keys(manifests).length === 0 && isLoading,
-      scripture: (!resources.scripture || usfmLoading) && isLoading,
+      scripture: !resources.scripture && isLoading,
       translationNotes: resources.translationNotes.length === 0 && isLoading,
       translationQuestions: resources.translationQuestions.length === 0 && isLoading,
       translationWords: resources.translationWords.length === 0 && isLoading,
@@ -405,11 +321,6 @@ export function ResourcesProvider({ children }) {
       currentReference: metadata
         ? `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`
         : null,
-      usfmParsingStatus: {
-        loading: usfmLoading,
-        ready: usfmReady,
-        versesCount: scriptureVerses ? Object.keys(scriptureVerses).length : 0,
-      },
     },
   };
 

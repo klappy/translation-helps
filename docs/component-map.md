@@ -71,12 +71,14 @@ This document lists and describes the major components in the viewer and their r
 
 ## 🧠 Context Providers
 
-| Context Provider         | Path                                        | Description                           |
-| ------------------------ | ------------------------------------------- | ------------------------------------- |
-| `ReferenceProvider`      | `src-new/context/ReferenceContext.jsx`      | Manages selected book, chapter, verse |
-| `ManifestsProvider`      | `src-new/context/ManifestsContext.jsx`      | Provides DCS manifests for resources  |
-| `MultiManifestsProvider` | `src-new/context/MultiManifestsContext.jsx` | Manages multiple manifests            |
-| `ResourcesProvider`      | `src-new/context/ResourcesContext.jsx`      | Loads and stores resource data        |
+| Context Provider         | Path                                        | Description                                                                  |
+| ------------------------ | ------------------------------------------- | ---------------------------------------------------------------------------- |
+| `ReferenceProvider`      | `src-new/context/ReferenceContext.jsx`      | Manages selected book, chapter, verse                                        |
+| `ManifestsProvider`      | `src-new/context/ManifestsContext.jsx`      | Provides DCS manifests for resources                                         |
+| `MultiManifestsProvider` | `src-new/context/MultiManifestsContext.jsx` | Manages multiple manifests                                                   |
+| `ResourcesProvider`      | `src-new/context/ResourcesContext.jsx`      | Loads and stores resource data                                               |
+| `ProskommaProvider`      | `src-new/context/ProskommaContext.jsx`      | **NEW:** Centralized Proskomma instance caching for performance optimization |
+| `ChatProvider`           | `src-new/context/ChatContext.jsx`           | LLM chat state management with context awareness                             |
 
 ---
 

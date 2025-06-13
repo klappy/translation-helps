@@ -6,7 +6,6 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 import { ReferenceContext } from "../../context/ReferenceContext";
 import { ManifestsContext } from "../../context/MultiManifestsContext";
 import { fetchBook } from "../../services/scriptureService";
-import { useCatalog } from "proskomma-react-hooks";
 
 import USFMRenderer from "./USFMRenderer";
 import SearchPanel from "./SearchPanel";
@@ -30,49 +29,6 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
   // Timeout constants
   const FETCH_TIMEOUT = 10000; // 10 seconds for fetching book content
 
-  // Check what's already imported to prevent duplicate imports
-  const catalogHook = useCatalog({
-    verbose: false,
-  });
-
-  // Create a unique key for the current book/resource combination
-  const bookResourceKey = useMemo(() => {
-    if (!organization || !languageId || !reference?.bookId || !resourceId) return null;
-
-    let cleanResourceId = resourceId;
-    if (resourceId && languageId && resourceId.startsWith(`${languageId}_`)) {
-      cleanResourceId = resourceId.substring(languageId.length + 1);
-    }
-
-    return `${organization}/${languageId}_${cleanResourceId}/${reference.bookId}`;
-  }, [organization, languageId, reference?.bookId, resourceId]);
-
-  // Check if the current book is already imported OR currently being imported
-  const isBookAlreadyImported = useMemo(() => {
-    if (!organization || !languageId || !reference?.bookId || !resourceId || !catalogHook.catalog) {
-      return false;
-    }
-
-    // Strip language prefix from resourceId for docSet ID construction
-    let cleanResourceId = resourceId;
-    if (resourceId && languageId && resourceId.startsWith(`${languageId}_`)) {
-      cleanResourceId = resourceId.substring(languageId.length + 1);
-    }
-
-    // Use clean resourceId in docSet ID
-    const docSetId = `${organization}/${languageId}_${cleanResourceId}`;
-    const docSets = catalogHook.catalog.docSets || [];
-
-    // Check if this docSet exists and has documents
-    const existingDocSet = docSets.find((ds) => ds.id === docSetId);
-    const hasDocuments = existingDocSet && existingDocSet.nDocuments > 0;
-
-    return hasDocuments;
-  }, [organization, languageId, reference?.bookId, resourceId, catalogHook.catalog]);
-
-  // Check if import is currently in progress for this book
-  const isCurrentlyImporting = bookResourceKey ? importingBooks.has(bookResourceKey) : false;
-
   // Debug: Log render
   console.log("[ScripturePanelRCL] Rendering with:", {
     reference,
@@ -82,7 +38,6 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
     manifestsLoading,
     hasManifests: !!manifests,
     usfmContentLength: usfmContent?.length,
-    isBookAlreadyImported,
   });
 
   // Cleanup timeout on unmount
@@ -126,15 +81,6 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
       if (manifestsLoading) {
         console.log("⏳ ScripturePanelRCL: Waiting for manifests to load");
         setLoading(true);
-        return;
-      }
-
-      // If book is already imported, we don't need to re-fetch the USFM content
-      // The existing content can be used for all chapters in the same book
-      if (isBookAlreadyImported) {
-        console.log("📚 Book already imported, skipping fetch");
-        setError(null);
-        setLoading(false);
         return;
       }
 
@@ -255,7 +201,7 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
     }
 
     loadUSFMChapter();
-  }, [reference?.bookId, resourceId, languageId, organization, manifests, manifestsLoading, isBookAlreadyImported]);
+  }, [reference?.bookId, resourceId, languageId, organization, manifests, manifestsLoading]);
 
   // Accept both chapter and verse for context update
   const handleVerseClick = (verseNum, chapterNum) => {

@@ -15,6 +15,94 @@ function generateCacheKey(usfm, chapter) {
   return `${usfm?.length || 0}-${chapter}-${usfm?.substring(0, 100) || ""}`;
 }
 
+// Helper function to save a verse to the verses object
+function saveVerse(verses, verseNum, content) {
+  if (verseNum && content && content.trim()) {
+    const cleanedText = cleanUSFMText(content.trim());
+    if (cleanedText) {
+      verses[verseNum] = {
+        text: cleanedText,
+        verse: verseNum,
+      };
+    }
+  }
+}
+
+// Helper function to process text content and split on inline verse numbers
+function processVerseContent(content, currentVerse, verses) {
+  if (!content || !currentVerse) return { lastVerse: currentVerse, remainingContent: content };
+
+  console.log(
+    `🔍 Processing verse content for verse ${currentVerse}:`,
+    content.substring(0, 200) + "..."
+  );
+
+  // Look for inline verse numbers like ". 3 And he is..." or "! 4 Not so..."
+  // Pattern: punctuation + space + digits + space + capital letter (start of sentence)
+  const inlineVersePattern = /([.!?])\s+(\d+)\s+([A-Z])/g;
+
+  let lastIndex = 0;
+  let lastVerse = currentVerse;
+  let remainingContent = content;
+  let match;
+  let foundSplits = [];
+
+  // Find all matches first
+  while ((match = inlineVersePattern.exec(content)) !== null) {
+    const [fullMatch, punctuation, verseNumStr, firstLetter] = match;
+    const verseNum = parseInt(verseNumStr);
+
+    // Make sure this looks like a valid verse number (reasonable range)
+    if (verseNum > 0 && verseNum <= 200 && verseNum > currentVerse) {
+      foundSplits.push({
+        match,
+        verseNum,
+        punctuation,
+        firstLetter,
+        fullMatch,
+        index: match.index,
+      });
+    }
+  }
+
+  console.log(
+    `📝 Found ${foundSplits.length} inline verse splits:`,
+    foundSplits.map((s) => `v${s.verseNum} at index ${s.index}`)
+  );
+
+  // Process splits in order
+  for (let i = 0; i < foundSplits.length; i++) {
+    const split = foundSplits[i];
+
+    // Content before this verse split
+    const beforeContent = content.substring(lastIndex, split.index + 1); // Include punctuation
+
+    if (lastVerse && beforeContent.trim()) {
+      console.log(`💾 Saving verse ${lastVerse}:`, beforeContent.trim().substring(0, 100) + "...");
+      saveVerse(verses, lastVerse, beforeContent.trim());
+    }
+
+    // Move to next verse
+    lastVerse = split.verseNum;
+    lastIndex = split.index + 1 + split.punctuation.length + 1; // After punctuation + space
+
+    console.log(`⏭️ Moving to verse ${lastVerse}, new index: ${lastIndex}`);
+  }
+
+  // Handle remaining content after last split
+  if (lastIndex < content.length) {
+    remainingContent = content.substring(lastIndex);
+    console.log(
+      `📄 Remaining content for verse ${lastVerse}:`,
+      remainingContent.substring(0, 100) + "..."
+    );
+  } else {
+    remainingContent = "";
+  }
+
+  return { lastVerse, remainingContent };
+}
+
 // Optimized USFM parsing function with caching
 function parseUSFMToVerses(usfm, chapter) {
   if (!usfm || !chapter) return {};
@@ -28,6 +116,23 @@ function parseUSFMToVerses(usfm, chapter) {
   }
 
   console.log("🔄 Parsing USFM for chapter", chapter, "- Content length:", usfm.length);
+
+  // Debug: Show raw USFM content for this chapter to understand the format
+  const chapterStartPattern = new RegExp(`\\\\c ${chapter}\\b`);
+  const chapterEndPattern = new RegExp(`\\\\c ${parseInt(chapter) + 1}\\b`);
+  const chapterStartIndex = usfm.search(chapterStartPattern);
+  const chapterEndIndex = usfm.search(chapterEndPattern);
+
+  if (chapterStartIndex >= 0) {
+    const chapterContent =
+      chapterEndIndex >= 0
+        ? usfm.substring(chapterStartIndex, chapterEndIndex)
+        : usfm.substring(chapterStartIndex, chapterStartIndex + 2000); // First 2000 chars if no next chapter
+
+    console.log("📖 Raw USFM content for chapter", chapter, ":");
+    console.log(chapterContent);
+    console.log("📖 End raw USFM content");
+  }
 
   const verses = {};
   const lines = usfm.split("\n");
@@ -47,11 +152,13 @@ function parseUSFMToVerses(usfm, chapter) {
 
       // Save previous verse before switching chapters
       if (currentVerse && currentVerseContent && inTargetChapter) {
-        const cleanedText = cleanUSFMText(currentVerseContent.trim());
-        verses[currentVerse] = {
-          text: cleanedText,
-          verse: currentVerse,
-        };
+        // Process any inline verse numbers in the accumulated content
+        const { lastVerse, remainingContent } = processVerseContent(
+          currentVerseContent,
+          currentVerse,
+          verses
+        );
+        saveVerse(verses, lastVerse, remainingContent);
       }
 
       // Update chapter tracking
@@ -74,16 +181,25 @@ function parseUSFMToVerses(usfm, chapter) {
       continue;
     }
 
-    // Track verse markers within our target chapter
-    const verseMatch = line.match(/^\\v (\d+)(.*)$/);
+    // Track verse markers within our target chapter - can appear at start of line or after poetry markup
+    const verseMatch = line.match(/\\v (\d+)(.*)$/);
     if (verseMatch) {
-      // Save previous verse if we have one
+      // Save previous verse if we have one (process inline verses first)
       if (currentVerse && currentVerseContent) {
-        const cleanedText = cleanUSFMText(currentVerseContent.trim());
-        verses[currentVerse] = {
-          text: cleanedText,
-          verse: currentVerse,
-        };
+        const { lastVerse, remainingContent } = processVerseContent(
+          currentVerseContent,
+          currentVerse,
+          verses
+        );
+        saveVerse(verses, lastVerse, remainingContent);
+      }
+
+      // Extract content before the verse marker (if any) and add to previous verse
+      const beforeVerseMarker = line.substring(0, line.indexOf("\\v"));
+      if (currentVerse && beforeVerseMarker.trim()) {
+        const existingContent = verses[currentVerse]?.text || currentVerseContent || "";
+        const combinedContent = existingContent + " " + beforeVerseMarker.trim();
+        saveVerse(verses, currentVerse, combinedContent);
       }
 
       // Start new verse
@@ -102,13 +218,14 @@ function parseUSFMToVerses(usfm, chapter) {
     }
   }
 
-  // Don't forget the last verse
+  // Don't forget the last verse (process inline verses first)
   if (currentVerse && currentVerseContent && inTargetChapter) {
-    const cleanedText = cleanUSFMText(currentVerseContent.trim());
-    verses[currentVerse] = {
-      text: cleanedText,
-      verse: currentVerse,
-    };
+    const { lastVerse, remainingContent } = processVerseContent(
+      currentVerseContent,
+      currentVerse,
+      verses
+    );
+    saveVerse(verses, lastVerse, remainingContent);
   }
 
   console.log("✅ Parsed", Object.keys(verses).length, "verses for chapter", chapter);

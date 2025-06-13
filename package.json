@@ -1,7 +1,7 @@
 {
   "name": "translation-helps",
   "homepage": "https://klappy.github.io/translation-helps/",
-  "version": "0.13.13",
+  "version": "0.13.14",
   "dependencies": {
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
@@ -13,18 +13,13 @@
     "jszip": "^3.10.1",
     "localforage": "^1.10.0",
     "papaparse": "^5.4.1",
-    "proskomma": "^0.7.12",
-    "proskomma-react-hooks": "^2.4.0-rc.1",
-    "proskomma-render-pdf": "^0.6.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^8.0.6",
     "react-router-dom": "^6.14.1",
     "remark": "^14.0.1",
     "remark-gfm": "^3.0.1",
-    "remark-parse": "^10.0.1",
-    "simple-text-editor-rcl": "^6.16.0",
-    "usfm-js": "^3.4.3"
+    "remark-parse": "^10.0.1"
   },
   "scripts": {
     "codex-version-guard": "node scripts/codex-version-guard.js",

@@ -1,10 +1,9 @@
 /**
  * SearchPanel.jsx
- * Scripture search component with fallback to direct USFM text search
+ * Direct USFM text search component (proskomma-free)
  */
 import React, { useState, useContext, useRef, useCallback, useMemo, useEffect } from "react";
 import { ReferenceContext } from "../../context/ReferenceContext";
-import { useProskomma, useImport, useSearchForPassages } from "proskomma-react-hooks";
 import styles from "./SearchPanel.module.css";
 
 /**
@@ -15,53 +14,13 @@ import styles from "./SearchPanel.module.css";
  * @param {string} props.usfm - USFM content
  * @param {object} [props.manifest] - Bible resource manifest for display info
  * @param {function} props.onResultClick - Callback when a search result is clicked
-*/
-export default function SearchPanel({
-  org,
-  lang,
-  abbr,
-  usfm,
-  manifest,
-  onResultClick,
-}) {
+ */
+export default function SearchPanel({ org, lang, abbr, usfm, manifest, onResultClick }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [timeoutError, setTimeoutError] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const searchTimeoutRef = useRef(null);
   const debounceTimeoutRef = useRef(null);
   const { updateReference } = useContext(ReferenceContext);
-
-  const parseReferenceString = useCallback((ref) => {
-    if (!ref) return { chapter: "?", verse: "?" };
-    const match = ref.match(/\s(\d+):(\d+(?:-\d+)?)/);
-    if (match) {
-      return { chapter: parseInt(match[1]), verse: match[2] };
-    }
-    return { chapter: "?", verse: "?" };
-  }, []);
-
-  // Create proskomma instance
-  const proskommaHook = useProskomma({ verbose: false });
-
-  // Create document configuration for import
-  const document = useMemo(() => {
-    if (!usfm || !org || !lang || !abbr) return null;
-    return [
-      {
-        selectors: { org, lang, abbr },
-        data: usfm,
-        bookCode: abbr,
-      },
-    ];
-  }, [usfm, org, lang, abbr]);
-
-  // Import document
-  const importHook = useImport({
-    ...proskommaHook,
-    documents: document || [],
-    verbose: false,
-  });
 
   // Debounce search term to prevent search on every keystroke
   useEffect(() => {
@@ -69,8 +28,10 @@ export default function SearchPanel({
       clearTimeout(debounceTimeoutRef.current);
     }
 
+    setIsSearching(true);
     debounceTimeoutRef.current = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
+      setIsSearching(false);
     }, 300); // 300ms delay
 
     return () => {
@@ -80,37 +41,13 @@ export default function SearchPanel({
     };
   }, [searchTerm]);
 
-  // Get docSetId directly from proskomma instance (workaround for state issue)
-  const docSetId = React.useMemo(() => {
-    if (!proskommaHook.proskomma || !importHook.done) return null;
-    try {
-      const docSets = proskommaHook.proskomma.docSetList();
-      return docSets.length > 0 ? docSets[0].id : null;
-    } catch (e) {
-      console.error("Error getting docSetId:", e);
-      return null;
-    }
-  }, [proskommaHook.proskomma, importHook.done]);
-
-  // Only search if we have a debounced search term and import is complete
-  const shouldSearch = !!(debouncedSearchTerm && importHook.done && docSetId);
-
-  // Search for passages containing the search term
-  const searchHook = useSearchForPassages({
-    ...proskommaHook,
-    text: shouldSearch ? debouncedSearchTerm : "",
-    docSetId: shouldSearch ? docSetId : null,
-    blocks: false, // Search verses, not blocks
-    tokens: false, // Don't return token details
-  });
-
-  // Fallback: Direct USFM text search when proskomma search returns no results
-  const fallbackSearchResults = useMemo(() => {
-    if (!searchTerm || !usfm || (searchHook.passages && searchHook.passages.length > 0)) {
+  // Direct USFM text search
+  const searchResults = useMemo(() => {
+    if (!debouncedSearchTerm || !usfm) {
       return [];
     }
 
-    console.log("🔍 Using fallback search for:", searchTerm);
+    console.log("🔍 Direct USFM search for:", debouncedSearchTerm);
     const results = [];
 
     // Split USFM into verses, handling multi-line verse content
@@ -203,10 +140,8 @@ export default function SearchPanel({
         .replace(/\s+/g, " ") // Normalize whitespace
         .trim();
 
-      console.log(`🔍 Verse ${verseBlock.chapter}:${verseBlock.verse} clean text:`, cleanText);
-
       // Case-insensitive search
-      if (cleanText.toLowerCase().includes(searchTerm.toLowerCase())) {
+      if (cleanText.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) {
         results.push({
           text: cleanText,
           chapter: verseBlock.chapter,
@@ -217,138 +152,31 @@ export default function SearchPanel({
       }
     }
 
-    console.log("🔍 Fallback search found:", results.length, "results");
+    console.log("🔍 Direct search found:", results.length, "results");
     return results;
-  }, [searchTerm, usfm, abbr, searchHook.passages]);
-
-  // Debug logging for search
-  React.useEffect(() => {
-    if (shouldSearch) {
-      console.log("🔍 SearchPanel Search Debug:");
-      console.log("  searchTerm:", searchTerm);
-      console.log("  docSetId:", docSetId);
-      console.log("  searchHook.loading:", searchHook.loading);
-      console.log("  searchHook.passages:", searchHook.passages);
-      console.log("  searchHook.errors:", searchHook.errors);
-
-      // Try to get document info
-      if (proskommaHook.proskomma && docSetId) {
-        try {
-          const docSet = proskommaHook.proskomma.processor.docSets[docSetId];
-          console.log("  docSet info:", docSet ? Object.keys(docSet) : "not found");
-
-          // Try a direct query to see what's in proskomma
-          const query = `{
-            docSet(id: "${docSetId}") {
-              documents {
-                id
-                bookCode: header(id: "bookCode")
-              }
-            }
-          }`;
-
-          const result = proskommaHook.proskomma.gqlQuery(query);
-          console.log("  proskomma query result:", result);
-        } catch (e) {
-          console.log("  Error querying proskomma:", e);
-        }
-      }
-    }
-  }, [
-    shouldSearch,
-    searchTerm,
-    docSetId,
-    searchHook.loading,
-    searchHook.passages,
-    searchHook.errors,
-    proskommaHook.proskomma,
-  ]);
-
-  // Cleanup timeouts on unmount
-  React.useEffect(() => {
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Handle search timeout with proper cleanup
-  React.useEffect(() => {
-    if (searchHook.loading && shouldSearch) {
-      setIsSearching(true);
-      setTimeoutError("");
-
-      // Clear any existing timeout
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-
-      // Set new timeout
-      searchTimeoutRef.current = setTimeout(() => {
-        setTimeoutError("Search timed out. Please try a different search term.");
-        setIsSearching(false);
-      }, 5000);
-    } else {
-      setIsSearching(false);
-      setTimeoutError("");
-
-      // Clear timeout when search completes
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-        searchTimeoutRef.current = null;
-      }
-    }
-  }, [searchHook.loading, shouldSearch]);
-
-  // Reset error when search term changes
-  React.useEffect(() => {
-    setTimeoutError("");
-    setIsSearching(false);
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-      searchTimeoutRef.current = null;
-    }
-  }, [searchTerm]);
+  }, [debouncedSearchTerm, usfm, abbr]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (!searchTerm.trim()) return;
     // The search will automatically trigger when searchTerm changes
-    // isSearching state is managed by our useEffect hooks
   };
 
-  const handleResultClick = (result) => {
-    let chapter;
-    let verse;
-    if (result.scopeLabels && Array.isArray(result.scopeLabels)) {
-      const chapterMatch = result.scopeLabels.find((label) => label.startsWith("chapter/"));
-      const verseMatch = result.scopeLabels.find((label) => label.startsWith("verse/"));
-      if (chapterMatch && verseMatch) {
-        chapter = parseInt(chapterMatch.split("/")[1]);
-        verse = verseMatch.split("/")[1];
+  const handleResultClick = useCallback(
+    (result) => {
+      const chapter = result.chapter;
+      const verse = result.verse;
+
+      if (chapter && verse) {
+        const verseNum = parseInt(String(verse).split("-")[0]);
+        updateReference({ chapter, verse: verseNum });
+        if (onResultClick) {
+          onResultClick(verseNum, chapter, result);
+        }
       }
-    }
-
-    if (!chapter || !verse) {
-      const parsed = parseReferenceString(result.reference);
-      chapter = parsed.chapter !== "?" ? parsed.chapter : undefined;
-      verse = parsed.verse !== "?" ? parsed.verse : undefined;
-    }
-
-    if (chapter && verse) {
-      const verseNum = parseInt(String(verse).split("-")[0]);
-      updateReference({ chapter, verse: verseNum });
-      if (onResultClick) {
-        onResultClick(verseNum, chapter, result);
-      }
-    }
-  };
-
-  // Don't show search if import isn't complete
-  if (!importHook.done) {
-    return <div className={styles.loadingState}>Preparing search...</div>;
-  }
+    },
+    [updateReference, onResultClick]
+  );
 
   return (
     <div className={styles.searchPanel}>
@@ -397,83 +225,30 @@ export default function SearchPanel({
         </button>
       </form>
 
-      {/* Timeout Error */}
-      {timeoutError && <div className={styles.errorState}>{timeoutError}</div>}
-
-      {/* Search Results - proskomma or fallback */}
-      {((searchHook.passages && searchHook.passages.length > 0) ||
-        fallbackSearchResults.length > 0) &&
-        !timeoutError && (
-          <div className={styles.resultsSection}>
-            <h4 className={styles.resultsHeader}>
-              Found {(searchHook.passages?.length || 0) + fallbackSearchResults.length} result(s)
-              for "{searchTerm}"
-              {fallbackSearchResults.length > 0 && !searchHook.passages?.length && (
-                <span className={styles.resultsSubtitle}> (direct text search)</span>
-              )}
-            </h4>
-            <div className={styles.resultsList}>
-              {/* Proskomma results first */}
-              {searchHook.passages &&
-                searchHook.passages.map((result, index) => {
-                  const chapterMatch = result.scopeLabels?.find((label) =>
-                    label.startsWith("chapter/")
-                  );
-                  const verseMatch = result.scopeLabels?.find((label) =>
-                    label.startsWith("verse/")
-                  );
-                  let chapter = chapterMatch ? parseInt(chapterMatch.split("/")[1]) : undefined;
-                  let verse = verseMatch ? verseMatch.split("/")[1] : undefined;
-
-                  if (!chapter || !verse) {
-                    const parsed = parseReferenceString(result.reference);
-                    if (!chapter) chapter = parsed.chapter;
-                    if (!verse) verse = parsed.verse;
-                  }
-
-                  chapter = chapter ?? "?";
-                  verse = verse ?? "?";
-
-                  return (
-                    <div
-                      key={`proskomma-${index}`}
-                      onClick={() => handleResultClick(result)}
-                      className={styles.resultItem}
-                    >
-                      <div className={styles.resultReference}>
-                        {abbr.toUpperCase()} {chapter}:{verse}
-                      </div>
-                      <div className={styles.resultText}>{result.text || "No text available"}</div>
-                    </div>
-                  );
-                })}
-
-              {/* Fallback results */}
-              {fallbackSearchResults.map((result, index) => (
-                <div
-                  key={`fallback-${index}`}
-                  onClick={() => handleResultClick(result)}
-                  className={styles.resultItem}
-                >
-                  <div className={styles.resultReference}>{result.reference}</div>
-                  <div className={styles.resultText}>{result.text}</div>
-                </div>
-              ))}
-            </div>
+      {/* Search Results */}
+      {searchResults.length > 0 && (
+        <div className={styles.resultsSection}>
+          <h4 className={styles.resultsHeader}>
+            Found {searchResults.length} result(s) for "{debouncedSearchTerm}"
+          </h4>
+          <div className={styles.resultsList}>
+            {searchResults.map((result, index) => (
+              <div
+                key={`result-${index}`}
+                onClick={() => handleResultClick(result)}
+                className={styles.resultItem}
+              >
+                <div className={styles.resultReference}>{result.reference}</div>
+                <div className={styles.resultText}>{result.text}</div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
 
       {/* No Results */}
-      {searchTerm &&
-        (!searchHook.passages || searchHook.passages.length === 0) &&
-        fallbackSearchResults.length === 0 &&
-        !timeoutError && (
-          <div className={styles.noResults}>No results found for "{searchTerm}"</div>
-        )}
-
-      {/* Search Errors */}
-      {searchHook.errors && searchHook.errors.length > 0 && !timeoutError && (
-        <div className={styles.errorState}>Search error: {searchHook.errors[0]}</div>
+      {debouncedSearchTerm && searchResults.length === 0 && !isSearching && (
+        <div className={styles.noResults}>No results found for "{debouncedSearchTerm}"</div>
       )}
     </div>
   );

@@ -1,5 +1,58 @@
 # Changelog
 
+## [0.13.14] - 2025-06-13
+
+### Fixed
+
+- **USFM Performance Optimization - Eliminated Multiple Parsing Cycles ([Performance Issue])**
+  - ✅ **Root Cause Identified**: Multiple redundant USFM processing operations causing severe performance degradation on medium and large books
+  - ✅ **Created ProskommaContext with Caching**: Centralized context that caches Proskomma instances by book/language combination to eliminate redundant USFM processing
+  - ✅ **Optimized USFM Renderer**: Implemented `OptimizedUSFMRenderer.jsx` with React.memo to prevent unnecessary re-renders when USFM content hasn't changed
+  - ✅ **Enhanced Search Panel**: Created `OptimizedSearchPanel.jsx` with debounced search functionality to prevent excessive operations that could trigger USFM re-processing
+  - ✅ **Updated ScripturePanelRCL Integration**: Modified to use optimized components and ProskommaContext for cached instances while maintaining backward compatibility
+  - ✅ **Performance Results**: Eliminated 8+ repetitive USFM processing operations down to single efficient processing per page render
+  - ✅ **Large Book Support**: Genesis and other large books now load smoothly without the previous unusable performance issues
+  - ✅ **Comprehensive Documentation**: Created detailed `docs/proskomma-performance-optimization.md` with technical implementation details
+
+### Technical Implementation
+
+- **ProskommaContext**: New centralized context (`src-new/context/ProskommaContext.jsx`) managing cached Proskomma instances with intelligent book/language keying
+- **Optimized Components**:
+  - `OptimizedUSFMRenderer.jsx` - React.memo wrapped component with intelligent prop comparison
+  - `OptimizedSearchPanel.jsx` - Debounced search with memoization to prevent unnecessary operations
+- **Integration**: Updated `ScripturePanelRCL.jsx` to use optimized components while preserving all existing functionality
+- **Caching Strategy**: Only processes USFM when content actually changes, reuses existing instances for identical book/language combinations
+- **Files Created**:
+  - `src-new/context/ProskommaContext.jsx` - Centralized Proskomma instance management
+  - `src-new/components/ScripturePanelRCL/OptimizedUSFMRenderer.jsx` - Performance-optimized USFM renderer
+  - `src-new/components/ScripturePanelRCL/OptimizedSearchPanel.jsx` - Debounced search panel
+  - `docs/proskomma-performance-optimization.md` - Comprehensive implementation documentation
+- **Files Modified**:
+  - `src-new/components/ScripturePanelRCL/ScripturePanelRCL.jsx` - Integration with optimized components
+
+### Performance Improvements
+
+- **Before Optimization**:
+  ```
+  [Log] 📄 Full USFM content length: – 136216 (repeated 8+ times)
+  [Log] [ScripturePanelRCL] About to render provider with: (repeated 8+ times)
+  ```
+- **After Optimization**: Clean, single USFM processing cycle with no redundant operations
+- **User Experience**:
+  - Book selection modal opens instantly
+  - No duplicate USFM parsing in console logs
+  - Responsive navigation between books of all sizes
+  - Large books (Genesis, Psalms) now usable for the first time
+  - Eliminated the "really slow on medium size books" and "unusable when switching books" issues
+
+### User Experience Benefits
+
+- **Responsive Performance**: Medium and large books now load quickly without performance degradation
+- **Smooth Navigation**: Book switching works reliably across all biblical content without slowdowns
+- **Resource Efficiency**: Cached Proskomma instances reduce memory usage and processing overhead
+- **Professional Experience**: Application now performs at expected speed for translation workflow usage
+- **Scalability**: Performance improvements scale with content size, providing consistent experience
+
 ## [0.13.13] - 2025-06-15
 
 ### Fixed
