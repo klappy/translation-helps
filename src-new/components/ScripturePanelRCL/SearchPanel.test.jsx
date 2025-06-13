@@ -143,6 +143,30 @@ describe("SearchPanel", () => {
     }, waitForOptions);
   });
 
+  it("parses reference from result when scopeLabels are missing", async () => {
+    const mockResults = [
+      {
+        text: "Paul, a servant of God and an apostle of Jesus Christ",
+        reference: "TIT 1:2",
+      },
+    ];
+    proskommaHooks.useSearchForPassages.mockImplementation(() =>
+      mockUseSearchForPassages({ passages: mockResults })
+    );
+
+    renderWithContext(<SearchPanel {...defaultProps} />);
+
+    const searchInput = screen.getByPlaceholderText("Search scripture text...");
+    fireEvent.change(searchInput, { target: { value: "Paul" } });
+
+    const searchButton = screen.getByText("Search");
+    fireEvent.click(searchButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("TIT 1:2")).toBeInTheDocument();
+    }, waitForOptions);
+  });
+
   it("shows no results message when search finds nothing", async () => {
     proskommaHooks.useSearchForPassages.mockImplementation(() =>
       mockUseSearchForPassages({ passages: [] })
@@ -216,6 +240,35 @@ describe("SearchPanel", () => {
       );
       fireEvent.click(resultElement);
       expect(updateReference).toHaveBeenCalledWith({ chapter: 1, verse: 1 });
+    }, waitForOptions);
+  });
+
+  it("updates reference context when scopeLabels are missing", async () => {
+    const mockResults = [
+      {
+        text: "Paul, a servant of God and an apostle of Jesus Christ",
+        reference: "TIT 1:2",
+      },
+    ];
+    proskommaHooks.useSearchForPassages.mockImplementation(() =>
+      mockUseSearchForPassages({ passages: mockResults })
+    );
+
+    const updateReference = vi.fn();
+    renderWithContext(<SearchPanel {...defaultProps} />, { updateReference });
+
+    const searchInput = screen.getByPlaceholderText("Search scripture text...");
+    fireEvent.change(searchInput, { target: { value: "Paul" } });
+
+    const searchButton = screen.getByText("Search");
+    fireEvent.click(searchButton);
+
+    await waitFor(() => {
+      const resultElement = screen.getByText(
+        "Paul, a servant of God and an apostle of Jesus Christ"
+      );
+      fireEvent.click(resultElement);
+      expect(updateReference).toHaveBeenCalledWith({ chapter: 1, verse: 2 });
     }, waitForOptions);
   });
 
