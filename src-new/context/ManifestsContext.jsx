@@ -3,7 +3,7 @@
  * Context to provide DCS manifests for resources.
  */
 
-import React, { createContext } from 'react';
+import React, { createContext, useMemo } from 'react';
 import { useManifest } from '../hooks/useManifest';
 
 export const ManifestsContext = createContext({ manifests: {} });
@@ -15,9 +15,8 @@ export const ManifestsContext = createContext({ manifests: {} });
 export function ManifestsProvider({ children, languageId, resourceId }) {
   const manifest = useManifest(languageId, resourceId);
   const manifests = resourceId ? { [resourceId]: manifest } : {};
+  const value = useMemo(() => ({ manifests }), [manifests]);
   return (
-    <ManifestsContext.Provider value={{ manifests }}>
-      {children}
-    </ManifestsContext.Provider>
+    <ManifestsContext.Provider value={value}>{children}</ManifestsContext.Provider>
   );
 }

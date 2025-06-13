@@ -3,7 +3,7 @@
  * Context to provide DCS manifests for multiple resources.
  */
 
-import React, { createContext, useState, useEffect, useContext, useRef } from "react";
+import React, { createContext, useState, useEffect, useContext, useRef, useMemo } from "react";
 import { fetchManifest } from "../services/dcsClient";
 import { ReferenceContext } from "./ReferenceContext";
 import { fetchBibleResources } from "../services/catalogService";
@@ -109,9 +109,12 @@ export function MultiManifestsProvider({ children }) {
     loadManifests();
   }, [languageId, organization]);
 
+  const value = useMemo(
+    () => ({ manifests, isLoading }),
+    [manifests, isLoading]
+  );
+
   return (
-    <ManifestsContext.Provider value={{ manifests, isLoading }}>
-      {children}
-    </ManifestsContext.Provider>
+    <ManifestsContext.Provider value={value}>{children}</ManifestsContext.Provider>
   );
 }

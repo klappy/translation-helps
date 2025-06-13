@@ -4,7 +4,7 @@
  * Updated to use ResourcesContext for anti-hallucination measures
  */
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from "react";
 import {
   sendChatMessage,
   createMockResponse,
@@ -319,24 +319,44 @@ export function ChatProvider({ children }) {
     }
   }, [reference, conversationReference, chatHistory.length]);
 
-  const value = {
-    chatHistory,
-    isLoading,
-    error,
-    currentContext,
-    conversationReference,
-    resourceChangeNotification,
-    sendMessage,
-    clearChat,
-    removeMessage,
-    getContextInfo,
-    areResourcesReady,
-    getResourceStatus,
-    dismissResourceChangeNotification,
-    startNewConversation,
-    sessionCost,
-    getSessionCostInfo,
-  };
+  const value = useMemo(
+    () => ({
+      chatHistory,
+      isLoading,
+      error,
+      currentContext,
+      conversationReference,
+      resourceChangeNotification,
+      sendMessage,
+      clearChat,
+      removeMessage,
+      getContextInfo,
+      areResourcesReady,
+      getResourceStatus,
+      dismissResourceChangeNotification,
+      startNewConversation,
+      sessionCost,
+      getSessionCostInfo,
+    }),
+    [
+      chatHistory,
+      isLoading,
+      error,
+      currentContext,
+      conversationReference,
+      resourceChangeNotification,
+      sendMessage,
+      clearChat,
+      removeMessage,
+      getContextInfo,
+      areResourcesReady,
+      getResourceStatus,
+      dismissResourceChangeNotification,
+      startNewConversation,
+      sessionCost,
+      getSessionCostInfo,
+    ]
+  );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }

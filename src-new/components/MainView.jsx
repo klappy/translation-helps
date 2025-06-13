@@ -6,7 +6,6 @@
 import React, { useContext, useState, useRef, createContext } from "react";
 import { ReferenceContext } from "../context/ReferenceContext";
 import { ManifestsContext } from "../context/MultiManifestsContext";
-import { ResourcesProvider } from "../context/ResourcesContext";
 
 import { ScripturePanel } from "./ScripturePanel";
 import { HelpsTabs } from "./HelpsTabs";
@@ -140,8 +139,7 @@ export function MainView() {
   };
 
   return (
-    <ResourcesProvider>
-      <main data-testid='main-view' className={styles.mainView}>
+    <main data-testid='main-view' className={styles.mainView}>
         {/* Mobile Tab Navigation */}
         <div className={styles.mobileTabNav}>
           <button
@@ -185,6 +183,5 @@ export function MainView() {
           </div>
         </div>
       </main>
-    </ResourcesProvider>
   );
 }

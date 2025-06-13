@@ -370,48 +370,61 @@ export function ResourcesProvider({ children }) {
     };
   }, [resources, metadata, usfmLoading, error, isLoading, manifests, verse]);
 
-  const value = {
-    resources,
-    metadata,
-    manifests,
-    isLoading: isLoading || usfmLoading,
-    error,
-    getFormattedContext,
-    // Expose loading states with more detailed information
-    loadingStates: {
-      manifests: Object.keys(manifests).length === 0 && isLoading,
-      scripture: (!resources.scripture || usfmLoading) && isLoading,
-      translationNotes: resources.translationNotes.length === 0 && isLoading,
-      translationQuestions: resources.translationQuestions.length === 0 && isLoading,
-      translationWords: resources.translationWords.length === 0 && isLoading,
-      translationWordLinks: resources.translationWordLinks.length === 0 && isLoading,
-    },
-    // Add diagnostic information for debugging
-    diagnostics: {
-      manifestsAvailable: {
-        ult: !!manifests.ult,
-        tn: !!manifests.tn,
-        tq: !!manifests.tq,
-        tw: !!manifests.tw,
-        twl: !!manifests.twl,
+  const value = useMemo(
+    () => ({
+      resources,
+      metadata,
+      manifests,
+      isLoading: isLoading || usfmLoading,
+      error,
+      getFormattedContext,
+      // Expose loading states with more detailed information
+      loadingStates: {
+        manifests: Object.keys(manifests).length === 0 && isLoading,
+        scripture: (!resources.scripture || usfmLoading) && isLoading,
+        translationNotes: resources.translationNotes.length === 0 && isLoading,
+        translationQuestions: resources.translationQuestions.length === 0 && isLoading,
+        translationWords: resources.translationWords.length === 0 && isLoading,
+        translationWordLinks: resources.translationWordLinks.length === 0 && isLoading,
       },
-      resourceCounts: {
-        scripture: resources.scripture ? 1 : 0,
-        translationNotes: resources.translationNotes.length,
-        translationQuestions: resources.translationQuestions.length,
-        translationWords: resources.translationWords.length,
-        translationWordLinks: resources.translationWordLinks.length,
+      // Add diagnostic information for debugging
+      diagnostics: {
+        manifestsAvailable: {
+          ult: !!manifests.ult,
+          tn: !!manifests.tn,
+          tq: !!manifests.tq,
+          tw: !!manifests.tw,
+          twl: !!manifests.twl,
+        },
+        resourceCounts: {
+          scripture: resources.scripture ? 1 : 0,
+          translationNotes: resources.translationNotes.length,
+          translationQuestions: resources.translationQuestions.length,
+          translationWords: resources.translationWords.length,
+          translationWordLinks: resources.translationWordLinks.length,
+        },
+        currentReference: metadata
+          ? `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`
+          : null,
+        usfmParsingStatus: {
+          loading: usfmLoading,
+          ready: usfmReady,
+          versesCount: scriptureVerses ? Object.keys(scriptureVerses).length : 0,
+        },
       },
-      currentReference: metadata
-        ? `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`
-        : null,
-      usfmParsingStatus: {
-        loading: usfmLoading,
-        ready: usfmReady,
-        versesCount: scriptureVerses ? Object.keys(scriptureVerses).length : 0,
-      },
-    },
-  };
+    }),
+    [
+      resources,
+      metadata,
+      manifests,
+      isLoading,
+      usfmLoading,
+      error,
+      getFormattedContext,
+      scriptureVerses,
+      usfmReady,
+    ]
+  );
 
   return <ResourcesContext.Provider value={value}>{children}</ResourcesContext.Provider>;
 }

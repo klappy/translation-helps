@@ -3,7 +3,7 @@
  * Context to track current organization, language, resource, and book/chapter/verse reference.
  */
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { DEFAULT_REFERENCE } from "../utils/defaultReference";
 import { updateQueryFromContext, contextFromQuery } from "../utils/contextHelpers";
 
@@ -117,23 +117,24 @@ export function ReferenceProvider({ children }) {
     }
   };
 
+  const value = useMemo(
+    () => ({
+      organization,
+      languageId,
+      resourceId,
+      reference,
+      setOrganization,
+      setLanguageId,
+      setResourceId,
+      setReference,
+      updateReference,
+      updateContext,
+    }),
+    [organization, languageId, resourceId, reference]
+  );
+
   return (
-    <ReferenceContext.Provider
-      value={{
-        organization,
-        languageId,
-        resourceId,
-        reference,
-        setOrganization,
-        setLanguageId,
-        setResourceId,
-        setReference,
-        updateReference,
-        updateContext,
-      }}
-    >
-      {children}
-    </ReferenceContext.Provider>
+    <ReferenceContext.Provider value={value}>{children}</ReferenceContext.Provider>
   );
 }
 
