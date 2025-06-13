@@ -374,6 +374,7 @@ export default function ScripturePanelRCL({ reference, onVerseClick }) {
             lang={languageId}
             abbr={reference.bookId ? reference.bookId.toUpperCase() : ""}
             usfm={usfmContent}
+            manifest={selectedManifest}
             onResultClick={handleVerseClick}
           />
         </div>

@@ -151,6 +151,7 @@ SearchPanel.jsx (new)
   lang='en'
   abbr='TIT'
   usfm={usfmContent}
+  manifest={manifest}
   onResultClick={handleSearchResultClick}
 />
 ```

@@ -34,6 +34,10 @@ const defaultProps = {
 \\c 1
 \\v 1 Paul, a servant of God and an apostle of Jesus Christ
 \\v 2 in hope of eternal life`,
+  manifest: {
+    dublin_core: { title: "unfoldingWord Literal Text", rights: "CC BY-SA 4.0" },
+    version: "1",
+  },
   onResultClick: vi.fn(),
 };
 

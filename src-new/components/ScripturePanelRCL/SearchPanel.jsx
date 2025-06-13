@@ -13,9 +13,17 @@ import styles from "./SearchPanel.module.css";
  * @param {string} props.lang - Language code
  * @param {string} props.abbr - Book abbreviation
  * @param {string} props.usfm - USFM content
+ * @param {object} [props.manifest] - Bible resource manifest for display info
  * @param {function} props.onResultClick - Callback when a search result is clicked
- */
-export default function SearchPanel({ org, lang, abbr, usfm, onResultClick }) {
+*/
+export default function SearchPanel({
+  org,
+  lang,
+  abbr,
+  usfm,
+  manifest,
+  onResultClick,
+}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [timeoutError, setTimeoutError] = useState("");
@@ -354,15 +362,18 @@ export default function SearchPanel({ org, lang, abbr, usfm, onResultClick }) {
         <div className={styles.searchResourceInfo}>
           <div className={styles.searchResourceDetail}>
             <span className={styles.resourceIcon}>🏢</span>
-            <span>unfoldingWord</span>
+            <span>{org || "unfoldingWord"}</span>
           </div>
           <div className={styles.searchResourceDetail}>
             <span className={styles.resourceIcon}>📖</span>
-            <span>TWL v85</span>
+            <span>
+              {manifest?.dublin_core?.title || manifest?.title || ""}
+              {manifest?.version ? ` v${manifest.version}` : ""}
+            </span>
           </div>
           <div className={styles.searchResourceDetail}>
             <span className={styles.resourceIcon}>⚖️</span>
-            <span>CC BY-SA 4.0</span>
+            <span>{manifest?.dublin_core?.rights || manifest?.rights || ""}</span>
           </div>
         </div>
       </div>
