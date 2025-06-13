@@ -22,4 +22,10 @@ describe('parseTsv', () => {
     expect(parseTsv('')).toEqual([]);
     expect(parseTsv('# no data')).toEqual([]);
   });
+
+  it('converts literal "\\n" sequences to newlines', () => {
+    const tsvWithNewlines = ['A\tB', '1\tline1\\nline2'].join('\n');
+    const result = parseTsv(tsvWithNewlines);
+    expect(result[0].B).toBe('line1\nline2');
+  });
 });

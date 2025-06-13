@@ -16,7 +16,9 @@ export function parseTsv(text) {
     const cols = line.split('\t');
     const entry = {};
     headers.forEach((h, i) => {
-      entry[h] = cols[i] || '';
+      const value = cols[i] || '';
+      // tN TSV files encode newlines with "\n" sequences
+      entry[h] = value.replace(/\\n/g, '\n');
     });
     return entry;
   });

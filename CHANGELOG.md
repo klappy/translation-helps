@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.13.13] - 2025-06-15
+
+### Fixed
+
+- **tN Introduction Markdown Rendering**
+  - ✅ `parseTsv` now converts literal "\\n" sequences to actual newlines
+  - ✅ Added unit test covering newline conversion
+  - ✅ Book and chapter introduction notes render correctly
+
 ## [0.13.12] - 2025-06-14
 
 ### Fixed
