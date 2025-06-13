@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.13.12] - 2025-06-14
+
+### Fixed
+
+- **Book and Chapter tN Notes Missing**
+  - ✅ `tnService` now includes book-level (`front:intro`) and chapter-level (`<chapter>:intro`) notes when fetching notes for a verse
+  - ✅ Updated unit tests to cover introduction note handling
+  - ✅ Documentation updated explaining special reference rows in tN TSV files
+
+
 ## [0.13.11] - 2025-06-13
 
 ### Fixed

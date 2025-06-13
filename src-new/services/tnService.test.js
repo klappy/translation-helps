@@ -29,6 +29,8 @@ describe("tnService", () => {
 
   const sampleTsv = [
     "Reference\tID\tTags\tSupportReference\tQuote\tOccurrence\tNote",
+    "front:intro\tbook-intro\t\t\t\t0\tBook introduction",
+    "1:intro\tchapter-intro\t\t\t\t0\tChapter 1 introduction",
     "1:1\tgen01-01-01\ttranslate-names\t\tGod\t1\tThis refers to the one true God.",
     "1:2\tgen01-02-01\tfigs-metaphor\tPsa 104:30\tthe Spirit of God\t1\tThis is a metaphor describing God's power.",
     "2:1\tgen02-01-01\ttranslate-ordinal\t\tthe seventh day\t1\tThis refers to the completion of creation.",
@@ -48,15 +50,18 @@ describe("tnService", () => {
         "tn_GEN.tsv",
         "unfoldingWord"
       );
-      expect(notes).toHaveLength(1);
-      expect(notes[0]).toEqual({
-        id: 0,
-        text: "This refers to the one true God.",
-        quote: "God",
-        occurrence: "1",
-        tags: "translate-names",
-        supportReference: "",
+      expect(notes).toHaveLength(3);
+      expect(notes[0]).toMatchObject({
+        reference: "front:intro",
+        text: "Book introduction",
+      });
+      expect(notes[1]).toMatchObject({
+        reference: "1:intro",
+        text: "Chapter 1 introduction",
+      });
+      expect(notes[2]).toMatchObject({
         reference: "1:1",
+        quote: "God",
       });
     });
 
@@ -76,13 +81,14 @@ describe("tnService", () => {
       expect(notes[0].reference).toBe("gen/1/1");
     });
 
-    it("returns empty array when no notes found", async () => {
+    it("returns only book intro when verse has no specific notes", async () => {
       dcsClient.fetchManifest.mockResolvedValue(mockManifest);
       dcsClient.fetchResourceFile.mockResolvedValue(sampleTsv);
 
       const notes = await getNotesForVerse("gen", "99", "99");
 
-      expect(notes).toHaveLength(0);
+      expect(notes).toHaveLength(1);
+      expect(notes[0].reference).toBe("front:intro");
     });
 
     it("throws error when book not found in manifest", async () => {
@@ -128,18 +134,33 @@ describe("tnService", () => {
         "tn_GEN.tsv",
         "unfoldingWord"
       );
-      expect(notes).toHaveLength(3);
+      expect(notes).toHaveLength(5);
 
       // Check that chapter and verse are parsed correctly
       expect(notes[0]).toMatchObject({
+        chapter: "front",
+        verse: "intro",
+        reference: "front:intro",
+      });
+      expect(notes[1]).toMatchObject({
+        chapter: "1",
+        verse: "intro",
+        reference: "1:intro",
+      });
+      expect(notes[2]).toMatchObject({
         chapter: "1",
         verse: "1",
         reference: "1:1",
       });
-      expect(notes[1]).toMatchObject({
+      expect(notes[3]).toMatchObject({
         chapter: "1",
         verse: "2",
         reference: "1:2",
+      });
+      expect(notes[4]).toMatchObject({
+        chapter: "2",
+        verse: "1",
+        reference: "2:1",
       });
     });
 

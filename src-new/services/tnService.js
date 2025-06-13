@@ -71,16 +71,35 @@ export async function getNotesForVerse(
     const tsvContent = await fetchResourceFile(languageId, RESOURCE_ID, filePath, organization);
     const allNotes = parseTsv(tsvContent);
 
-    // Filter notes for the specific chapter and verse
+    // Filter notes for the specific chapter and verse along with chapter
+    // introduction and book introduction notes. Chapter intro notes have a
+    // reference like "1:intro" and book intro notes use "front:intro".
     const expectedRef = `${chapter}:${verse}`;
-    const verseNotes = allNotes.filter((note) => {
+    const verseNotes = [];
+    const chapterIntroNotes = [];
+    const bookIntroNotes = [];
+
+    allNotes.forEach((note) => {
       const parsed = parseReference(note.Reference);
-      if (!parsed) return false;
-      return `${parsed.chapter}:${parsed.verse}` === expectedRef;
+      if (!parsed) return;
+      const refString = `${parsed.chapter}:${parsed.verse}`;
+      if (refString === expectedRef) {
+        verseNotes.push(note);
+      } else if (
+        parsed.verse === "intro" &&
+        parsed.chapter.toString() === chapter.toString()
+      ) {
+        chapterIntroNotes.push(note);
+      } else if (parsed.verse === "intro" && parsed.chapter === "front") {
+        bookIntroNotes.push(note);
+      }
     });
 
+    // Combine intros first then verse notes
+    const combinedNotes = [...bookIntroNotes, ...chapterIntroNotes, ...verseNotes];
+
     // Transform to consistent format
-    return verseNotes.map((note, index) => ({
+    return combinedNotes.map((note, index) => ({
       id: index,
       text: note.Note || "",
       quote: note.Quote || "",
