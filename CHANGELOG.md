@@ -1,6 +1,42 @@
 # Changelog
 
-## [0.13.15] - 2025-06-13
+## [0.13.16] - 2025-06-14
+
+### Fixed & Changed
+
+- **USFM Parser/Renderer Pipeline Robustness**
+  - 🛠️ Section headings (`\s`, `\s1`, etc.) now render as `<heading class="section-heading">` and always self-close before any block-level marker (paragraph, verse, heading, chapter, etc.), never nesting or containing block-level elements.
+  - 🛠️ Section headings are styled as h2 via `.section-heading` in the CSS module.
+  - 🛠️ Poetry lines (`\q`, `\q1`, etc.) are always closed before a new verse or poetry line, never containing verses or other poetry lines.
+  - 🛠️ Block-level markers (`\p`, `\v`, `\c`, `\s`, etc.) are always siblings in the DOM, never nested except as allowed by USFM.
+  - 🛠️ The parser now treats `\*` as a closing tag for headings, even if joined directly to `\ts` (i.e., `\ts\*` with no space).
+  - 🛠️ The literal marker `"\ts\*"` is not rendered at all in the output; the heading is simply closed, and the asterisk is hidden via CSS for reversibility.
+  - 🛠️ All `<marker>*</marker>` elements are hidden in preview mode via CSS.
+  - 🛠️ Fixed all cases of runaway or invalid nesting for verses, poetry, and headings.
+  - 🛠️ Ensured all parser invariants are enforced programmatically and documented.
+
+### Documentation
+
+- **Major Update to USFM Rendering Documentation**
+  - 📚 `docs/usfm-semantic-rendering.md` now documents all parser and rendering invariants, including:
+    - Section heading handling and self-closing rules
+    - Poetry line and block-level marker invariants
+    - Special handling for the literal marker `"\ts\*"`
+    - CSS and styling requirements for headings and markers
+    - Explicit code examples for USFM input and HTML output
+    - Warnings and requirements for future parser/renderer changes
+
+### CSS
+
+- **Section Heading and Marker Styling**
+  - 🎨 Section headings styled as h2 using `.section-heading` in the CSS module.
+  - 🎨 All `<marker>*</marker>` elements (for `\ts\*`) are hidden in preview mode.
+  - 🎨 Ensured all technical markers are hidden in preview mode for clean display.
+
+### Versioning
+
+- **Version Bump**
+  - 🚀 Bumped version to 0.13.16 for release of all USFM parser, renderer, and documentation improvements.
 
 ### Fixed
 

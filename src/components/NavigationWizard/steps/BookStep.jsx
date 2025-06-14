@@ -105,7 +105,9 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
         if (isMounted) {
           setLoading(false);
           if (!wizardData.resourceId && wizardData.organization && wizardData.languageId) {
-            setError("Please select a Bible resource from the previous step to view available books.");
+            setError(
+              "Please select a Bible resource from the previous step to view available books."
+            );
           } else if (!wizardData.organization) {
             setError("Please select an organization from the first step.");
           } else if (!wizardData.languageId) {
@@ -137,7 +139,9 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
               id: bookId,
               name: project.title || (fallbackBook ? fallbackBook.name : bookId.toUpperCase()),
               chapters: project.chapters?.length || (fallbackBook ? fallbackBook.chapters : 1),
-              sort: project.sort || (fallbackBook ? getAllBooks().findIndex((b) => b.id === bookId) : 999),
+              sort:
+                project.sort ||
+                (fallbackBook ? getAllBooks().findIndex((b) => b.id === bookId) : 999),
               categories: project.categories || [],
               versification: project.versification,
             };
@@ -167,14 +171,21 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
     return () => {
       isMounted = false;
     };
-  }, [wizardData.organization, wizardData.languageId, wizardData.resourceId, manifests, manifestsLoading]);
+  }, [
+    wizardData.organization,
+    wizardData.languageId,
+    wizardData.resourceId,
+    manifests,
+    manifestsLoading,
+  ]);
 
   const handleBookSelect = (book) => {
     onStepChange(4, { bookId: book.id });
   };
 
   const currentBooks = availableBooks || [];
-  const isUsingDynamicBooks = !usingFallback && availableBooks !== null && availableBooks.length > 0;
+  const isUsingDynamicBooks =
+    !usingFallback && availableBooks !== null && availableBooks.length > 0;
 
   const { oldTestamentBooks, newTestamentBooks } = useMemo(() => {
     if (isUsingDynamicBooks) {
@@ -259,11 +270,6 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
 
       {/* Content area */}
       <div className={`${styles.stepContent} ${isDesktop ? styles.desktop : ""}`}>
-        {usingFallback && (
-          <div className={styles.notice} data-testid='fallback-notice'>
-            Dynamic book list unavailable. Displaying default list.
-          </div>
-        )}
         <SearchableGrid
           items={bookItems}
           selectedItem={selectedBook}
@@ -304,6 +310,7 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
           Continue
         </button>
       </div>
+      {/* Fallback notice removed */}
     </div>
   );
 }
