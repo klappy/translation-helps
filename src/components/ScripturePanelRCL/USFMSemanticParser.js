@@ -253,13 +253,17 @@ export class USFMSemanticParser {
       info.type === "poetry" ||
       info.type === "section"
     ) {
+      // Always close all open section headings before any block-level marker
+      this.closeAllSectionHeadings();
       // Always close all poetry lines before opening a new verse or poetry line
       if (info.type === "verse" || info.type === "poetry") {
         this.closeAllPoetryLines();
       }
       if (info.type === "verse") {
         this.closeOpenVerse();
-      } else if (info.type === "paragraph" || info.type === "chapter" || info.type === "section") {
+      }
+      // Always close all block-level elements for paragraph, chapter, or section
+      if (info.type === "paragraph" || info.type === "chapter" || info.type === "section") {
         this.closeAllBlockLevelElements();
       }
     }
@@ -275,9 +279,9 @@ export class USFMSemanticParser {
       // Add class for header markers
       if (info.element === "header") {
         this.output += `<header class="${markerName}">`;
-      } else if (info.element === "s") {
-        // Section heading: open <s>, emit marker, heading text, then close <s> immediately
-        this.output += `<s>`;
+      } else if (info.element === "heading") {
+        // Section heading: open <heading class="section-heading">
+        this.output += `<heading${info.className ? ` class="${info.className}"` : ""}>`;
       } else {
         this.output += `<${info.element}>`;
       }
@@ -293,18 +297,50 @@ export class USFMSemanticParser {
       }
     }
 
-    // Special handling for section headings: close immediately after heading text
-    if (info.element === "s") {
-      // Parse heading text (until newline)
+    // Special handling for section headings: close immediately after heading text or upon block marker
+    if (info.element === "heading") {
+      // Parse heading text until newline, block-level marker, or \*
       let headingText = "";
-      while (this.position < this.input.length && this.peek() !== "\n") {
-        headingText += this.consume();
-      }
-      if (this.peek() === "\n") {
+      while (this.position < this.input.length) {
+        // If next is a block-level marker, break and close heading
+        if (
+          this.peek() === "\\" &&
+          (this.input.substring(this.position + 1, this.position + 2).match(/[a-zA-Z]/) ||
+            this.input.substring(this.position + 1, this.position + 3).match(/s[1-4]/))
+        ) {
+          // Look ahead for block-level marker
+          let lookahead = this.position + 1;
+          let marker = "";
+          while (lookahead < this.input.length && /[a-zA-Z0-9\-]/.test(this.input[lookahead])) {
+            marker += this.input[lookahead];
+            lookahead++;
+          }
+          if (
+            marker === "p" ||
+            marker === "v" ||
+            marker === "c" ||
+            marker === "s" ||
+            marker === "s1" ||
+            marker === "s2" ||
+            marker === "s3" ||
+            marker === "s4"
+          ) {
+            break;
+          }
+        }
+        // If next is \* (closing marker), break and close heading
+        if (this.peek() === "\\" && this.input[this.position + 1] === "*") {
+          // Do not consume the \*, just break so the main parser will handle it as a marker
+          break;
+        }
+        if (this.peek() === "\n") {
+          headingText += this.consume();
+          break;
+        }
         headingText += this.consume();
       }
       this.output += headingText;
-      this.output += `</s>`;
+      this.output += `</heading>`;
       return;
     }
 
@@ -341,6 +377,22 @@ export class USFMSemanticParser {
       }
     } else {
       this.markerStack.push(markerName);
+    }
+  }
+
+  /**
+   * Close all open section headings (heading)
+   */
+  closeAllSectionHeadings() {
+    while (this.markerStack.length > 0) {
+      const lastMarker = this.markerStack[this.markerStack.length - 1];
+      const info = MARKER_INFO[lastMarker];
+      if (info && info.element === "heading") {
+        this.markerStack.pop();
+        this.output += `</${info.element}>`;
+      } else {
+        break;
+      }
     }
   }
 

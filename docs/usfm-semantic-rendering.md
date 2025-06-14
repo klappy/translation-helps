@@ -315,6 +315,58 @@ assert(originalUSFM === recoveredUSFM, "Lossless USFM preservation");
 
 This dual-purpose architecture ensures the component can serve both human readers (clean preview) and programmatic consumers (perfect preservation) without compromise.
 
+## Parser and Rendering Invariants (2025-06-14)
+
+### Section Headings (`\s`, `\s1`, etc.)
+
+- Rendered as `<heading class="section-heading">...</heading>`.
+- Section headings must always self-close before any new block-level marker (such as `\p`, `\v`, `\s`, `\c`, etc.) is encountered.
+- Section headings must never nest or contain block-level elements (paragraphs, verses, other headings, etc.).
+- The parser enforces this by calling `closeAllSectionHeadings()` before opening any block-level marker.
+
+### Poetry Lines (`\q`, `\q1`, etc.)
+
+- Poetry lines are always closed before a new verse or poetry line is opened.
+- Poetry lines must never contain verses or other poetry lines.
+- The parser enforces this by calling `closeAllPoetryLines()` before opening a new verse or poetry line.
+
+### Block-level Markers
+
+- All block-level markers (`\p`, `\v`, `\c`, `\s`, etc.) are siblings in the DOM, never nested within each other except as allowed by USFM (e.g., poetry lines inside verses).
+- The parser closes all open block-level elements as needed to maintain this invariant.
+
+### Special Markers
+
+- The `"\ts ... \ts\*"` marker pair is rendered as `<heading class="section-heading"><marker class="ts">\ts</marker>Section Heading</heading>`.
+  - The start marker `"\ts"` is rendered as `<marker class="ts">\ts</marker>`.
+  - The end marker **`"\ts\*"`** (the literal marker) is **not rendered at all**—it simply closes the heading, with no `<marker>*</marker>` or asterisk in the output.
+  - **It is a parser invariant that after `"\ts\*"`, the heading is always closed and no block-level element (paragraph, verse, heading, etc.) can ever be nested inside.**
+  - **If any block-level marker is encountered while a heading is open, the heading must be closed before the new block-level element is opened.**
+  - No stray asterisks, strikethroughs, or extra tags are rendered for section headings.
+  - This is a special case: the parser must never emit a marker or asterisk for `"\ts\*"` and must close the heading immediately after.
+  - **USFM input:**
+    ```
+    \ts Section Heading\ts\*
+    ```
+  - **HTML output:**
+    ```html
+    <heading class="section-heading"><marker class="ts">\ts</marker>Section Heading</heading>
+    ```
+  - This rule is enforced in the parser and must not be changed without updating this documentation.
+  - **WARNING:** Any future parser or renderer must enforce this invariant for `"\ts\*"` and section headings, and this documentation must be updated if the rule changes.
+
+### CSS and Styling
+
+- Section headings are styled as h2 using `.section-heading` in the CSS module.
+- The parser always emits the correct class for section headings.
+
+### Documentation and Code Sync
+
+- Any changes to these invariants must be reflected in both the parser code and this documentation.
+- This section must be updated if the parser or renderer logic changes.
+
+---
+
 ## HTML Output Format
 
 Based on the test case, each USFM element is rendered as semantic HTML:
