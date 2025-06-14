@@ -5,6 +5,7 @@
 
 import React, { useState, useMemo } from "react";
 import styles from "../NavigationWizard.module.css";
+import { getChapterCount } from "../../../utils/contextHelpers";
 
 export function ChapterVerseStep({
   onNext,
@@ -15,63 +16,15 @@ export function ChapterVerseStep({
   isDesktop,
 }) {
   const [selectedChapter, setSelectedChapter] = useState(wizardData.chapter || 1);
-  const [selectedVerse, setSelectedVerse] = useState(wizardData.verse || 1);
 
-  // Get chapter count from BIBLE_BOOKS data (simplified for demo)
-  const getChapterCount = (bookId) => {
-    const chapterCounts = {
-      gen: 50,
-      exo: 40,
-      lev: 27,
-      num: 36,
-      deu: 34,
-      jos: 24,
-      jdg: 21,
-      rut: 4,
-      "1sa": 31,
-      "2sa": 24,
-      mat: 28,
-      mrk: 16,
-      luk: 24,
-      jhn: 21,
-      act: 28,
-      rom: 16,
-      "1co": 16,
-      "2co": 13,
-      gal: 6,
-      eph: 6,
-      tit: 3,
-      phm: 1,
-      rev: 22,
-    };
-    return chapterCounts[bookId] || 25; // Default fallback
-  };
-
-  // Simplified verse count (in reality this would come from Bible API)
-  const getVerseCount = (bookId, chapter) => {
-    // This is a simplified version - in practice, this would be fetched from an API
-    return 30; // Default verse count for demo
-  };
-
+  // Use shared utility for chapter count (manifest-aware if manifest is available)
   const chapterCount = getChapterCount(wizardData.bookId);
-  const verseCount = getVerseCount(wizardData.bookId, selectedChapter);
 
   const handleChapterSelect = (chapter) => {
     setSelectedChapter(chapter);
-    setSelectedVerse(1); // Reset verse when chapter changes
     onStepChange(4, {
       bookId: wizardData.bookId,
       chapter: chapter,
-      verse: 1,
-    });
-  };
-
-  const handleVerseSelect = (verse) => {
-    setSelectedVerse(verse);
-    onStepChange(4, {
-      bookId: wizardData.bookId,
-      chapter: selectedChapter,
-      verse: verse,
     });
   };
 
@@ -126,11 +79,9 @@ export function ChapterVerseStep({
     <div className={`${styles.stepContainer} ${isDesktop ? styles.desktop : ""}`}>
       {/* Step header */}
       <div className={`${styles.stepHeader} ${isDesktop ? styles.desktop : ""}`}>
-        <h2 className={`${styles.stepTitle} ${isDesktop ? styles.desktop : ""}`}>
-          Choose Chapter & Verse
-        </h2>
+        <h2 className={`${styles.stepTitle} ${isDesktop ? styles.desktop : ""}`}>Choose Chapter</h2>
         <p className={`${styles.stepDescription} ${isDesktop ? styles.desktop : ""}`}>
-          Select the chapter and verse in <strong>{bookDisplayName}</strong> you want to study.
+          Select the chapter in <strong>{bookDisplayName}</strong> you want to study.
         </p>
       </div>
 
@@ -139,16 +90,13 @@ export function ChapterVerseStep({
         {/* Chapter Selection */}
         {renderNumberGrid(chapterCount, selectedChapter, handleChapterSelect, "Chapter")}
 
-        {/* Verse Selection */}
-        {renderNumberGrid(verseCount, selectedVerse, handleVerseSelect, "Verse")}
-
         {/* Summary */}
         <div className={`${styles.summarySection} ${isDesktop ? styles.desktop : ""}`}>
           <div className={`${styles.summaryTitle} ${isDesktop ? styles.desktop : ""}`}>
             Selected Reference
           </div>
           <div className={`${styles.summaryReference} ${isDesktop ? styles.desktop : ""}`}>
-            {bookDisplayName} {selectedChapter}:{selectedVerse}
+            {bookDisplayName} {selectedChapter}
           </div>
         </div>
       </div>

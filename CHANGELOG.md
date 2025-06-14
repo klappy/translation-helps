@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0] - 2025-06-14
+
+### Added
+
+- CSS-first collapsible notes pattern for long translation notes, using only CSS and a click-to-expand/collapse interaction. See [docs/css-collapsible-notes-pattern.md](docs/css-collapsible-notes-pattern.md).
+- Project-wide policy: Always prefer CSS-based solutions for UI/UX behaviors (expand/collapse, show/hide, hover, etc.) over JS/React state unless technically necessary.
+- Documentation for the CSS-first pattern and policy in README.md and docs/css-collapsible-notes-pattern.md.
+
+### Changed
+
+- Translation notes panel now uses a CSS-only solution for collapsing/expanding long notes, with the entire note area clickable to toggle.
+
 ## [0.13.16] - 2025-06-14
 
 ### Fixed & Changed

@@ -75,9 +75,60 @@
 .loadingState,
 .errorState,
 .emptyState {
-  padding: var(--spacing-4);
-  text-align: center;
-  font-size: var(--font-size-sm);
+  color: #888;
+  font-style: italic;
+  margin: 24px 0;
+}
+
+/* Collapsible note logic */
+.collapsibleNote {
+  max-height: 12.5em; /* 10 lines * 1.25em */
+  overflow: hidden;
+  position: relative;
+  transition: max-height 0.2s;
+}
+
+.collapsibleNote::after {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2.5em;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #fff 100%);
+  pointer-events: none;
+}
+
+.collapsibleNote.expanded {
+  max-height: none;
+  overflow: visible;
+}
+
+.collapsibleNote.expanded::after {
+  display: none;
+}
+
+.showMoreBtn {
+  display: block;
+  margin: 8px auto 0 auto;
+  background: #f8f9fa;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.showLessBtn {
+  display: none;
+}
+
+.collapsibleNote.expanded .showMoreBtn {
+  display: none;
+}
+
+.collapsibleNote.expanded .showLessBtn {
+  display: block;
 }
 
 .loadingState {

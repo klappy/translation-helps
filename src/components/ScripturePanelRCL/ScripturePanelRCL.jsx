@@ -287,7 +287,7 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
       )}
 
       <USFMSemanticRenderer
-        usfm={usfmContent}
+        usfm={extractChapterUSFM(usfmContent, reference.chapter)}
         chapter={reference.chapter}
         selectedVerse={reference.verse}
         onVerseClick={handleVerseClick}
@@ -297,5 +297,36 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
     </section>
   );
 });
+
+/**
+ * Extracts the USFM for a specific chapter from the full book USFM.
+ * Returns an empty string if not found.
+ * @param {string} usfm - Full book USFM
+ * @param {number|string} chapter - Chapter number to extract
+ * @returns {string} USFM for the selected chapter
+ */
+function extractChapterUSFM(usfm, chapter) {
+  if (!usfm || !chapter) return "";
+  // USFM chapter marker: \c {chapter}
+  const chapterNum = parseInt(chapter, 10);
+  if (isNaN(chapterNum)) return "";
+
+  // Find start of this chapter
+  const chapterStartPattern = new RegExp(`\\\\c[ \\t]+${chapterNum}\\b`);
+  const chapterEndPattern = new RegExp(`\\\\c[ \\t]+${chapterNum + 1}\\b`);
+
+  // Find headers (everything before the first \c marker)
+  const firstChapterMatch = /\\c[ \t]+\d+\b/.exec(usfm);
+  const headers = firstChapterMatch ? usfm.slice(0, firstChapterMatch.index).trim() + "\n" : "";
+
+  const startMatch = chapterStartPattern.exec(usfm);
+  if (!startMatch) return headers; // If chapter not found, just return headers
+
+  const startIdx = startMatch.index;
+  const endMatch = chapterEndPattern.exec(usfm.slice(startIdx + 1));
+  const endIdx = endMatch ? startIdx + 1 + endMatch.index : usfm.length;
+
+  return (headers + usfm.slice(startIdx, endIdx)).trim();
+}
 
 export default ScripturePanelRCL;

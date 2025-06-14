@@ -123,3 +123,9 @@ The relationships between the resources can be used to display relevant informat
     - tW (tagged in UGNT)
   - tQ (tagged by reference)
   - UST - (secondary text organized by reference)
+
+---
+
+## CSS-First UI/UX Policy
+
+This project prefers CSS-based solutions for UI/UX behaviors (such as show/hide, expand/collapse, hover effects, etc.) over JavaScript/React state, unless there is a clear technical reason to use JS. See [docs/css-collapsible-notes-pattern.md](docs/css-collapsible-notes-pattern.md) for the recommended pattern for collapsible notes and similar features.

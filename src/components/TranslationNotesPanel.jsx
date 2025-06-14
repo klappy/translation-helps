@@ -7,7 +7,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { ManifestsContext } from "../context/MultiManifestsContext";
 import { RcLinkContext } from "./MainView";
 import { ReferenceContext } from "../context/ReferenceContext";
-import { getNotesForVerse } from "../services/tnService";
+import { getNotesForVerse, getNotesForBook } from "../services/tnService";
 import { processMarkdownWithRcLinks } from "../utils/markdownUtils.jsx";
 import styles from "./TranslationNotesPanel.module.css";
 
@@ -21,7 +21,7 @@ export function TranslationNotesPanel({ reference }) {
 
   useEffect(() => {
     async function loadNotes() {
-      if (!reference?.bookId || !reference?.chapter || !reference?.verse) {
+      if (!reference?.bookId) {
         setNotes([]);
         setError(null); // Clear any previous errors
         return;
@@ -50,14 +50,30 @@ export function TranslationNotesPanel({ reference }) {
       setError(null);
 
       try {
-        // Use the updated tnService with organization and language context
-        const parsedNotes = await getNotesForVerse(
-          reference.bookId,
-          reference.chapter,
-          reference.verse,
-          organization || "unfoldingWord",
-          languageId || "en"
-        );
+        let parsedNotes = [];
+        if (!reference.chapter && !reference.verse) {
+          // Book-level context: get only book intro notes
+          const allNotes = await getNotesForBook(
+            reference.bookId,
+            organization || "unfoldingWord",
+            languageId || "en"
+          );
+          parsedNotes = allNotes.filter(
+            (note) =>
+              note.reference &&
+              (note.reference === "front:intro" ||
+                (note.verse === "intro" && note.chapter === "front"))
+          );
+        } else {
+          // Chapter/verse context: get chapter/verse/intro notes
+          parsedNotes = await getNotesForVerse(
+            reference.bookId,
+            reference.chapter || null,
+            reference.verse || null,
+            organization || "unfoldingWord",
+            languageId || "en"
+          );
+        }
 
         setNotes(parsedNotes);
       } catch (err) {
@@ -83,10 +99,11 @@ export function TranslationNotesPanel({ reference }) {
     loadNotes();
   }, [reference, manifests.tn]);
 
-  if (!reference?.verse) {
+  // Only show empty state if there are no notes and not loading/error
+  if (!loading && !error && (!notes || notes.length === 0)) {
     return (
       <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
-        <p className={styles.emptyState}>Select a verse to view translation notes.</p>
+        <p className={styles.emptyState}>No translation notes available for this selection.</p>
       </section>
     );
   }
@@ -124,13 +141,36 @@ export function TranslationNotesPanel({ reference }) {
                   )}
                 </div>
               )}
-              <div className={styles.noteText}>
-                {processMarkdownWithRcLinks(note.text, (rcUri) => {
-                  if (handleRcLinkClick) {
-                    handleRcLinkClick(rcUri, languageId, organization);
-                  }
-                })}
-              </div>
+              {(() => {
+                const lineCount = (note.text || "").split(/\r\n|\r|\n/).length;
+                if (lineCount <= 10) {
+                  return (
+                    <div className={styles.noteText}>
+                      {processMarkdownWithRcLinks(note.text, (rcUri) => {
+                        if (handleRcLinkClick) {
+                          handleRcLinkClick(rcUri, languageId, organization);
+                        }
+                      })}
+                    </div>
+                  );
+                }
+                return (
+                  <div
+                    className={`${styles.noteText} ${styles.collapsibleNote}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.currentTarget.classList.toggle(styles.expanded);
+                    }}
+                    title='Click to expand/collapse'
+                  >
+                    {processMarkdownWithRcLinks(note.text, (rcUri) => {
+                      if (handleRcLinkClick) {
+                        handleRcLinkClick(rcUri, languageId, organization);
+                      }
+                    })}
+                  </div>
+                );
+              })()}
               {note.tags && <div className={styles.noteTags}>Tags: {note.tags}</div>}
               {note.supportReference && (
                 <div className={styles.noteSupportReference}>
@@ -149,3 +189,5 @@ export function TranslationNotesPanel({ reference }) {
     </section>
   );
 }
+
+/* (CollapsibleNote component removed; now handled by CSS) */

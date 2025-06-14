@@ -164,6 +164,78 @@ export default function USFMSemanticRenderer({
     );
   }
 
+  // Collapsible notes effect
+  useEffect(() => {
+    // Wait for HTML to be rendered
+    const container = document.querySelector(`.${styles["usfm-content"]}`);
+    if (!container) return;
+
+    // Helper to collapse a note if over 10 lines
+    function processNoteElement(noteEl) {
+      if (!noteEl) return;
+      // Count lines by splitting on \n or by offsetHeight/lineHeight
+      const text = noteEl.textContent || "";
+      const lineCount = text.split("\n").length;
+      // Fallback: estimate by height
+      const lineHeight = parseFloat(getComputedStyle(noteEl).lineHeight) || 20;
+      const estLines = Math.round(noteEl.offsetHeight / lineHeight);
+      const isLong = lineCount > 10 || estLines > 10;
+      if (!isLong) return;
+
+      // Collapse note
+      noteEl.style.maxHeight = `${lineHeight * 10}px`;
+      noteEl.style.overflow = "hidden";
+      noteEl.style.position = "relative";
+      noteEl.setAttribute("data-collapsed", "true");
+
+      // Add show more button if not already present
+      if (
+        !noteEl.nextSibling ||
+        !noteEl.nextSibling.classList ||
+        !noteEl.nextSibling.classList.contains("show-more-btn")
+      ) {
+        const btn = document.createElement("button");
+        btn.textContent = "Show more";
+        btn.className = "show-more-btn";
+        btn.style.display = "block";
+        btn.style.margin = "8px auto";
+        btn.style.background = "#f8f9fa";
+        btn.style.border = "1px solid #ccc";
+        btn.style.borderRadius = "4px";
+        btn.style.padding = "4px 12px";
+        btn.style.cursor = "pointer";
+        btn.onclick = function () {
+          if (noteEl.getAttribute("data-collapsed") === "true") {
+            noteEl.style.maxHeight = "none";
+            noteEl.setAttribute("data-collapsed", "false");
+            btn.textContent = "Show less";
+          } else {
+            noteEl.style.maxHeight = `${lineHeight * 10}px`;
+            noteEl.setAttribute("data-collapsed", "true");
+            btn.textContent = "Show more";
+          }
+        };
+        noteEl.parentNode.insertBefore(btn, noteEl.nextSibling);
+      }
+    }
+
+    // Process all <footnote> and <crossref> elements
+    const notes = container.querySelectorAll("footnote, crossref");
+    notes.forEach(processNoteElement);
+
+    // Clean up: remove show-more buttons on unmount or rerender
+    return () => {
+      const btns = container.querySelectorAll(".show-more-btn");
+      btns.forEach((btn) => btn.remove());
+      notes.forEach((noteEl) => {
+        noteEl.style.maxHeight = "";
+        noteEl.style.overflow = "";
+        noteEl.style.position = "";
+        noteEl.removeAttribute("data-collapsed");
+      });
+    };
+  }, [renderedHTML]);
+
   return (
     <div className={styles["usfm-semantic-renderer"]} {...props}>
       {showModeToggle && (
