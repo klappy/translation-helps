@@ -5,8 +5,7 @@ description: An application for viewing unfoldingWord Bible translation resource
 
 ## 🧭 Project Structure
 
-- `src-new/`: Main React app source (clean-slate rewrite)
-- `src/`: Legacy source (can be removed)
+- `src/`: Main React app source
 - `docs/`: Developer documentation (architecture, TWL, resource guides, DCS)
 - `public/`: Static assets
 - `package.json`: Project config and dependencies
@@ -19,17 +18,22 @@ description: An application for viewing unfoldingWord Bible translation resource
 - `ui-map.md`: UI layout, screen regions, and component interactions
 - `lifecycle.md`: Startup process, context flow, resource fetching, and offline behavior
 - `component-map.md`: Key React components with paths and descriptions
-- `rewrite/plan.md`: Clean-slate rewrite roadmap and architecture plan
-- `rewrite/decision-log.md`: Architectural decision log for the rewrite execution
-- `rewrite/module-checklist.md`: Module checklist for the clean-slate rewrite
-- `rewrite/dependency-review.md`: Audit of legacy dependencies and proposed modern dependency list
 - `TWL_Integration_Documentation.md`: Guide for the new TWL resource
 - `Translation_Notes_Implementation.md`: Implementation details for Translation Notes (tN)
 - `DCS_Integration_Documentation.md`: Explains access patterns to Door43 Content Service
 - `Resource_Integration_Overview.md`: Outlines all supported translation resource types
-- `proskomma-hooks-enhancement.md`: **CRITICAL** - Proskomma React Hooks integration and USFM rendering architecture
+- `usfm-semantic-rendering.md`: **CRITICAL** - Custom USFM 3.0 semantic rendering system (replaces Proskomma)
+- `proskomma-deprecation-history.md`: **CRITICAL WARNING** - Why Proskomma was removed and must NOT be used
 - `codex-version-guard.md`: Policy and CLI guard for verifying package versions against Codex model cutoff date
 - `changelog-process.md`: Guidelines for maintaining CHANGELOG.md
+- `separation-of-concerns.md`: Architectural guidance for component responsibilities and data flow
+- `llm-chat-feature.md`: LLM chat integration and AI-powered assistance features
+- `ai-response-formatting-enhancement.md`: AI response formatting and enhancement strategies
+- `llm-response-styling-improvements.md`: LLM response styling and presentation improvements
+- `clickable-rc-links-feature.md`: Clickable RC (Resource Catalog) links feature implementation
+- `rc-links-specification.md`: Resource Catalog links specification and standards
+- `hidden-content-chat-context-feature.md`: Hidden content handling in chat context
+- `verse-1-test-case.md`: Verse 1 rendering test case documentation
 
 ## 🛠️ Development Environment
 
@@ -45,10 +49,11 @@ description: An application for viewing unfoldingWord Bible translation resource
 - Prioritize docs in `/docs` for any questions about resource format or architecture
 - If editing React components, respect separation of concerns (UI, state, data-fetching)
 - TWL is a new addition that replaces Greek inline tags—point devs to TWL documentation
-- UI/UX tests have been added for core components using Vitest and React Testing Library (see `src-new/__tests__/`).
+- UI/UX tests use Vitest and React Testing Library. Component tests are co-located with components (e.g., `src/components/ScripturePanelRCL/USFMParser.test.js`).
 - For Dev Server issues (blank page), refer to the "Debugging Dev Server Blank Screen" section in README.md.
 - The app now uses `js-yaml` for YAML parsing (`load()` API); remove any legacy `yaml` aliasing in `vite.config.ts` and add `js-yaml` to `optimizeDeps.include` if needed.
-- **⚠️ CRITICAL: Use Proskomma React Hooks for USFM rendering** - See `docs/proskomma-hooks-enhancement.md` for details. Proskomma handles all USFM parsing and rendering.
+- **⚠️ CRITICAL: DO NOT USE PROSKOMMA** - Proskomma has been completely removed. Use the custom USFM semantic rendering system in `src/components/ScripturePanelRCL/` instead. See `docs/usfm-semantic-rendering.md` and `docs/proskomma-deprecation-history.md` for details.
+- **🚀 USFM Semantic Rendering**: Custom USFM 3.0 parser with semantic HTML output and multiple view modes (preview/full/debug). Located in `src/components/ScripturePanelRCL/` with components: USFMTokenizer, USFMParser, USFMHTMLRenderer, USFMSemanticRenderer. 85% faster than Proskomma approach.
 - **LLM Chat Environment Variables**: Use `VITE_USE_MOCK_CHAT=true` to enable mock responses, `VITE_USE_MOCK_CHAT=false` or unset to use real OpenAI API. Requires `OPENAI_API_KEY` in environment for real API usage.
 
 ## 🔄 GitFlow Branch Strategy
@@ -129,7 +134,7 @@ AGENTIC AI should:
 
    - Use `get_issue` to fetch issue details
    - Create an appropriate branch using `create_branch` following GitFlow naming conventions
-   - Locate and update relevant code files (typically under `src-new/`)
+   - Locate and update relevant code files (typically under `src/`)
    - Implement the requested behavior
    - Implement, review and update unit tests
    - Confirm visually through Playwright test that implementation works
@@ -220,7 +225,7 @@ The project maintains a comprehensive CHANGELOG.md file documenting all changes:
 
 - **Milestone Marker Rendering with Mode-Aware Decorators - COMPLETED**
   - ✅ Implemented comprehensive milestone marker rendering system
-  - ✅ Created `src-new/utils/milestoneDecorators.js` with factory function
+  - ✅ Created `src/utils/milestoneDecorators.js` with factory function
   - ✅ Added support for all USFM milestone marker types
 ```
 

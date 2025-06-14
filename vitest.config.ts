@@ -1,6 +1,9 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  esbuild: {
+    jsx: "automatic",
+  },
   test: {
     environment: "jsdom",
     globals: true,
@@ -15,6 +18,7 @@ export default defineConfig({
     include: [
       "src/utils/**/*.{test,spec}.{ts,tsx}",
       "src/modules/**/tests/**/*.{test,spec}.ts",
+      "src/components/**/*.{test,spec}.{js,jsx,ts,tsx}",
       "src-new/utils/**/*.{test,spec}.{js,jsx}",
       "src-new/hooks/**/*.{test,spec}.{js,jsx}",
       "src-new/services/**/*.{test,spec}.js",
