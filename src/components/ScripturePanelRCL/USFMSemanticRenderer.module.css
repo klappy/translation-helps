@@ -119,9 +119,18 @@
 :global(c) {
   display: block;
   margin: 24px 0 16px 0;
+  color: #2d3748;
+}
+
+/* Only style the chapter marker and number as large bold */
+:global(c) > :global(marker.c),
+:global(c) > :global(number) {
   font-size: 1.5em;
   font-weight: bold;
   color: #2d3748;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
 }
 
 /* Paragraphs */
@@ -211,6 +220,17 @@
   font-size: 1.1em;
   margin: 20px 0 12px 0;
   color: #2d3748;
+}
+
+/* Section headings rendered as <heading class="section-heading"> */
+:global(heading.section-heading) {
+  display: block;
+  font-weight: bold;
+  font-size: 1.1em;
+  margin: 20px 0 12px 0;
+  color: #2d3748;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  text-align: center;
 }
 
 /* Footnotes and cross-references */

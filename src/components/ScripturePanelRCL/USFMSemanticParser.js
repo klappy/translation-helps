@@ -19,17 +19,17 @@ const MARKER_INFO = {
   toc2: { type: "header", element: "header", hasEndMarker: false },
   toc3: { type: "header", element: "header", hasEndMarker: false },
   mt: { type: "header", element: "header", hasEndMarker: false },
-  ts: { type: "section", element: "s", hasEndMarker: true },
+  ts: { type: "section", element: "heading", className: "section-heading", hasEndMarker: true },
 
   // Structure
   c: { type: "chapter", element: "c", hasEndMarker: false },
   v: { type: "verse", element: "v", hasEndMarker: false },
   p: { type: "paragraph", element: "p", hasEndMarker: false },
-  s: { type: "section", element: "s", hasEndMarker: false },
-  s1: { type: "section", element: "s", hasEndMarker: false },
-  s2: { type: "section", element: "s", hasEndMarker: false },
-  s3: { type: "section", element: "s", hasEndMarker: false },
-  s4: { type: "section", element: "s", hasEndMarker: false },
+  s: { type: "section", element: "heading", className: "section-heading", hasEndMarker: false },
+  s1: { type: "section", element: "heading", className: "section-heading", hasEndMarker: false },
+  s2: { type: "section", element: "heading", className: "section-heading", hasEndMarker: false },
+  s3: { type: "section", element: "heading", className: "section-heading", hasEndMarker: false },
+  s4: { type: "section", element: "heading", className: "section-heading", hasEndMarker: false },
 
   // Poetry
   q: { type: "poetry", element: "q", hasEndMarker: false },
@@ -188,7 +188,7 @@ export class USFMSemanticParser {
       // Special case: \* (can be a closer for \ts)
       if (this.markerStack.length > 0 && this.markerStack[this.markerStack.length - 1] === "ts") {
         this.markerStack.pop();
-        this.output += `<marker class="ts-e">${markerText}</marker></s>`;
+        this.output += `<marker>*</marker></heading>`;
       } else {
         this.output += `<marker class="*">${markerText}</marker>`;
       }
@@ -223,7 +223,7 @@ export class USFMSemanticParser {
     const markerText = this.input.substring(markerStart, this.position);
     const info = MARKER_INFO[markerName] || {
       type: "unknown",
-      element: "span",
+      element: null,
       hasEndMarker: false,
     };
 
@@ -245,14 +245,23 @@ export class USFMSemanticParser {
       this.currentBlock = "chapters";
     }
 
-    // Close previous paragraph-like elements if necessary
+    // Close previous block-level elements if necessary
     if (
       info.type === "paragraph" ||
       info.type === "chapter" ||
       info.type === "verse" ||
-      info.type === "poetry"
+      info.type === "poetry" ||
+      info.type === "section"
     ) {
-      this.closeParagraphLike();
+      // Always close all poetry lines before opening a new verse or poetry line
+      if (info.type === "verse" || info.type === "poetry") {
+        this.closeAllPoetryLines();
+      }
+      if (info.type === "verse") {
+        this.closeOpenVerse();
+      } else if (info.type === "paragraph" || info.type === "chapter" || info.type === "section") {
+        this.closeAllBlockLevelElements();
+      }
     }
 
     // Consume any following space
@@ -266,6 +275,9 @@ export class USFMSemanticParser {
       // Add class for header markers
       if (info.element === "header") {
         this.output += `<header class="${markerName}">`;
+      } else if (info.element === "s") {
+        // Section heading: open <s>, emit marker, heading text, then close <s> immediately
+        this.output += `<s>`;
       } else {
         this.output += `<${info.element}>`;
       }
@@ -279,6 +291,21 @@ export class USFMSemanticParser {
       if (number) {
         this.output += `<number>${number}</number>`;
       }
+    }
+
+    // Special handling for section headings: close immediately after heading text
+    if (info.element === "s") {
+      // Parse heading text (until newline)
+      let headingText = "";
+      while (this.position < this.input.length && this.peek() !== "\n") {
+        headingText += this.consume();
+      }
+      if (this.peek() === "\n") {
+        headingText += this.consume();
+      }
+      this.output += headingText;
+      this.output += `</s>`;
+      return;
     }
 
     // Special handling for word and zaln markers
@@ -318,10 +345,10 @@ export class USFMSemanticParser {
   }
 
   /**
-   * Close paragraph-like elements
+   * Close all open block-level elements (paragraph, verse, chapter, poetry, section)
    */
-  closeParagraphLike() {
-    if (this.markerStack.length > 0) {
+  closeAllBlockLevelElements() {
+    while (this.markerStack.length > 0) {
       const lastMarker = this.markerStack[this.markerStack.length - 1];
       const info = MARKER_INFO[lastMarker];
       if (
@@ -329,12 +356,81 @@ export class USFMSemanticParser {
         (info.type === "paragraph" ||
           info.type === "verse" ||
           info.type === "chapter" ||
-          info.type === "poetry")
+          info.type === "poetry" ||
+          info.type === "section")
       ) {
         this.markerStack.pop();
         this.output += `</${info.element}>`;
+      } else {
+        break;
       }
     }
+  }
+
+  /**
+   * Close the currently open verse, if any
+   */
+  closeOpenVerse() {
+    while (this.markerStack.length > 0) {
+      const lastMarker = this.markerStack[this.markerStack.length - 1];
+      const info = MARKER_INFO[lastMarker];
+      if (info && info.type === "verse") {
+        this.markerStack.pop();
+        this.output += `</${info.element}>`;
+      } else {
+        break;
+      }
+    }
+  }
+
+  /**
+   * Close all open poetry lines (q, q1, q2, etc.)
+   */
+  closeAllPoetryLines() {
+    while (this.markerStack.length > 0) {
+      const lastMarker = this.markerStack[this.markerStack.length - 1];
+      const info = MARKER_INFO[lastMarker];
+      if (info && info.type === "poetry") {
+        this.markerStack.pop();
+        this.output += `</${info.element}>`;
+      } else {
+        break;
+      }
+    }
+  }
+
+  /**
+   * Close poetry lines at same or deeper indentation level before opening a new one
+   */
+  closePoetryLinesForNewPoetry(newMarker) {
+    // Determine the level of the new poetry marker (e.g., q1 = 1, q2 = 2, etc.)
+    const newLevel = this.getPoetryLevel(newMarker);
+    while (this.markerStack.length > 0) {
+      const lastMarker = this.markerStack[this.markerStack.length - 1];
+      const info = MARKER_INFO[lastMarker];
+      if (info && info.type === "poetry") {
+        const lastLevel = this.getPoetryLevel(lastMarker);
+        if (lastLevel >= newLevel) {
+          this.markerStack.pop();
+          this.output += `</${info.element}>`;
+        } else {
+          break;
+        }
+      } else {
+        break;
+      }
+    }
+  }
+
+  /**
+   * Get poetry level from marker name (e.g., q1 -> 1, q2 -> 2, q -> 1)
+   */
+  getPoetryLevel(marker) {
+    const match = /^q(\d+)?$/.exec(marker);
+    if (match) {
+      return match[1] ? parseInt(match[1], 10) : 1;
+    }
+    return 1;
   }
 
   /**
