@@ -117,6 +117,7 @@ const fileName = project.path.replace("./", "");
 - **Organization-Aware Keys**: `${org}:${lang}:${resource}:${reference}`
 - **Error Caching**: Failed requests cached to avoid retries
 - **Cache Clearing**: Available for testing and refresh
+- **Offline Raw Cache**: LocalForage persists raw files keyed by URL for offline reuse
 
 ## 📊 Supported Organizations
 

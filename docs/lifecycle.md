@@ -59,6 +59,6 @@ This document describes the runtime behavior and application lifecycle of the tr
 
 ## 💾 Offline / Cache Model
 
-- Local caching is handled by IndexedDB via localForage (used for manifests and possibly TSV content)
+- Local caching is handled by IndexedDB via localForage (used for manifests, raw files cached by URL, and possibly TSV content)
 - Service worker (if enabled) may precache key assets
 - App supports offline view for already-loaded books but does not attempt to persist all resources

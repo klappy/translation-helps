@@ -425,7 +425,7 @@ const llmChatService = {
 const cache = {
   manifests: new Map(),    // Resource manifests
   resources: new Map(),    // Parsed resource data
-  raw: new Map()          // Raw file content
+  raw: new Map()          // Raw file content (persisted via localForage by URL)
 };
 
 // Cache key pattern
