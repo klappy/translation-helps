@@ -71,14 +71,13 @@ This document lists and describes the major components in the viewer and their r
 
 ## 🧠 Context Providers
 
-| Context Provider         | Path                                        | Description                                                                  |
-| ------------------------ | ------------------------------------------- | ---------------------------------------------------------------------------- |
-| `ReferenceProvider`      | `src-new/context/ReferenceContext.jsx`      | Manages selected book, chapter, verse                                        |
-| `ManifestsProvider`      | `src-new/context/ManifestsContext.jsx`      | Provides DCS manifests for resources                                         |
-| `MultiManifestsProvider` | `src-new/context/MultiManifestsContext.jsx` | Manages multiple manifests                                                   |
-| `ResourcesProvider`      | `src-new/context/ResourcesContext.jsx`      | Loads and stores resource data                                               |
-| `ProskommaProvider`      | `src-new/context/ProskommaContext.jsx`      | **NEW:** Centralized Proskomma instance caching for performance optimization |
-| `ChatProvider`           | `src-new/context/ChatContext.jsx`           | LLM chat state management with context awareness                             |
+| Context Provider         | Path                                        | Description                                      |
+| ------------------------ | ------------------------------------------- | ------------------------------------------------ |
+| `ReferenceProvider`      | `src-new/context/ReferenceContext.jsx`      | Manages selected book, chapter, verse            |
+| `ManifestsProvider`      | `src-new/context/ManifestsContext.jsx`      | Provides DCS manifests for resources             |
+| `MultiManifestsProvider` | `src-new/context/MultiManifestsContext.jsx` | Manages multiple manifests                       |
+| `ResourcesProvider`      | `src-new/context/ResourcesContext.jsx`      | Loads and stores resource data                   |
+| `ChatProvider`           | `src-new/context/ChatContext.jsx`           | LLM chat state management with context awareness |
 
 ---
 
@@ -116,21 +115,20 @@ This document lists and describes the major components in the viewer and their r
 
 ## 🧪 Utilities
 
-| Utility             | Path                                 | Description                                      |
-| ------------------- | ------------------------------------ | ------------------------------------------------ |
-| `contextHelpers`    | `src-new/utils/contextHelpers.js`    | Helper functions for context management          |
-| `contextValidation` | `src-new/utils/contextValidation.js` | Validation utilities for context data            |
-| `defaultReference`  | `src-new/utils/defaultReference.js`  | Default reference values and constants           |
-| `groupByVerse`      | `src-new/utils/groupByVerse.js`      | Groups TSV rows by verse                         |
-| `markdownUtils`     | `src-new/utils/markdownUtils.jsx`    | Markdown parsing and rendering utilities         |
-| `parseTsv`          | `src-new/utils/parseTsv.js`          | TSV parsing utility                              |
-| `rcLinkUtils`       | `src-new/utils/rcLinkUtils.jsx`      | RC (Resource Container) link utilities           |
-| `rcUri`             | `src-new/utils/rcUri.js`             | RCUri parsing utility                            |
-| `tsvUtils`          | `src-new/utils/tsvUtils.js`          | TSV data processing utilities                    |
-| `CustomProskomma`   | `src-new/utils/CustomProskomma.js`   | Custom Proskomma implementation for USFM parsing |
-| `languageMapping`   | `src-new/utils/languageMapping.js`   | Language code mapping utilities                  |
-| `segmenter`         | `src-new/utils/segmenter.js`         | Text segmentation utilities                      |
-| `workflowHelpers`   | `src-new/utils/workflowHelpers.js`   | Helper functions for workflow management         |
+| Utility             | Path                                 | Description                              |
+| ------------------- | ------------------------------------ | ---------------------------------------- |
+| `contextHelpers`    | `src-new/utils/contextHelpers.js`    | Helper functions for context management  |
+| `contextValidation` | `src-new/utils/contextValidation.js` | Validation utilities for context data    |
+| `defaultReference`  | `src-new/utils/defaultReference.js`  | Default reference values and constants   |
+| `groupByVerse`      | `src-new/utils/groupByVerse.js`      | Groups TSV rows by verse                 |
+| `markdownUtils`     | `src-new/utils/markdownUtils.jsx`    | Markdown parsing and rendering utilities |
+| `parseTsv`          | `src-new/utils/parseTsv.js`          | TSV parsing utility                      |
+| `rcLinkUtils`       | `src-new/utils/rcLinkUtils.jsx`      | RC (Resource Container) link utilities   |
+| `rcUri`             | `src-new/utils/rcUri.js`             | RCUri parsing utility                    |
+| `tsvUtils`          | `src-new/utils/tsvUtils.js`          | TSV data processing utilities            |
+| `languageMapping`   | `src-new/utils/languageMapping.js`   | Language code mapping utilities          |
+| `segmenter`         | `src-new/utils/segmenter.js`         | Text segmentation utilities              |
+| `workflowHelpers`   | `src-new/utils/workflowHelpers.js`   | Helper functions for workflow management |
 
 ---
 

@@ -1,6 +1,6 @@
 /**
  * SearchPanel.jsx
- * Direct USFM text search component (proskomma-free)
+ * Direct USFM text search component using custom parser
  */
 import React, { useState, useContext, useRef, useCallback, useMemo, useEffect } from "react";
 import { ReferenceContext } from "../../context/ReferenceContext";

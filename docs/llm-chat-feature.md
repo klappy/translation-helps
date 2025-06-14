@@ -228,7 +228,7 @@ const getFormattedContext = useCallback(() => {
 
 **Complete Resource Access:**
 
-- Scripture: Full chapter content with verse-by-verse breakdown via Proskomma parsing
+- Scripture: Full chapter content with verse-by-verse breakdown via custom USFM parsing
 - Translation Notes: Complete structured notes with quotes, explanations, and metadata
 - Translation Questions: Full question-answer pairs with contextual information
 - Translation Words: Complete articles with definitions, facts, and examples (fixed in v0.13.3)
@@ -239,7 +239,7 @@ const getFormattedContext = useCallback(() => {
 - Professional resource titles with unfoldingWord® branding
 - RC link support for proper citation format (`rc://en/tw/dict/bible/kt/god`)
 - Manifest-based resource loading ensures authentic content
-- Proskomma-based scripture parsing provides accurate verse structure
+- Custom USFM parsing provides accurate verse structure
 
 #### System Prompt Integration
 

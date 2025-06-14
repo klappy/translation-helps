@@ -6,16 +6,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import USFMRenderer from "./USFMRenderer";
 import { ReferenceContext } from "../../context/ReferenceContext";
-import {
-  waitForOptions,
-  testCleanup,
-  TEST_TIMEOUT,
-  slowWaitForOptions,
-  createMockProskommaHooks,
-} from "./test-utils";
-
-// Mock proskomma-react-hooks with timeout protection
-vi.mock("proskomma-react-hooks", () => createMockProskommaHooks());
+import { waitForOptions, testCleanup, TEST_TIMEOUT, slowWaitForOptions } from "./test-utils";
 
 const mockContextValue = {
   updateReference: vi.fn(),
@@ -71,19 +62,11 @@ describe("USFMRenderer", () => {
     expect(screen.getByText("Missing scripture context.")).toBeInTheDocument();
   });
 
-  it("shows loading state when no passage data is available", async () => {
-    // Mock loading state
-    const proskommaHooks = require("proskomma-react-hooks");
-    proskommaHooks.usePassage.mockReturnValue({
-      loading: true,
-      data: null,
-      errors: [],
-    });
-
-    renderWithContext(<USFMRenderer {...defaultProps} chapter={99} />);
+  it("shows error state when USFM content is missing", async () => {
+    renderWithContext(<USFMRenderer {...defaultProps} usfm='' />);
 
     await waitFor(() => {
-      expect(screen.getByText("Loading chapter 99...")).toBeInTheDocument();
+      expect(screen.getByText("Missing scripture content or chapter.")).toBeInTheDocument();
     }, waitForOptions);
   });
 

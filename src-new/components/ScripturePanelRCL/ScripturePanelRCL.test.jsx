@@ -1,39 +1,19 @@
 /**
  * ScripturePanelRCL.test.jsx
- * Tests for the enhanced scripture panel with simple-text-editor-rcl
+ * Tests for the enhanced scripture panel with custom USFM parsing
  */
 import { vi } from "vitest";
-import {
-  waitForOptions,
-  createMockProskommaHooks,
-  createMockScriptureService,
-  testCleanup,
-  TEST_TIMEOUT,
-  slowWaitForOptions,
-} from "./test-utils";
-
-// Mock the scriptureService
-vi.mock("../../services/scriptureService", () => createMockScriptureService());
-
-// Mock proskomma-react-hooks with timeout handling
-vi.mock("proskomma-react-hooks", () => {
-  const mockHooks = createMockProskommaHooks();
-  return {
-    ...mockHooks,
-    useQuery: vi.fn(() => ({
-      data: null,
-      loading: false,
-      error: null,
-    })),
-  };
-});
-
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import ScripturePanelRCL from "./ScripturePanelRCL";
 import { ReferenceContext } from "../../context/ReferenceContext";
 import { ManifestsContext } from "../../context/MultiManifestsContext";
 import * as scriptureService from "../../services/scriptureService";
+
+// Mock the scriptureService
+vi.mock("../../services/scriptureService", () => ({
+  fetchBook: vi.fn(),
+}));
 
 describe("ScripturePanelRCL", () => {
   const mockReference = {
@@ -41,10 +21,6 @@ describe("ScripturePanelRCL", () => {
     chapter: 1,
     verse: 1,
   };
-
-  beforeEach(() => {
-    vi.setConfig({ testTimeout: TEST_TIMEOUT });
-  });
 
   const mockReferenceContext = {
     organization: "unfoldingWord",
@@ -69,18 +45,14 @@ describe("ScripturePanelRCL", () => {
     isLoading: false,
   };
 
-  const mockUSFMContent = `\id GEN
-\c 1
-\v 1 In the beginning God created the heavens and the earth.
-\v 2 The earth was without form and void, and darkness was over the face of the deep.`;
+  const mockUSFMContent = `\\id GEN
+\\c 1
+\\v 1 In the beginning God created the heavens and the earth.
+\\v 2 The earth was without form and void, and darkness was over the face of the deep.`;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    scriptureService.fetchBook = vi.fn().mockResolvedValue(mockUSFMContent);
-  });
-
-  afterEach(async () => {
-    await testCleanup();
+    scriptureService.fetchBook.mockResolvedValue(mockUSFMContent);
   });
 
   const renderWithContext = (props = {}) => {
@@ -101,20 +73,22 @@ describe("ScripturePanelRCL", () => {
   it("renders USFM content when loaded", async () => {
     renderWithContext();
 
-    await waitFor(() => {
-      expect(screen.getByTestId("usfm-renderer")).toBeInTheDocument();
-    }, waitForOptions);
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("usfm-renderer")).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
 
-    // Explicitly check for the verse text in the DOM
-    let verseNode;
-    try {
-      verseNode = screen.getByText(/In the beginning God created the heavens and the earth\./);
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log("DOM at failure:", document.body.innerHTML);
-      throw e;
-    }
-    expect(verseNode).toBeInTheDocument();
+    // Check for the verse text in the DOM
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText(/In the beginning God created the heavens and the earth\./)
+        ).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
 
     expect(scriptureService.fetchBook).toHaveBeenCalledWith({
       languageId: "en",
@@ -128,9 +102,12 @@ describe("ScripturePanelRCL", () => {
   it("renders chapter title", async () => {
     renderWithContext();
 
-    await waitFor(() => {
-      expect(screen.getByText("GEN 1")).toBeInTheDocument();
-    }, waitForOptions);
+    await waitFor(
+      () => {
+        expect(screen.getByText("GEN 1")).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
   });
 
   it("shows guidance when no reference is selected", () => {
@@ -202,27 +179,36 @@ describe("ScripturePanelRCL", () => {
 
     renderWithContext();
 
-    await waitFor(() => {
-      expect(screen.getByText("Failed to load chapter: Network error")).toBeInTheDocument();
-    }, waitForOptions);
+    await waitFor(
+      () => {
+        expect(screen.getByText("Failed to load chapter: Network error")).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
   });
 
   it("calls onVerseClick when verse is clicked", async () => {
     const mockOnVerseClick = vi.fn();
     renderWithContext({ onVerseClick: mockOnVerseClick });
 
-    await waitFor(() => {
-      expect(screen.getByTestId("usfm-renderer")).toBeInTheDocument();
-    }, waitForOptions);
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("usfm-renderer")).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
 
     // Wait for the first .verse element to appear, then simulate clicking it
-    let verseSpan;
-    await waitFor(() => {
-      verseSpan = document.querySelector(".verse");
-      expect(verseSpan).toBeInTheDocument();
-    }, waitForOptions);
+    await waitFor(
+      () => {
+        const verseSpan = document.querySelector(".verse");
+        expect(verseSpan).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
 
     await act(async () => {
+      const verseSpan = document.querySelector(".verse");
       verseSpan.click();
     });
 
@@ -247,22 +233,31 @@ describe("ScripturePanelRCL", () => {
   });
 
   it("extracts chapter USFM correctly", async () => {
-    const multiChapterUSFM = `\id GEN
-\c 1
-\v 1 Chapter 1 verse 1
-\c 2
-\v 1 Chapter 2 verse 1`;
+    const multiChapterUSFM = `\\id GEN
+\\c 1
+\\v 1 Chapter 1 verse 1
+\\c 2
+\\v 1 Chapter 2 verse 1`;
 
     scriptureService.fetchBook.mockResolvedValue(multiChapterUSFM);
 
     renderWithContext();
 
-    await waitFor(() => {
-      expect(screen.getByTestId("usfm-renderer")).toBeInTheDocument();
-    }, waitForOptions);
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("usfm-renderer")).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
 
     // Verify that only chapter 1 content is rendered
-    expect(screen.getByText("Chapter 1 verse 1")).toBeInTheDocument();
+    await waitFor(
+      () => {
+        expect(screen.getByText("Chapter 1 verse 1")).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
+
     expect(screen.queryByText("Chapter 2 verse 1")).not.toBeInTheDocument();
   });
 });

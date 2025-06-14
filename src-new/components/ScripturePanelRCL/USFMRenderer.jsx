@@ -296,7 +296,7 @@ const USFMRenderer = React.memo(function USFMRenderer({
 }) {
   const { updateReference } = useContext(ReferenceContext);
 
-  // Parse USFM directly to verses for this chapter - much faster than proskomma
+  // Parse USFM directly to verses for this chapter using custom parser
   const verses = useMemo(() => {
     if (!usfm || !chapter) return {};
 

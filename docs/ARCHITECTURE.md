@@ -314,7 +314,6 @@ src-new/
 └── utils/                   # Pure utility functions
     ├── contextHelpers.js
     ├── contextValidation.js
-    ├── CustomProskomma.js
     ├── defaultReference.js
     ├── groupByVerse.js
     ├── languageMapping.js
