@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multi-Scripture Demo: Tabbed View</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+        background: #f5f5f5;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        min-height: 100vh;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-bar {
+        background: #2c3e50;
+        color: white;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .nav-bar h1 {
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+
+      .breadcrumb {
+        background: #ecf0f1;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #ddd;
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .scripture-tabs-container {
+        background: #f8f9fa;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .scripture-tabs {
+        display: flex;
+        gap: 2px;
+        padding: 1rem 1rem 0 1rem;
+      }
+
+      .scripture-tab {
+        padding: 0.75rem 1.5rem;
+        background: #e9ecef;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+      }
+
+      .scripture-tab:hover {
+        background: #dee2e6;
+      }
+
+      .scripture-tab.active {
+        background: white;
+        border-color: #ddd;
+        color: #2196f3;
+        font-weight: 600;
+      }
+
+      .scripture-tab.primary::after {
+        content: "●";
+        color: #2196f3;
+        font-size: 0.8rem;
+      }
+
+      .tab-badge {
+        background: #6c757d;
+        color: white;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: 500;
+      }
+
+      .tab-badge.primary {
+        background: #2196f3;
+      }
+
+      .tab-badge.literal {
+        background: #17a2b8;
+      }
+
+      .tab-badge.simplified {
+        background: #28a745;
+      }
+
+      .tab-badge.original {
+        background: #6f42c1;
+      }
+
+      .compare-all-tab {
+        margin-left: auto;
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+      }
+
+      .compare-all-tab:hover {
+        background: #0056b3;
+      }
+
+      .scripture-content {
+        padding: 2rem;
+        min-height: 500px;
+      }
+
+      .verse-reference {
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 1.5rem;
+        font-size: 1.2rem;
+      }
+
+      .verse-text {
+        font-size: 1.3rem;
+        line-height: 1.8;
+        color: #333;
+        margin-bottom: 2rem;
+        max-width: 800px;
+      }
+
+      .original-language-section {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .original-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1rem;
+        cursor: pointer;
+      }
+
+      .original-text {
+        font-family: "SBL Hebrew", "Times New Roman", serif;
+        font-size: 1.4rem;
+        direction: rtl;
+        text-align: right;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #fff;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+      }
+
+      .transliteration {
+        font-style: italic;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+      }
+
+      .word-analysis {
+        font-size: 0.9rem;
+        color: #495057;
+        line-height: 1.6;
+      }
+
+      .scripture-metadata {
+        background: #e3f2fd;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 2rem;
+      }
+
+      .metadata-title {
+        font-weight: 600;
+        color: #1565c0;
+        margin-bottom: 0.5rem;
+      }
+
+      .metadata-content {
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .compare-view {
+        display: none;
+      }
+
+      .compare-view.active {
+        display: block;
+      }
+
+      .compare-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .compare-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+
+      .compare-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .compare-card-title {
+        font-weight: 600;
+        color: #333;
+      }
+
+      .compare-verse-text {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #333;
+      }
+
+      .helps-section {
+        background: white;
+        border-top: 1px solid #ddd;
+        padding: 1.5rem;
+      }
+
+      .helps-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .helps-tab {
+        padding: 0.75rem 1.5rem;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .helps-tab.active {
+        background: white;
+        border-bottom: 1px solid white;
+        color: #2196f3;
+      }
+
+      .helps-content {
+        padding: 1rem;
+        background: #fafafa;
+        border-radius: 0 6px 6px 6px;
+        min-height: 200px;
+      }
+
+      @media (max-width: 768px) {
+        .scripture-tabs {
+          flex-wrap: wrap;
+          padding: 0.5rem;
+        }
+
+        .scripture-tab {
+          font-size: 0.9rem;
+          padding: 0.5rem 1rem;
+        }
+
+        .compare-all-tab {
+          margin-left: 0;
+          order: -1;
+          width: 100%;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Navigation Bar -->
+      <div class="nav-bar">
+        <h1>📖 Translation Helps Viewer</h1>
+        <span>Tabbed View Demo</span>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        unfoldingWord > English > Multiple Resources > Genesis > Chapter 1 > Verse 1
+      </div>
+
+      <!-- Scripture Tabs -->
+      <div class="scripture-tabs-container">
+        <div class="scripture-tabs">
+          <div class="scripture-tab active primary" data-resource="ult">
+            <span>ULT</span>
+            <span class="tab-badge primary">Primary</span>
+          </div>
+
+          <div class="scripture-tab" data-resource="ust">
+            <span>UST</span>
+            <span class="tab-badge simplified">Simplified</span>
+          </div>
+
+          <div class="scripture-tab" data-resource="ugnt">
+            <span>UGNT</span>
+            <span class="tab-badge original">Greek</span>
+          </div>
+
+          <div class="scripture-tab compare-all-tab" data-resource="compare">📊 Compare All</div>
+        </div>
+      </div>
+
+      <!-- Scripture Content -->
+      <div class="scripture-content">
+        <!-- ULT Content -->
+        <div class="scripture-view active" id="ult-view">
+          <div class="verse-reference">Genesis 1:1</div>
+
+          <div class="verse-text">In the beginning God created the heavens and the earth.</div>
+
+          <div class="scripture-metadata">
+            <div class="metadata-title">unfoldingWord® Literal Text (ULT)</div>
+            <div class="metadata-content">
+              A formal translation that follows the form and structure of the original languages as
+              closely as possible.
+            </div>
+          </div>
+
+          <div class="original-language-section">
+            <div class="original-toggle" onclick="toggleOriginal('hebrew')">
+              📜 Show Hebrew Text ▼
+            </div>
+
+            <div id="hebrew-content" style="display: none">
+              <div class="original-text">
+                בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃
+              </div>
+              <div class="transliteration">bərēšîṯ bārāʾ ʾĕlōhîm ʾēṯ haššāmayim wəʾēṯ hāʾāreṣ</div>
+              <div class="word-analysis">
+                <strong>Word Analysis:</strong><br />
+                בְּרֵאשִׁית (bərēšîṯ) - "in beginning" - prepositional phrase<br />
+                בָּרָא (bārāʾ) - "created" - Qal perfect 3ms<br />
+                אֱלֹהִים (ʾĕlōhîm) - "God" - noun, subject<br />
+                אֵת (ʾēṯ) - accusative marker<br />
+                הַשָּׁמַיִם (haššāmayim) - "the heavens" - direct object<br />
+                וְאֵת (wəʾēṯ) - "and" + accusative marker<br />
+                הָאָרֶץ (hāʾāreṣ) - "the earth" - direct object
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- UST Content -->
+        <div class="scripture-view" id="ust-view" style="display: none">
+          <div class="verse-reference">Genesis 1:1</div>
+
+          <div class="verse-text">Long ago God created the heavens and the earth.</div>
+
+          <div class="scripture-metadata">
+            <div class="metadata-title">unfoldingWord® Simplified Text (UST)</div>
+            <div class="metadata-content">
+              A clear, natural translation that expresses the meaning in clear, simple language.
+            </div>
+          </div>
+        </div>
+
+        <!-- UGNT Content -->
+        <div class="scripture-view" id="ugnt-view" style="display: none">
+          <div class="verse-reference">Genesis 1:1 (LXX)</div>
+
+          <div class="verse-text" style="font-family: 'Times New Roman', serif">
+            ἐν ἀρχῇ ἐποίησεν ὁ θεὸς τὸν οὐρανὸν καὶ τὴν γῆν
+          </div>
+
+          <div class="scripture-metadata">
+            <div class="metadata-title">Septuagint (LXX) - Greek Translation</div>
+            <div class="metadata-content">
+              Ancient Greek translation of the Hebrew Bible, widely used in the early church.
+            </div>
+          </div>
+
+          <div class="original-language-section">
+            <div class="word-analysis">
+              <strong>Greek Word Analysis:</strong><br />
+              ἐν (en) - "in" - preposition + dative<br />
+              ἀρχῇ (archē) - "beginning" - dative feminine<br />
+              ἐποίησεν (epoiēsen) - "made/created" - aorist active indicative 3rd singular<br />
+              ὁ θεὸς (ho theos) - "God" - nominative masculine, subject<br />
+              τὸν οὐρανὸν (ton ouranon) - "the heaven" - accusative masculine<br />
+              καὶ (kai) - "and" - conjunction<br />
+              τὴν γῆν (tēn gēn) - "the earth" - accusative feminine
+            </div>
+          </div>
+        </div>
+
+        <!-- Compare View -->
+        <div class="compare-view" id="compare-view">
+          <div class="verse-reference">Genesis 1:1 - Translation Comparison</div>
+
+          <div class="compare-grid">
+            <div class="compare-card">
+              <div class="compare-card-header">
+                <div class="compare-card-title">ULT (Literal)</div>
+                <div class="tab-badge primary">Primary</div>
+              </div>
+              <div class="compare-verse-text">
+                In the beginning God created the heavens and the earth.
+              </div>
+            </div>
+
+            <div class="compare-card">
+              <div class="compare-card-header">
+                <div class="compare-card-title">UST (Simplified)</div>
+                <div class="tab-badge simplified">Clear</div>
+              </div>
+              <div class="compare-verse-text">Long ago God created the heavens and the earth.</div>
+            </div>
+
+            <div class="compare-card">
+              <div class="compare-card-header">
+                <div class="compare-card-title">Hebrew (Original)</div>
+                <div class="tab-badge original">Source</div>
+              </div>
+              <div
+                class="compare-verse-text"
+                style="font-family: 'Times New Roman', serif; direction: rtl"
+              >
+                בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Translation Helps -->
+      <div class="helps-section">
+        <div class="helps-tabs">
+          <div class="helps-tab active">Translation Notes</div>
+          <div class="helps-tab">Translation Questions</div>
+          <div class="helps-tab">Translation Words</div>
+        </div>
+
+        <div class="helps-content">
+          <strong>Translation Notes for Genesis 1:1</strong>
+          <p>
+            This verse introduces the beginning of God's creation of everything that exists. The
+            Hebrew word "בְּרֵאשִׁית" (bərēšîṯ) means "in the beginning" and emphasizes that this is
+            the absolute beginning of time and creation.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function switchScriptureTab(resourceId) {
+        // Hide all views
+        document.querySelectorAll(".scripture-view, .compare-view").forEach((view) => {
+          view.style.display = "none";
+          view.classList.remove("active");
+        });
+
+        // Remove active class from all tabs
+        document.querySelectorAll(".scripture-tab").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+
+        // Show selected view
+        if (resourceId === "compare") {
+          document.getElementById("compare-view").style.display = "block";
+          document.getElementById("compare-view").classList.add("active");
+        } else {
+          const view = document.getElementById(resourceId + "-view");
+          if (view) {
+            view.style.display = "block";
+            view.classList.add("active");
+          }
+        }
+
+        // Activate selected tab
+        document.querySelector(`[data-resource="${resourceId}"]`).classList.add("active");
+      }
+
+      function toggleOriginal(language) {
+        const content = document.getElementById(language + "-content");
+        const toggle = document.querySelector(`[onclick="toggleOriginal('${language}')"]`);
+
+        if (content.style.display === "none") {
+          content.style.display = "block";
+          toggle.textContent = toggle.textContent.replace("▼", "▲").replace("Show", "Hide");
+        } else {
+          content.style.display = "none";
+          toggle.textContent = toggle.textContent.replace("▲", "▼").replace("Hide", "Show");
+        }
+      }
+
+      // Tab click handlers
+      document.querySelectorAll(".scripture-tab").forEach((tab) => {
+        tab.addEventListener("click", function () {
+          const resourceId = this.getAttribute("data-resource");
+          switchScriptureTab(resourceId);
+        });
+      });
+
+      // Translation helps tab switching
+      document.querySelectorAll(".helps-tab").forEach((tab) => {
+        tab.addEventListener("click", function () {
+          document.querySelectorAll(".helps-tab").forEach((t) => t.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+    </script>
+  </body>
+</html>

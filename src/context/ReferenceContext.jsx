@@ -33,30 +33,44 @@ export function ReferenceProvider({ children }) {
 
   // Initialize context from URL on mount - URL is source of truth
   useEffect(() => {
-    try {
-      const urlContext = contextFromQuery();
+    function syncContextFromUrl() {
+      try {
+        const urlContext = contextFromQuery();
 
-      if (urlContext && urlContext.hasUrlParams) {
-        // Case 2: URI parameters exist - use them exactly, NO defaults
-        if (urlContext.organization) setOrganization(urlContext.organization);
-        if (urlContext.languageId) setLanguageId(urlContext.languageId);
-        if (urlContext.resourceId) setResourceId(urlContext.resourceId);
-        if (urlContext.reference && urlContext.reference.bookId) {
-          setReference(urlContext.reference);
+        if (urlContext && urlContext.hasUrlParams) {
+          // Case 2: URI parameters exist - use them exactly, NO defaults
+          if (urlContext.organization) setOrganization(urlContext.organization);
+          if (urlContext.languageId) setLanguageId(urlContext.languageId);
+          if (urlContext.resourceId) setResourceId(urlContext.resourceId);
+          if (urlContext.reference && urlContext.reference.bookId) {
+            setReference(urlContext.reference);
+          }
+        } else {
+          // Case 1: Fresh open with no URI parameters - use defaults ONLY
+          setOrganization("unfoldingWord");
+          setLanguageId("en");
+          setResourceId("ult");
+          setReference(DEFAULT_REFERENCE);
         }
-      } else {
-        // Case 1: Fresh open with no URI parameters - use defaults ONLY
-        setOrganization("unfoldingWord");
-        setLanguageId("en");
-        setResourceId("ult");
-        setReference(DEFAULT_REFERENCE);
-      }
 
-      setIsInitialized(true);
-    } catch (e) {
-      console.error("Failed to parse URL context:", e);
-      setIsInitialized(true);
+        setIsInitialized(true);
+      } catch (e) {
+        console.error("Failed to parse URL context:", e);
+        setIsInitialized(true);
+      }
     }
+
+    // Initial load
+    syncContextFromUrl();
+
+    // Listen for URL changes (popstate for browser navigation, hashchange for SPA routing)
+    window.addEventListener("popstate", syncContextFromUrl);
+    window.addEventListener("hashchange", syncContextFromUrl);
+
+    return () => {
+      window.removeEventListener("popstate", syncContextFromUrl);
+      window.removeEventListener("hashchange", syncContextFromUrl);
+    };
   }, []);
 
   // Update URL only after initialization and when context changes due to user action
@@ -116,6 +130,11 @@ export function ReferenceProvider({ children }) {
       }
     }
   };
+
+  if (!isInitialized) {
+    // Prevent children from rendering until context is initialized from URL
+    return null;
+  }
 
   return (
     <ReferenceContext.Provider

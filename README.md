@@ -1,5 +1,14 @@
 # unfoldingWord translationHelps Viewer
 
+## Version 2.1.0 (2025-06-14)
+
+- Reference and resources context now always sync with the URL, ensuring correct context/resources on navigation and fresh load.
+- LLM chat context always receives the exact raw USFM for the current chapter, matching what is rendered in the scripture pane.
+- LLM prompt now includes explicit instructions for extracting verse text from USFM.
+- Chat interface auto-starts a new conversation with updated resources when the reference changes, removing the blocking "Reference Changed" dialog.
+- Fixed bugs where the app was stuck on Titus 1:1 or an uninitialized context after navigation or refresh.
+- Improved reliability of context/resource synchronization across navigation and chat.
+
 [https://unfoldingword.bible/content/]
 
 ## Purpose

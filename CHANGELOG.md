@@ -1,5 +1,55 @@
 # Changelog
 
+## [2.2.0] - 2025-06-15
+
+### Fixed
+
+- **Critical Hardcoded ULT Issue - Dynamic Scripture Resource Selection Implemented**
+  - ✅ **Resolved Hardcoded "ult" References**: Fixed ResourcesContext.jsx that was hardcoded to always use "ult" instead of dynamic `resourceId` from ReferenceContext
+  - ✅ **Enhanced USFM Text Extraction**: Fixed broken regex patterns that were showing "{_it_" instead of actual verse content
+  - ✅ **Added Verse Bridge Support**: Enhanced verse extraction to support verse bridges like `\v 4-5` for comprehensive verse coverage
+  - ✅ **Fixed LLM Chat Resource Attribution**: Updated chat system to use dynamic scripture resource titles instead of generic "Scripture Text"
+  - ✅ **Dynamic Resource Loading**: Application now properly switches between Bible translations (ULT, UST, T4T, UEB, etc.) based on URL parameters or user selection
+  - ✅ **Enhanced Citation System**: LLM responses now show proper resource names like "Translation 4 Translators" instead of hardcoded references
+  - ✅ **URL Parameter Support**: URLs like `?owner=unfoldingWord&rc=/en/t4t/tit/3/5` now correctly load T4T instead of defaulting to ULT
+  - ✅ **Improved User Experience**: Navigation dropdowns and AI assistant now properly reflect the selected scripture resource
+
+### Technical Implementation
+
+- **ResourcesContext.jsx Updates**:
+
+  - Now extracts `resourceId` directly from ReferenceContext instead of hardcoded fallback
+  - Enhanced `preprocessUSFMToPlainText()` with proper verse extraction and bridge support
+  - Fixed dependency arrays to include `scriptureResourceId` for proper re-rendering
+  - Improved USFM markup removal with corrected regex capture groups
+
+- **LLM Chat System Updates (netlify/functions/chat.js)**:
+  - Dynamic scripture titles using `contextData.metadata?.manifestTitles?.scripture`
+  - Enhanced citation instructions to emphasize exact resource title usage
+  - Improved resource attribution for AI responses
+
+### Impact
+
+This comprehensive fix resolves a critical architectural limitation where the application was locked to ULT regardless of user selection. The dynamic resource system now properly supports the full range of Bible translations available through unfoldingWord and other organizations, while the AI assistant provides accurate attribution to the specific resources being used.
+
+## [2.1.0] - 2025-06-14
+
+### Added
+
+- ReferenceContext now synchronizes with the URL on navigation and prevents rendering until context is fully initialized, ensuring correct context/resources on fresh load or navigation.
+- LLM context always receives the exact raw USFM for the current chapter, matching what is rendered in the scripture pane.
+- LLM prompt now includes explicit instructions for extracting verse text from USFM.
+
+### Changed
+
+- Chat interface now auto-starts a new conversation with updated resources when the reference changes, removing the blocking "Reference Changed" dialog.
+
+### Fixed
+
+- Fixed bug where the app was stuck on Titus 1:1 or an uninitialized context after navigation or refresh.
+- Fixed race conditions and resource/context mismatch on initial load and navigation.
+- Improved reliability of context/resource synchronization across navigation and chat.
+
 ## [1.4.0] - 2025-06-14
 
 ### Added

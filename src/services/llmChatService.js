@@ -12,7 +12,12 @@
 export function formatSystemPrompt(contextData) {
   const { reference, resources } = contextData;
 
+  // Log the resources used for the LLM system prompt
+  console.log("[LLM System Prompt] Resources used for context:", resources);
+
   let prompt = `You are an expert Bible translation assistant. You have access to comprehensive translation resources for ${reference.citation} in ${reference.language}.
+
+IMPORTANT: You are provided with scripture data for the current verse and chapter. This data is the DEFINITIVE translation and version to be used for quoting and displaying to the user. You MUST use this provided data exclusively and NOT rely on any memorized or external versions of the scripture text.
 
 CURRENT CONTEXT:
 - Reference: ${reference.citation}
@@ -21,9 +26,28 @@ CURRENT CONTEXT:
 
 AVAILABLE RESOURCES:`;
 
-  if (resources.scripture) {
-    prompt += `\n- Scripture Text: "${resources.scripture}"`;
+  if (resources.scriptureText) {
+    const scriptureTitle = contextData.metadata?.manifestTitles?.scripture || "Scripture Text";
+    console.log("[LLM System Prompt] Scripture title being used:", scriptureTitle);
+    console.log(
+      "[LLM System Prompt] Full metadata.manifestTitles:",
+      contextData.metadata?.manifestTitles
+    );
+    prompt += `\n- ${scriptureTitle}: "${resources.scriptureText}"`;
   }
+  // Include raw USFM to preserve annotations (e.g., curly brace content)
+  if (resources.rawUSFM) {
+    prompt += `\n- Raw USFM (preserves all annotations):\n${resources.rawUSFM}`;
+  }
+  if (resources.alignmentData && resources.alignmentData.length > 0) {
+    prompt += `\n- Alignment Data for this verse:\n${JSON.stringify(
+      resources.alignmentData,
+      null,
+      2
+    )}`;
+  }
+  console.log("for LLM RESOURCES:", resources);
+  // (Raw USFM is not included in the LLM prompt. Only rendered scripture text and alignment data are provided.)
 
   if (resources.translationNotes?.length > 0) {
     prompt += `\n- Translation Notes (${resources.translationNotes.length} entries):`;
@@ -79,13 +103,13 @@ AVAILABLE RESOURCES:`;
   prompt += `
 
 GUIDELINES:
-1. Provide helpful, accurate responses about Bible translation for this specific verse
+1. Provide helpful, accurate responses about Bible translation for this specific verse and surrounding context
 2. Reference the provided resources when relevant
 3. Be concise but thorough in your explanations
-4. Use the translation notes and questions to inform your responses
+4. Use the translation notes, questions, and word articles to inform your responses
 5. When discussing translation choices, consider the original languages and cultural context
 6. Always be respectful of different translation approaches
-7. If you provide an incomplete list in your response, always inform the user that the list is incomplete and let them know they can request the remaining N items if needed
+7. If you provide an incomplete list in your response, always inform the user that the list is incomplete and let them know they can request the remaining X of Y items if needed
 
 Please answer the user's question using this contextual information.`;
 

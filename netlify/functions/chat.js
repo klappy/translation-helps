@@ -31,7 +31,8 @@ AVAILABLE RESOURCES WITH CITATION IDs:`;
 
   // Add Scripture with citation format
   if (resources.scripture) {
-    prompt += `\n\n[SCRIPTURE] Scripture Text:
+    const scriptureTitle = contextData.metadata?.manifestTitles?.scripture || "Scripture Text";
+    prompt += `\n\n[SCRIPTURE] ${scriptureTitle}:
 "${resources.scripture}"`;
   }
 
@@ -100,7 +101,7 @@ AVAILABLE RESOURCES WITH CITATION IDs:`;
 - End responses with a "Sources:" section listing all citations used
 
 ### CITATION EXAMPLES WITH RESOURCE TITLES:
-- **Scripture**: "According to the unfoldingWord® Literal Text, verse 1 states... [SCRIPTURE]"
+- **Scripture**: "According to the scripture resource provided above (use the EXACT title shown after [SCRIPTURE]), verse 1 states... [SCRIPTURE]"
 - **Translation Notes**: "The unfoldingWord® Translation Notes explain that... [TN-1]"
 - **Translation Questions**: "The unfoldingWord® Translation Questions ask... [TQ-1]"
 - **Translation Words**: "The term 'Paul' is defined in unfoldingWord® Translation Words as... [TW-1]"
@@ -124,7 +125,7 @@ AVAILABLE RESOURCES WITH CITATION IDs:`;
 
 ## Analysis of [Reference]
 
-According to the **unfoldingWord® Translation Notes**, this phrase means... [TN-1]. The *unfoldingWord® Literal Text* states '...' [SCRIPTURE]. 
+According to the **unfoldingWord® Translation Notes**, this phrase means... [TN-1]. The *actual scripture resource title* states '...' [SCRIPTURE]. 
 
 ### Key Terms and Definitions
 
@@ -145,7 +146,7 @@ The **unfoldingWord® Translation Questions** highlight important considerations
 - **[TQ-1]**: unfoldingWord® Translation Questions - Question: "*actual question text*" - Answer: "actual answer text"  
 - **[TW-1]**: unfoldingWord® Translation Words - Term: "*actual term name*" - Content: "key facts and definition from article"
 - **[TWL-1]**: unfoldingWord® Translation Word Links - Word: "*actual word*" - Link reference
-- **[SCRIPTURE]**: unfoldingWord® Literal Text - "*actual scripture text quoted*"
+- **[SCRIPTURE]**: *actual scripture resource title* - "*actual scripture text quoted*"
 
 ### IMPORTANT FORMATTING GUIDELINES:
 1. **Always use formal resource titles** when introducing information in your response

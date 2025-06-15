@@ -588,11 +588,12 @@ export class USFMSemanticParser {
 
   /**
    * Parse number after verse or chapter marker
+   * Supports verse bridges like "4-5" or "118-119"
    */
   parseNumber() {
     let number = "";
 
-    while (this.position < this.input.length && /[0-9]/.test(this.peek())) {
+    while (this.position < this.input.length && /[0-9\-]/.test(this.peek())) {
       number += this.consume();
     }
 

@@ -14,6 +14,10 @@ import { getQuestionsForVerse } from "../services/tqService";
 import { getArticlesForLinks } from "../services/twService";
 import { getLinksForVerse } from "../services/twlService";
 import { fetchManifest } from "../services/dcsClient";
+import {
+  USFMSemanticParser,
+  parseUSFMToHTML,
+} from "../components/ScripturePanelRCL/USFMSemanticParser.js";
 
 const ResourcesContext = createContext();
 
@@ -26,7 +30,7 @@ export const useResourcesContext = () => {
 };
 
 export function ResourcesProvider({ children }) {
-  const { reference } = useReferenceContext();
+  const { reference, organization, languageId, resourceId } = useReferenceContext();
   const [resources, setResources] = useState({
     scripture: null,
     translationNotes: [],
@@ -40,49 +44,40 @@ export function ResourcesProvider({ children }) {
   const [error, setError] = useState(null);
 
   // Extract current reference values
-  const {
-    bookId,
-    chapter,
-    verse,
-    organization = "unfoldingWord",
-    languageId = "en",
-  } = reference || {};
+  const { bookId, chapter, verse } = reference || {};
+
+  // Use resourceId from ReferenceContext
+  const scriptureResourceId = resourceId;
 
   // Load manifests for all resource types
   const loadManifests = useCallback(async () => {
     try {
       const manifestPromises = [
-        fetchManifest(languageId, "ult", organization).catch(() => null),
+        fetchManifest(languageId, scriptureResourceId, organization).catch(() => null),
         fetchManifest(languageId, "tn", organization).catch(() => null),
         fetchManifest(languageId, "tq", organization).catch(() => null),
         fetchManifest(languageId, "tw", organization).catch(() => null),
         fetchManifest(languageId, "twl", organization).catch(() => null),
       ];
 
-      const [ultManifest, tnManifest, tqManifest, twManifest, twlManifest] = await Promise.all(
-        manifestPromises
-      );
+      const [scriptureManifest, tnManifest, tqManifest, twManifest, twlManifest] =
+        await Promise.all(manifestPromises);
 
-      setManifests({
-        ult: ultManifest,
-        tn: tnManifest,
-        tq: tqManifest,
-        tw: twManifest,
-        twl: twlManifest,
-      });
-
-      return {
-        ult: ultManifest,
+      const manifestsObj = {
+        [scriptureResourceId]: scriptureManifest,
         tn: tnManifest,
         tq: tqManifest,
         tw: twManifest,
         twl: twlManifest,
       };
+
+      setManifests(manifestsObj);
+      return manifestsObj;
     } catch (err) {
       console.error("Error loading manifests:", err);
       return {};
     }
-  }, [languageId, organization]);
+  }, [languageId, organization, scriptureResourceId]);
 
   // Load all resources for the current reference
   const loadResources = useCallback(async () => {
@@ -98,12 +93,12 @@ export function ResourcesProvider({ children }) {
       // First, load resources that don't depend on other resources
       const initialPromises = [
         // Scripture (USFM)
-        currentManifests.ult
+        currentManifests[scriptureResourceId]
           ? fetchBook({
               languageId,
-              resourceId: "ult",
+              resourceId: scriptureResourceId,
               bookId,
-              manifest: currentManifests.ult,
+              manifest: currentManifests[scriptureResourceId],
               organization,
             })
           : Promise.resolve(null),
@@ -157,15 +152,49 @@ export function ResourcesProvider({ children }) {
           ? await getArticlesForLinks(twlLinks, languageId, organization).catch(() => [])
           : [];
 
+      // Extract raw USFM for the current chapter using regex (no parser needed for LLM context)
+      let chapterUsfm = null;
+      if (usfmData) {
+        // Only log the first 200 chars once for diagnostics, not every render
+        if (process.env.NODE_ENV === "development") {
+          console.log("[ResourcesContext] usfmData (first 200 chars):", usfmData.substring(0, 200));
+        }
+        const chapterKey = String(chapter);
+        // Global regex to find all chapters and their content
+        const chapterRegex = /\\c\s+(\d+)([\s\S]*?)(?=(\r?\n)\\c\s+\d+|$)/g;
+        let match;
+        while ((match = chapterRegex.exec(usfmData)) !== null) {
+          if (match[1] === chapterKey) {
+            chapterUsfm = (`\\c ${chapterKey}` + match[2]).trim();
+            break;
+          }
+        }
+      }
+      // (Parser/verse logic for rendering and notes can remain as before)
+      let versesByChapter = {};
+      if (usfmData) {
+        try {
+          const parser = new USFMSemanticParser();
+          parser.parse(usfmData);
+          const chapterKey = String(chapter);
+          if (parser.chapters && parser.chapters[chapterKey]) {
+            versesByChapter = parser.chapters[chapterKey];
+          }
+        } catch (err) {
+          console.error("Error parsing USFM for verses:", err);
+        }
+      }
+
       // Update resources state
       setResources({
         scripture: usfmData
           ? {
-              resourceId: "ult",
-              title: currentManifests.ult?.dublin_core?.title || "unfoldingWord® Literal Text",
+              resourceId: scriptureResourceId,
+              title: currentManifests[scriptureResourceId]?.dublin_core?.title,
               languageId,
               usfm: usfmData,
-              verses: {}, // Will be populated by useUSFMParser
+              verses: versesByChapter,
+              chapterUsfm: chapterUsfm, // Raw USFM for the current chapter (for LLM context)
             }
           : null,
         translationNotes: tnData.map((note, index) => ({
@@ -213,7 +242,7 @@ export function ResourcesProvider({ children }) {
     } finally {
       setIsLoading(false);
     }
-  }, [bookId, chapter, verse, organization, languageId, loadManifests]);
+  }, [bookId, chapter, verse, organization, languageId, scriptureResourceId, loadManifests]);
 
   // Load resources when reference changes
   useEffect(() => {
@@ -224,30 +253,148 @@ export function ResourcesProvider({ children }) {
   const getFormattedContext = useCallback(() => {
     if (!metadata) return null;
 
-    // Get the verse text for the specific verse requested
-    const getVerseText = () => {
-      if (!resources.scripture) return null;
+    // Debug: log current reference and first 100 chars of chapter USFM, throttled to prevent spam
+    if (resources.scripture?.chapterUsfm) {
+      const logKey = `${metadata.bookId}-${metadata.chapter}-${metadata.verse}`;
+      if (!window._logCache) window._logCache = {};
+      if (!window._logCache[logKey] || Date.now() - window._logCache[logKey] > 1000) {
+        console.log(
+          "[ResourcesContext] getFormattedContext: reference",
+          metadata.bookId,
+          metadata.chapter,
+          metadata.verse,
+          "| chapterUsfm:",
+          resources.scripture.chapterUsfm.substring(0, 100)
+        );
+        window._logCache[logKey] = Date.now();
+      }
+    }
 
-      if (resources.scripture.verses && Object.keys(resources.scripture.verses).length > 0) {
-        // Return the specific verse if available
-        const verseText = resources.scripture.verses[verse];
-        if (verseText) {
-          return `[${verse}] ${verseText}`;
+    // Debug: log scriptureText and alignmentData for the current verse, throttled to prevent spam
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        const logKey = `verse-${metadata.verse}`;
+        if (!window._logCacheVerse) window._logCacheVerse = {};
+        if (!window._logCacheVerse[logKey] || Date.now() - window._logCacheVerse[logKey] > 1000) {
+          console.log(
+            "[ResourcesContext] scriptureText for verse",
+            metadata.verse,
+            ":",
+            scriptureText
+          );
+          console.log(
+            "[ResourcesContext] alignmentData for verse",
+            metadata.verse,
+            ":",
+            alignmentDataFormatted
+          );
+          window._logCacheVerse[logKey] = Date.now();
         }
+      }, 0);
+    }
 
-        // If specific verse not found, return all verses in the chapter
-        return Object.entries(resources.scripture.verses)
-          .map(([v, text]) => `[${v}] ${text}`)
-          .join("\n");
+    // Function to preprocess USFM to plain text for a specific verse or range
+    const preprocessUSFMToPlainText = (usfmText, chapter, verse) => {
+      if (!usfmText) return "";
+
+      const targetVerse = parseInt(verse);
+
+      // Enhanced regex to handle verse bridges (e.g., \v 4-5, \v 3-7)
+      // First, try to find exact verse match
+      let verseRegex = new RegExp(
+        `\\\\v\\s+${verse}\\s+([\\s\\S]*?)(?=(\\\\v\\s+[\\d\\-]+|\\\\c\\s+\\d+|$))`,
+        "m"
+      );
+      let match = usfmText.match(verseRegex);
+
+      // If no exact match, look for verse bridges that include our target verse
+      if (!match) {
+        const bridgeRegex = /\\v\s+(\d+)-(\d+)\s+([\s\S]*?)(?=(\\v\s+[\d\-]+|\\c\s+\d+|$))/gm;
+        let bridgeMatch;
+        while ((bridgeMatch = bridgeRegex.exec(usfmText)) !== null) {
+          const startVerse = parseInt(bridgeMatch[1]);
+          const endVerse = parseInt(bridgeMatch[2]);
+          if (targetVerse >= startVerse && targetVerse <= endVerse) {
+            match = [bridgeMatch[0], bridgeMatch[3]]; // Format: [fullMatch, capturedContent]
+            break;
+          }
+        }
       }
 
-      // Fallback to raw USFM if verses not parsed yet
-      if (resources.scripture.usfm) {
-        return `Raw USFM Data: ${resources.scripture.usfm.substring(0, 500)}... (truncated)`;
-      }
+      if (!match) return "";
 
-      return null;
+      let verseText = match[1].trim();
+
+      // Remove USFM markup and annotations systematically
+      // Remove alignment markers
+      verseText = verseText.replace(/\\zaln-s\s+[^\\]*\\*/g, "");
+      verseText = verseText.replace(/\\zaln-e\\*/g, "");
+
+      // Extract word content from \w...\w* markers (fix the broken $1 replacement)
+      verseText = verseText.replace(/\\w\s+([^|\\]*)\|[^\\]*\\*([^\\]*)\\w\\*/g, "$1");
+
+      // Remove remaining USFM tags
+      verseText = verseText.replace(/\\[a-zA-Z0-9\-]+\*/g, ""); // Remove closing tags like \w*
+      verseText = verseText.replace(/\\[a-zA-Z0-9\-]+(\s|$)/g, ""); // Remove opening tags
+
+      // Clean up whitespace
+      verseText = verseText.replace(/\s+/g, " ").trim();
+
+      return verseText;
     };
+
+    // Extract scriptureText and alignmentData for the current verse
+    let scriptureText = "";
+    let alignmentDataFormatted = [];
+    if (resources.scripture?.chapterUsfm && metadata) {
+      try {
+        scriptureText = preprocessUSFMToPlainText(
+          resources.scripture.chapterUsfm,
+          metadata.chapter,
+          metadata.verse
+        );
+        scriptureText = `${metadata.bookId} ${metadata.chapter}:${metadata.verse}: ${scriptureText}`;
+
+        // Parse chapter USFM to semantic HTML for alignment data
+        const html = parseUSFMToHTML(resources.scripture.chapterUsfm, "preview");
+        if (typeof window !== "undefined" && typeof document !== "undefined") {
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = html;
+          const verseNum = String(metadata.verse);
+          let verseElem = null;
+          const vElems = tempDiv.querySelectorAll("v");
+          for (const v of vElems) {
+            const numberElem = v.querySelector("number");
+            if (numberElem && numberElem.textContent.trim() === verseNum) {
+              verseElem = v;
+              break;
+            }
+          }
+          if (verseElem) {
+            // Format alignment data in a simplified, readable way
+            alignmentDataFormatted = Array.from(verseElem.querySelectorAll("word, zaln")).map(
+              (el) => {
+                const attrs = el.getAttributeNames().reduce((acc, name) => {
+                  acc[name] = el.getAttribute(name);
+                  return acc;
+                }, {});
+                let formattedAttrs = "";
+                if (attrs["x-strong"]) formattedAttrs += `Strong's: ${attrs["x-strong"]}, `;
+                if (attrs["x-lemma"]) formattedAttrs += `Lemma: ${attrs["x-lemma"]}, `;
+                if (attrs["x-occurrence"])
+                  formattedAttrs += `Occurrence: ${attrs["x-occurrence"]}/${attrs["x-occurrences"]}, `;
+                if (attrs["x-content"]) formattedAttrs += `Content: ${attrs["x-content"]}, `;
+                formattedAttrs = formattedAttrs.trim().replace(/,$/, "");
+                return `Word: "${el.textContent}"${formattedAttrs ? ` (${formattedAttrs})` : ""}`;
+              }
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Error preprocessing USFM for LLM context:", err);
+        scriptureText = `Error preprocessing Scripture text for ${metadata.bookId} ${metadata.chapter}:${metadata.verse}`;
+      }
+    }
 
     return {
       reference: {
@@ -259,7 +406,9 @@ export function ResourcesProvider({ children }) {
         citation: `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`,
       },
       resources: {
-        scripture: getVerseText(),
+        scriptureText,
+        alignmentData: alignmentDataFormatted,
+        scripture: scriptureText, // Set scripture to the preprocessed plain text
         translationNotes: resources.translationNotes,
         translationQuestions: resources.translationQuestions,
         translationWords: resources.translationWords,
@@ -284,7 +433,7 @@ export function ResourcesProvider({ children }) {
         },
       },
     };
-  }, [resources, metadata, error, isLoading, manifests, verse]);
+  }, [resources, metadata, isLoading, verse]);
 
   const value = {
     resources,
@@ -305,7 +454,7 @@ export function ResourcesProvider({ children }) {
     // Add diagnostic information for debugging
     diagnostics: {
       manifestsAvailable: {
-        ult: !!manifests.ult,
+        [reference?.resourceId]: !!manifests[reference?.resourceId],
         tn: !!manifests.tn,
         tq: !!manifests.tq,
         tw: !!manifests.tw,
@@ -321,6 +470,7 @@ export function ResourcesProvider({ children }) {
       currentReference: metadata
         ? `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`
         : null,
+      currentResourceId: reference?.resourceId,
     },
   };
 

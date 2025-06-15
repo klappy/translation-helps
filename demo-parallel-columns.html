@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multi-Scripture Demo: Parallel Columns (Recommended)</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+        background: #f5f5f5;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        min-height: 100vh;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-bar {
+        background: #2c3e50;
+        color: white;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .nav-bar h1 {
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+
+      .breadcrumb {
+        background: #ecf0f1;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #ddd;
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .scripture-config {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .config-label {
+        font-weight: 600;
+        color: #333;
+      }
+
+      .config-button {
+        padding: 0.5rem 1rem;
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .config-button:hover {
+        background: #5a6268;
+      }
+
+      .columns-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1px;
+        background: #dee2e6;
+        min-height: 600px;
+      }
+
+      .column {
+        background: white;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .column.empty {
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .column.empty:hover {
+        background: #e9ecef;
+        border-color: #adb5bd;
+      }
+
+      .column-header {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .column-header.primary {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+      }
+
+      .column-title {
+        font-weight: 600;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .column-badge {
+        background: #6c757d;
+        color: white;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: 500;
+      }
+
+      .column-badge.primary {
+        background: #2196f3;
+      }
+
+      .column-badge.literal {
+        background: #17a2b8;
+      }
+
+      .column-badge.simplified {
+        background: #28a745;
+      }
+
+      .column-badge.original {
+        background: #6f42c1;
+      }
+
+      .column-actions {
+        display: flex;
+        gap: 0.25rem;
+      }
+
+      .column-action {
+        background: none;
+        border: none;
+        padding: 0.25rem;
+        cursor: pointer;
+        border-radius: 3px;
+        color: #6c757d;
+        font-size: 0.8rem;
+      }
+
+      .column-action:hover {
+        background: #e9ecef;
+        color: #495057;
+      }
+
+      .column-content {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+        max-height: 500px;
+      }
+
+      .verse-reference {
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+      }
+
+      .verse-text {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #333;
+        margin-bottom: 1.5rem;
+      }
+
+      .verse-text.original {
+        font-family: "SBL Hebrew", "Times New Roman", serif;
+        font-size: 1.3rem;
+        direction: rtl;
+        text-align: right;
+      }
+
+      .verse-text.greek {
+        font-family: "Times New Roman", serif;
+        font-size: 1.2rem;
+      }
+
+      .resource-metadata {
+        background: #f8f9fa;
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 1rem;
+      }
+
+      .word-breakdown {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 6px;
+        padding: 1rem;
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+
+      .word-item {
+        margin-bottom: 0.5rem;
+        padding: 0.25rem 0;
+      }
+
+      .word-original {
+        font-weight: 600;
+        color: #495057;
+      }
+
+      .word-transliteration {
+        font-style: italic;
+        color: #6c757d;
+      }
+
+      .word-meaning {
+        color: #333;
+      }
+
+      .sync-indicator {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #28a745;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .column-resize-handle {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: transparent;
+        cursor: col-resize;
+        user-select: none;
+      }
+
+      .column-resize-handle:hover {
+        background: #2196f3;
+      }
+
+      .helps-section {
+        background: white;
+        border-top: 1px solid #ddd;
+        padding: 1.5rem;
+      }
+
+      .helps-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .helps-tab {
+        padding: 0.75rem 1.5rem;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .helps-tab.active {
+        background: white;
+        border-bottom: 1px solid white;
+        color: #2196f3;
+      }
+
+      .helps-content {
+        padding: 1rem;
+        background: #fafafa;
+        border-radius: 0 6px 6px 6px;
+        min-height: 200px;
+      }
+
+      .add-column-guide {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .add-column-text {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+
+      .add-column-hint {
+        font-size: 0.85rem;
+        color: #868e96;
+      }
+
+      @media (max-width: 768px) {
+        .columns-container {
+          grid-template-columns: 1fr;
+        }
+
+        .scripture-config {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .column-header {
+          position: static;
+        }
+      }
+
+      @media (min-width: 1200px) {
+        .columns-container {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Navigation Bar -->
+      <div class="nav-bar">
+        <h1>📖 Translation Helps Viewer</h1>
+        <span>Parallel Columns Demo (Recommended)</span>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        unfoldingWord > English > Multiple Resources > Genesis > Chapter 1 > Verse 1
+      </div>
+
+      <!-- Scripture Configuration -->
+      <div class="scripture-config">
+        <div class="config-label">Scripture Resources:</div>
+
+        <button class="config-button" onclick="openResourceSelector()">
+          ⚙️ Configure Resources
+        </button>
+      </div>
+
+      <!-- Parallel Columns -->
+      <div class="columns-container">
+        <!-- Primary Column: ULT -->
+        <div class="column">
+          <div class="sync-indicator"></div>
+          <div class="column-resize-handle"></div>
+
+          <div class="column-header primary">
+            <div class="column-title">
+              <span>◉ ULT (Primary)</span>
+              <span class="column-badge primary">Literal</span>
+            </div>
+            <div class="column-actions">
+              <button class="column-action" title="Settings">⚙️</button>
+              <button class="column-action" title="Hide">👁️</button>
+            </div>
+          </div>
+
+          <div class="column-content">
+            <div class="verse-reference">Genesis 1:1</div>
+
+            <div class="verse-text">In the beginning God created the heavens and the earth.</div>
+
+            <div class="resource-metadata">
+              <strong>unfoldingWord® Literal Text</strong><br />
+              Formal translation preserving original structure
+            </div>
+          </div>
+        </div>
+
+        <!-- Secondary Column: UST -->
+        <div class="column">
+          <div class="sync-indicator"></div>
+          <div class="column-resize-handle"></div>
+
+          <div class="column-header">
+            <div class="column-title">
+              <span>○ UST</span>
+              <span class="column-badge simplified">Clear</span>
+            </div>
+            <div class="column-actions">
+              <button class="column-action" title="Make Primary">📌</button>
+              <button class="column-action" title="Settings">⚙️</button>
+              <button class="column-action" title="Remove">×</button>
+            </div>
+          </div>
+
+          <div class="column-content">
+            <div class="verse-reference">Genesis 1:1</div>
+
+            <div class="verse-text">Long ago God created the heavens and the earth.</div>
+
+            <div class="resource-metadata">
+              <strong>unfoldingWord® Simplified Text</strong><br />
+              Natural translation in clear, simple language
+            </div>
+          </div>
+        </div>
+
+        <!-- Third Column: Hebrew -->
+        <div class="column">
+          <div class="sync-indicator"></div>
+          <div class="column-resize-handle"></div>
+
+          <div class="column-header">
+            <div class="column-title">
+              <span>○ Hebrew</span>
+              <span class="column-badge original">Source</span>
+            </div>
+            <div class="column-actions">
+              <button class="column-action" title="Word Analysis">📖</button>
+              <button class="column-action" title="Settings">⚙️</button>
+              <button class="column-action" title="Remove">×</button>
+            </div>
+          </div>
+
+          <div class="column-content">
+            <div class="verse-reference">בראשית א׳:א׳</div>
+
+            <div class="verse-text original">
+              בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃
+            </div>
+
+            <div class="resource-metadata">
+              <strong>Hebrew Masoretic Text</strong><br />
+              Original Hebrew scriptures
+            </div>
+
+            <div class="word-breakdown">
+              <div class="word-item">
+                <span class="word-original">בְּרֵאשִׁית</span>
+                <span class="word-transliteration">(bərēšîṯ)</span><br />
+                <span class="word-meaning">"in beginning" - temporal prep. phrase</span>
+              </div>
+              <div class="word-item">
+                <span class="word-original">בָּרָא</span>
+                <span class="word-transliteration">(bārāʾ)</span><br />
+                <span class="word-meaning">"created" - Qal perfect 3ms</span>
+              </div>
+              <div class="word-item">
+                <span class="word-original">אֱלֹהִים</span>
+                <span class="word-transliteration">(ʾĕlōhîm)</span><br />
+                <span class="word-meaning">"God" - plural form, singular meaning</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty Column (Add Resource) -->
+        <div class="column empty" onclick="addResource()">
+          <div>
+            <div class="add-column-guide">➕</div>
+            <div class="add-column-text">Add Resource</div>
+            <div class="add-column-hint">Click to add another Bible translation</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Translation Helps -->
+      <div class="helps-section">
+        <div class="helps-tabs">
+          <div class="helps-tab active">Translation Notes</div>
+          <div class="helps-tab">Translation Questions</div>
+          <div class="helps-tab">Translation Words</div>
+        </div>
+
+        <div class="helps-content">
+          <strong>Translation Notes for Genesis 1:1</strong>
+          <p>
+            This verse introduces the creation account. The Hebrew בְּרֵאשִׁית (bərēšîṯ) emphasizes
+            absolute beginning - not just the start of one thing, but the very beginning of time,
+            space, and matter itself.
+          </p>
+
+          <p><strong>Key Translation Decisions:</strong></p>
+          <ul style="margin-left: 1.5rem; margin-top: 0.5rem">
+            <li><strong>בְּרֵאשִׁית</strong> - "In the beginning" vs "When God began to create"</li>
+            <li><strong>בָּרָא</strong> - Indicates creation ex nihilo (from nothing)</li>
+            <li>
+              <strong>הַשָּׁמַיִם וְאֵת הָאָרֶץ</strong> - "heavens and earth" = totality of
+              creation
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function openResourceSelector() {
+        alert(
+          "Resource selector would open here, allowing users to:\n\n• Add/remove Bible translations\n• Reorder columns\n• Set primary resource\n• Configure column widths\n• Save layouts"
+        );
+      }
+
+      function addResource() {
+        alert(
+          "Add resource dialog would open here, showing:\n\n• Available Bible translations (UST, UDB, etc.)\n• Original language texts (Greek, Aramaic)\n• Other language versions\n• Parallel study Bibles"
+        );
+      }
+
+      // Simulate synchronized scrolling
+      function syncScroll() {
+        const columns = document.querySelectorAll(".column-content");
+        columns.forEach((column, index) => {
+          column.addEventListener("scroll", function () {
+            const scrollTop = this.scrollTop;
+            const scrollRatio = scrollTop / (this.scrollHeight - this.clientHeight);
+
+            columns.forEach((otherColumn, otherIndex) => {
+              if (index !== otherIndex) {
+                const targetScroll =
+                  scrollRatio * (otherColumn.scrollHeight - otherColumn.clientHeight);
+                otherColumn.scrollTop = targetScroll;
+              }
+            });
+          });
+        });
+      }
+
+      // Initialize synchronized scrolling
+      syncScroll();
+
+      // Translation helps tab switching
+      document.querySelectorAll(".helps-tab").forEach((tab) => {
+        tab.addEventListener("click", function () {
+          document.querySelectorAll(".helps-tab").forEach((t) => t.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+
+      // Column resize simulation (basic)
+      document.querySelectorAll(".column-resize-handle").forEach((handle) => {
+        handle.addEventListener("mousedown", function (e) {
+          e.preventDefault();
+          const startX = e.pageX;
+          const column = this.parentElement;
+          const startWidth = parseInt(window.getComputedStyle(column).width, 10);
+
+          function doResize(e) {
+            const newWidth = startWidth + e.pageX - startX;
+            column.style.width = Math.max(200, newWidth) + "px";
+          }
+
+          function stopResize() {
+            document.removeEventListener("mousemove", doResize);
+            document.removeEventListener("mouseup", stopResize);
+          }
+
+          document.addEventListener("mousemove", doResize);
+          document.addEventListener("mouseup", stopResize);
+        });
+      });
+    </script>
+  </body>
+</html>

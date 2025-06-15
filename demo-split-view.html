@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multi-Scripture Demo: Split View</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+        background: #f5f5f5;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        min-height: 100vh;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-bar {
+        background: #2c3e50;
+        color: white;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .nav-bar h1 {
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+
+      .breadcrumb {
+        background: #ecf0f1;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #ddd;
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .scripture-selector {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .scripture-selector label {
+        font-weight: 600;
+        color: #333;
+      }
+
+      .resource-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .resource-checkbox:hover {
+        background: #e3f2fd;
+        border-color: #2196f3;
+      }
+
+      .resource-checkbox.active {
+        background: #2196f3;
+        color: white;
+        border-color: #2196f3;
+      }
+
+      .resource-checkbox input {
+        margin: 0;
+      }
+
+      .add-resource {
+        padding: 0.5rem 1rem;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+
+      .scripture-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: #ddd;
+        min-height: 400px;
+      }
+
+      .scripture-panel {
+        background: white;
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .scripture-panel.primary {
+        border-left: 4px solid #2196f3;
+      }
+
+      .scripture-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+      }
+
+      .scripture-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 1.1rem;
+      }
+
+      .scripture-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .scripture-badge.primary {
+        background: #2196f3;
+        color: white;
+      }
+
+      .verse-reference {
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+      }
+
+      .verse-text {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #333;
+        margin-bottom: 1.5rem;
+      }
+
+      .interlinear-toggle {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #666;
+        transition: all 0.2s;
+      }
+
+      .interlinear-toggle:hover {
+        background: #e9ecef;
+      }
+
+      .interlinear-text {
+        background: #fffbf0;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-top: 1rem;
+        font-family: "SBL Hebrew", "Times New Roman", serif;
+        font-size: 1.2rem;
+        direction: rtl;
+        text-align: right;
+        border: 1px solid #f0e68c;
+      }
+
+      .helps-section {
+        background: white;
+        border-top: 1px solid #ddd;
+        padding: 1.5rem;
+      }
+
+      .helps-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .helps-tab {
+        padding: 0.75rem 1.5rem;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .helps-tab.active {
+        background: white;
+        border-bottom: 1px solid white;
+        color: #2196f3;
+      }
+
+      .helps-content {
+        padding: 1rem;
+        background: #fafafa;
+        border-radius: 0 6px 6px 6px;
+        min-height: 200px;
+      }
+
+      @media (max-width: 768px) {
+        .scripture-container {
+          grid-template-columns: 1fr;
+        }
+
+        .scripture-selector {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Navigation Bar -->
+      <div class="nav-bar">
+        <h1>📖 Translation Helps Viewer</h1>
+        <span>Split View Demo</span>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        unfoldingWord > English > Multiple Resources > Genesis > Chapter 1 > Verse 1
+      </div>
+
+      <!-- Scripture Resource Selector -->
+      <div class="scripture-selector">
+        <label>Scripture Resources:</label>
+
+        <div class="resource-checkbox active">
+          <input type="checkbox" checked />
+          <span>✓ ULT</span>
+          <span class="scripture-badge primary">Primary</span>
+        </div>
+
+        <div class="resource-checkbox active">
+          <input type="checkbox" checked />
+          <span>✓ UST</span>
+        </div>
+
+        <div class="resource-checkbox">
+          <input type="checkbox" />
+          <span>UGNT (Greek)</span>
+        </div>
+
+        <button class="add-resource">+ Add Resource</button>
+      </div>
+
+      <!-- Scripture Content -->
+      <div class="scripture-container">
+        <!-- ULT Panel (Primary) -->
+        <div class="scripture-panel primary">
+          <div class="scripture-header">
+            <div class="scripture-title">ULT (Primary)</div>
+            <div class="scripture-badge primary">Literal</div>
+          </div>
+
+          <div class="verse-reference">Genesis 1:1</div>
+
+          <div class="verse-text">In the beginning God created the heavens and the earth.</div>
+
+          <button class="interlinear-toggle" onclick="toggleInterlinear()">
+            📖 Show Hebrew/Greek interlinear ▼
+          </button>
+
+          <div class="interlinear-text" id="interlinear" style="display: none">
+            בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃
+            <br /><br />
+            <small style="direction: ltr; text-align: left; display: block">
+              In-beginning created God ACC the-heavens and-ACC the-earth
+            </small>
+          </div>
+        </div>
+
+        <!-- UST Panel -->
+        <div class="scripture-panel">
+          <div class="scripture-header">
+            <div class="scripture-title">UST</div>
+            <div class="scripture-badge">Simplified</div>
+          </div>
+
+          <div class="verse-reference">Genesis 1:1</div>
+
+          <div class="verse-text">Long ago God created the heavens and the earth.</div>
+        </div>
+      </div>
+
+      <!-- Translation Helps -->
+      <div class="helps-section">
+        <div class="helps-tabs">
+          <div class="helps-tab active">Translation Notes</div>
+          <div class="helps-tab">Translation Questions</div>
+          <div class="helps-tab">Translation Words</div>
+        </div>
+
+        <div class="helps-content">
+          <strong>Translation Notes for Genesis 1:1</strong>
+          <p>This verse introduces the beginning of God's creation of everything that exists...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleInterlinear() {
+        const interlinear = document.getElementById("interlinear");
+        const button = document.querySelector(".interlinear-toggle");
+
+        if (interlinear.style.display === "none") {
+          interlinear.style.display = "block";
+          button.textContent = "📖 Hide Hebrew/Greek interlinear ▲";
+        } else {
+          interlinear.style.display = "none";
+          button.textContent = "📖 Show Hebrew/Greek interlinear ▼";
+        }
+      }
+
+      // Tab switching
+      document.querySelectorAll(".helps-tab").forEach((tab) => {
+        tab.addEventListener("click", function () {
+          document.querySelectorAll(".helps-tab").forEach((t) => t.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+
+      // Resource checkbox handling
+      document.querySelectorAll(".resource-checkbox").forEach((checkbox) => {
+        checkbox.addEventListener("click", function () {
+          const input = this.querySelector("input");
+          input.checked = !input.checked;
+          this.classList.toggle("active", input.checked);
+        });
+      });
+    </script>
+  </body>
+</html>

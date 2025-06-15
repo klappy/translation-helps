@@ -228,30 +228,16 @@ Model: GPT-4o-mini`}
 
       {/* Resource Change Notification */}
       {resourceChangeNotification && (
-        <div className={styles.resourceChangeNotification}>
-          <div className={styles.notificationContent}>
-            <span className={styles.notificationIcon}>🔄</span>
-            <div className={styles.notificationText}>
-              <strong>Reference Changed</strong>
-              <p>
-                From {resourceChangeNotification.previousReference} to{" "}
-                {resourceChangeNotification.newReference}
-              </p>
-              <p>Would you like to start a new conversation with the updated resources?</p>
-            </div>
-            <div className={styles.notificationActions}>
-              <button onClick={startNewConversation} className={styles.primaryButton}>
-                Start New Chat
-              </button>
-              <button
-                onClick={dismissResourceChangeNotification}
-                className={styles.secondaryButton}
-              >
-                Continue Current
-              </button>
-            </div>
-          </div>
-        </div>
+        <React.Fragment>
+          {/* Automatically start a new conversation when reference changes */}
+          {useEffect(() => {
+            if (resourceChangeNotification) {
+              startNewConversation();
+            }
+            // Only run when resourceChangeNotification changes
+            // eslint-disable-next-line
+          }, [resourceChangeNotification])}
+        </React.Fragment>
       )}
 
       {/* Resource Loading Status */}
