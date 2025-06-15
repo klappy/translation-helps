@@ -293,54 +293,56 @@ export function ResourcesProvider({ children }) {
       }, 0);
     }
 
-    // Function to preprocess USFM to plain text for a specific verse or range
+    // Function to extract plain text for a specific verse using the robust semantic rendering system
     const preprocessUSFMToPlainText = (usfmText, chapter, verse) => {
       if (!usfmText) return "";
 
-      const targetVerse = parseInt(verse);
+      try {
+        // Use the existing semantic parser in preview mode (same as UI)
+        const html = parseUSFMToHTML(usfmText, "preview");
 
-      // Enhanced regex to handle verse bridges (e.g., \v 4-5, \v 3-7)
-      // First, try to find exact verse match
-      let verseRegex = new RegExp(
-        `\\\\v\\s+${verse}\\s+([\\s\\S]*?)(?=(\\\\v\\s+[\\d\\-]+|\\\\c\\s+\\d+|$))`,
-        "m"
-      );
-      let match = usfmText.match(verseRegex);
+        // Create temporary DOM element to parse the HTML
+        if (typeof window !== "undefined" && typeof document !== "undefined") {
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = html;
 
-      // If no exact match, look for verse bridges that include our target verse
-      if (!match) {
-        const bridgeRegex = /\\v\s+(\d+)-(\d+)\s+([\s\S]*?)(?=(\\v\s+[\d\-]+|\\c\s+\d+|$))/gm;
-        let bridgeMatch;
-        while ((bridgeMatch = bridgeRegex.exec(usfmText)) !== null) {
-          const startVerse = parseInt(bridgeMatch[1]);
-          const endVerse = parseInt(bridgeMatch[2]);
-          if (targetVerse >= startVerse && targetVerse <= endVerse) {
-            match = [bridgeMatch[0], bridgeMatch[3]]; // Format: [fullMatch, capturedContent]
-            break;
+          // Find the specific verse element
+          const verseNum = String(verse);
+          let verseElement = null;
+
+          // Look for verse elements with matching number
+          const vElements = tempDiv.querySelectorAll("v");
+          for (const vEl of vElements) {
+            const numberEl = vEl.querySelector("number");
+            if (numberEl) {
+              const numberText = numberEl.textContent.trim();
+              // Handle exact match or verse bridge (e.g., "4-5" includes verse 4)
+              if (numberText === verseNum) {
+                verseElement = vEl;
+                break;
+              } else if (numberText.includes("-")) {
+                const [start, end] = numberText.split("-").map((n) => parseInt(n.trim()));
+                const targetVerse = parseInt(verse);
+                if (targetVerse >= start && targetVerse <= end) {
+                  verseElement = vEl;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (verseElement) {
+            // Extract clean text content (this automatically handles all USFM markup)
+            return verseElement.textContent.trim();
           }
         }
+
+        // Fallback: if DOM parsing isn't available, return empty string
+        return "";
+      } catch (err) {
+        console.error("Error extracting verse text using semantic parser:", err);
+        return "";
       }
-
-      if (!match) return "";
-
-      let verseText = match[1].trim();
-
-      // Remove USFM markup and annotations systematically
-      // Remove alignment markers
-      verseText = verseText.replace(/\\zaln-s\s+[^\\]*\\*/g, "");
-      verseText = verseText.replace(/\\zaln-e\\*/g, "");
-
-      // Extract word content from \w...\w* markers (fix the broken $1 replacement)
-      verseText = verseText.replace(/\\w\s+([^|\\]*)\|[^\\]*\\*([^\\]*)\\w\\*/g, "$1");
-
-      // Remove remaining USFM tags
-      verseText = verseText.replace(/\\[a-zA-Z0-9\-]+\*/g, ""); // Remove closing tags like \w*
-      verseText = verseText.replace(/\\[a-zA-Z0-9\-]+(\s|$)/g, ""); // Remove opening tags
-
-      // Clean up whitespace
-      verseText = verseText.replace(/\s+/g, " ").trim();
-
-      return verseText;
     };
 
     // Extract scriptureText and alignmentData for the current verse

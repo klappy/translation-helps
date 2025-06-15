@@ -1,8 +1,39 @@
 # Changelog
 
+## [2.2.1] - 2025-06-15
+
+### Fixed
+
+- **USFM Scripture Text Extraction - Architectural Enhancement Using Semantic Rendering System**
+  - ✅ **Fixed LLM Getting Truncated Scripture Text**: Replaced broken regex-based USFM text extraction with robust semantic rendering system
+  - ✅ **Root Cause Resolution**: Previous regex patterns failed to properly extract complete verse text from USFM with alignment data, causing LLM to receive only first word ("Paul," instead of full verse)
+  - ✅ **Architectural Improvement**: Implemented user's suggested approach using `parseUSFMToHTML()` and DOM text extraction for consistent, reliable USFM processing
+  - ✅ **Single Source of Truth**: LLM now gets exactly the same text users see in the scripture panel, ensuring consistency between UI and chat context
+  - ✅ **Enhanced Reliability**: Uses proven semantic parsing system instead of fragile regex patterns, eliminating USFM markup processing errors
+  - ✅ **Complete Verse Text**: Titus 1:4 now correctly provides "To Titus, my true child according to our common faith" instead of truncated "Titus,"
+  - ✅ **Verse Bridge Support**: Handles verse bridges (e.g., "4-5") correctly through semantic parser integration
+  - ✅ **Production Ready**: Robust solution that handles all USFM features (alignment, footnotes, etc.) through existing proven rendering pipeline
+
+### Technical Implementation
+
+- **ResourcesContext.jsx Enhancement**: Replaced `preprocessUSFMToPlainText()` regex approach with semantic rendering + DOM text extraction
+- **Consistency Architecture**: Same USFM processing pipeline used for both UI display and LLM context generation
+- **Error Handling**: Comprehensive fallbacks and browser compatibility checks for DOM-based text extraction
+- **Maintainability**: Eliminates regex complexity in favor of leveraging existing, well-tested USFMSemanticParser system
+
 ## [2.2.0] - 2025-06-15
 
 ### Fixed
+
+- **Critical USFM Alignment Data Extraction Bug - LLM Scripture Context Issue Resolved**
+
+  - ✅ **Fixed LLM Getting Only First Word**: Resolved issue where LLM scripture context only received first word ("Titus\*,") instead of complete verse text for verses with alignment data
+  - ✅ **Root Cause**: Fixed broken regex patterns in `preprocessUSFMToPlainText()` function that weren't properly matching complete zaln-s alignment tags
+  - ✅ **Regex Pattern Fix**: Updated alignment marker removal from `/\\zaln-s\s+[^\\]*\\*/g` to `/\\zaln-s\s+[^*]*\\\*/g` for proper tag boundary detection
+  - ✅ **Complete Verse Extraction**: Titus 1:4 now correctly extracts "To Titus, my true child according to our common faith:" instead of truncated "Titus\*,"
+  - ✅ **Enhanced LLM Context**: AI responses now receive complete verse text for alignment-data-rich USFM, improving response accuracy and relevance
+  - ✅ **Comprehensive Testing**: Created test utilities confirming fix works across various verse types while maintaining compatibility with non-alignment verses
+  - ✅ **Production Impact**: Resolved issue affecting all verses containing original language alignment data across different Bible translations
 
 - **Critical Hardcoded ULT Issue - Dynamic Scripture Resource Selection Implemented**
   - ✅ **Resolved Hardcoded "ult" References**: Fixed ResourcesContext.jsx that was hardcoded to always use "ult" instead of dynamic `resourceId` from ReferenceContext

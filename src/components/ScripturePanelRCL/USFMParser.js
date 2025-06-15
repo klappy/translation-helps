@@ -59,6 +59,33 @@ export class ASTNode {
   }
 
   /**
+   * Find children by marker
+   * @param {string} marker - Marker name to find
+   * @returns {ASTNode[]} Array of matching children
+   */
+  findChildrenByMarker(marker) {
+    return this.children.filter((child) => child.marker === marker);
+  }
+
+  /**
+   * Get text content recursively
+   * @returns {string} Combined text content of all child nodes
+   */
+  getTextContent() {
+    let text = "";
+
+    if (this.type === NODE_TYPES.TEXT) {
+      text += this.content;
+    }
+
+    for (const child of this.children) {
+      text += child.getTextContent();
+    }
+
+    return text;
+  }
+
+  /**
    * Get string representation
    * @returns {string} String representation
    */
@@ -99,21 +126,42 @@ export class USFMParser {
     this.position = 0;
     this.ast = new ASTNode(NODE_TYPES.DOCUMENT);
 
-    let lastPosition = -1;
-    const maxIterations = this.tokens.length * 2; // Safety limit
+    // Robust loop protection
+    const maxIterations = Math.max(this.tokens.length * 3, 1000);
     let iterations = 0;
+    let consecutiveFailures = 0;
 
     while (this.position < this.tokens.length && iterations < maxIterations) {
-      // Safety check to prevent infinite loops
-      if (this.position === lastPosition) {
-        // Position hasn't advanced, force advancement
-        this.consumeTokenAsText();
-      } else {
+      const startPosition = this.position;
+
+      try {
         this.parseTopLevel();
+      } catch (error) {
+        console.warn("Parser error, consuming token as text:", error);
+        this.consumeTokenAsText();
       }
 
-      lastPosition = this.position;
+      // Check if position advanced
+      if (this.position === startPosition) {
+        consecutiveFailures++;
+        if (consecutiveFailures > 3) {
+          // Force advancement to prevent infinite loops
+          if (this.position < this.tokens.length) {
+            this.consumeTokenAsText();
+            consecutiveFailures = 0;
+          } else {
+            break; // End of tokens
+          }
+        }
+      } else {
+        consecutiveFailures = 0;
+      }
+
       iterations++;
+    }
+
+    if (iterations >= maxIterations) {
+      console.warn("Parser reached maximum iterations, stopping to prevent hang");
     }
 
     return this.ast;
@@ -211,44 +259,63 @@ export class USFMParser {
    * @param {ASTNode} paragraphNode - Paragraph node to add content to
    */
   parseParagraphContent(paragraphNode) {
-    let lastPosition = this.position;
+    const maxIterations = Math.max(this.tokens.length, 100);
+    let iterations = 0;
+    let consecutiveFailures = 0;
 
-    while (this.position < this.tokens.length) {
+    while (this.position < this.tokens.length && iterations < maxIterations) {
       const token = this.peek();
       if (!token) break;
 
-      // Safety check to prevent infinite loops
-      if (this.position === lastPosition && this.position > 0) {
-        // Position hasn't advanced, force advancement
-        this.consumeTokenAsText(paragraphNode);
-        break;
-      }
-      lastPosition = this.position;
+      const startPosition = this.position;
 
-      if (token.type === TOKEN_TYPES.MARKER) {
-        const markerName = this.extractMarkerName(token.value);
-        const markerInfo = getMarkerInfo(markerName);
+      try {
+        if (token.type === TOKEN_TYPES.MARKER) {
+          const markerName = this.extractMarkerName(token.value);
+          const markerInfo = getMarkerInfo(markerName);
 
-        // Stop at paragraph-level markers, chapters, verses
-        if (
-          markerInfo &&
-          (markerInfo.type === MARKER_TYPES.PARAGRAPH || markerName === "c" || markerName === "v")
-        ) {
-          break;
-        }
+          // Stop at paragraph-level markers, chapters, verses
+          if (
+            markerInfo &&
+            (markerInfo.type === MARKER_TYPES.PARAGRAPH || markerName === "c" || markerName === "v")
+          ) {
+            break;
+          }
 
-        // Handle character markers within paragraph
-        if (markerInfo && markerInfo.type === MARKER_TYPES.CHARACTER) {
-          this.parseCharacterInContext(paragraphNode);
-        } else if (markerInfo && markerInfo.type === MARKER_TYPES.MILESTONE) {
-          this.parseMilestoneInContext(paragraphNode);
+          // Handle character markers within paragraph
+          if (markerInfo && markerInfo.type === MARKER_TYPES.CHARACTER) {
+            this.parseCharacterInContext(paragraphNode);
+          } else if (markerInfo && markerInfo.type === MARKER_TYPES.MILESTONE) {
+            this.parseMilestoneInContext(paragraphNode);
+          } else {
+            // Unknown marker - preserve as text
+            this.consumeTokenAsText(paragraphNode);
+          }
         } else {
-          // Unknown marker - preserve as text
           this.consumeTokenAsText(paragraphNode);
         }
-      } else {
+      } catch (error) {
+        console.warn("Parser error in paragraph content:", error);
         this.consumeTokenAsText(paragraphNode);
       }
+
+      // Check if position advanced
+      if (this.position === startPosition) {
+        consecutiveFailures++;
+        if (consecutiveFailures > 2) {
+          // Force advancement to prevent infinite loops
+          this.consumeTokenAsText(paragraphNode);
+          consecutiveFailures = 0;
+        }
+      } else {
+        consecutiveFailures = 0;
+      }
+
+      iterations++;
+    }
+
+    if (iterations >= maxIterations) {
+      console.warn("Parser reached maximum iterations in paragraph content");
     }
   }
 
@@ -257,6 +324,7 @@ export class USFMParser {
    * @param {ASTNode} parentNode - Parent node
    */
   parseCharacterInContext(parentNode) {
+    const startPosition = this.position;
     const markerToken = this.advance();
     const markerName = this.extractMarkerName(markerToken.value);
     const markerInfo = getMarkerInfo(markerName);
@@ -276,9 +344,15 @@ export class USFMParser {
       charNode.addChild(attributesNode);
     }
 
+    // Safety check - prevent hanging by limiting iterations
+    if (this.position > startPosition + 50) {
+      console.warn("Character marker parsing taking too long, stopping");
+      return;
+    }
+
     if (markerInfo && markerInfo.hasEndMarker) {
-      // Parse until end marker
-      this.parseUntilEndMarker(charNode, markerName);
+      // Parse until end marker with limited depth
+      this.parseUntilEndMarkerSafe(charNode, markerName, 20);
     } else {
       // Collect content until whitespace or next marker
       const content = this.collectContentUntilWhitespaceOrMarker();
@@ -376,45 +450,64 @@ export class USFMParser {
    * @param {ASTNode} verseNode - Verse node to add content to
    */
   parseVerseContent(verseNode) {
-    let lastPosition = this.position;
+    const maxIterations = Math.max(this.tokens.length, 100);
+    let iterations = 0;
+    let consecutiveFailures = 0;
 
-    while (this.position < this.tokens.length) {
+    while (this.position < this.tokens.length && iterations < maxIterations) {
       const token = this.peek();
       if (!token) break;
 
-      // Safety check to prevent infinite loops
-      if (this.position === lastPosition && this.position > 0) {
-        // Position hasn't advanced, force advancement
-        this.consumeTokenAsText(verseNode);
-        break;
-      }
-      lastPosition = this.position;
+      const startPosition = this.position;
 
-      if (token.type === TOKEN_TYPES.MARKER) {
-        const markerName = this.extractMarkerName(token.value);
-        const markerInfo = getMarkerInfo(markerName);
+      try {
+        if (token.type === TOKEN_TYPES.MARKER) {
+          const markerName = this.extractMarkerName(token.value);
+          const markerInfo = getMarkerInfo(markerName);
 
-        // Stop at verse-level or higher markers
-        if (
-          markerName === "v" ||
-          markerName === "c" ||
-          (markerInfo && markerInfo.type === MARKER_TYPES.PARAGRAPH)
-        ) {
-          break;
-        }
+          // Stop at verse-level or higher markers
+          if (
+            markerName === "v" ||
+            markerName === "c" ||
+            (markerInfo && markerInfo.type === MARKER_TYPES.PARAGRAPH)
+          ) {
+            break;
+          }
 
-        // Handle character markers within verse
-        if (markerInfo && markerInfo.type === MARKER_TYPES.CHARACTER) {
-          this.parseCharacterInContext(verseNode);
-        } else if (markerInfo && markerInfo.type === MARKER_TYPES.MILESTONE) {
-          this.parseMilestoneInContext(verseNode);
+          // Handle character markers within verse
+          if (markerInfo && markerInfo.type === MARKER_TYPES.CHARACTER) {
+            this.parseCharacterInContext(verseNode);
+          } else if (markerInfo && markerInfo.type === MARKER_TYPES.MILESTONE) {
+            this.parseMilestoneInContext(verseNode);
+          } else {
+            // Unknown marker - preserve as text
+            this.consumeTokenAsText(verseNode);
+          }
         } else {
-          // Unknown marker - preserve as text
           this.consumeTokenAsText(verseNode);
         }
-      } else {
+      } catch (error) {
+        console.warn("Parser error in verse content:", error);
         this.consumeTokenAsText(verseNode);
       }
+
+      // Check if position advanced
+      if (this.position === startPosition) {
+        consecutiveFailures++;
+        if (consecutiveFailures > 2) {
+          // Force advancement to prevent infinite loops
+          this.consumeTokenAsText(verseNode);
+          consecutiveFailures = 0;
+        }
+      } else {
+        consecutiveFailures = 0;
+      }
+
+      iterations++;
+    }
+
+    if (iterations >= maxIterations) {
+      console.warn("Parser reached maximum iterations in verse content");
     }
   }
 
@@ -499,21 +592,96 @@ export class USFMParser {
    * @param {string} markerName - Marker name to find end for
    */
   parseUntilEndMarker(node, markerName) {
-    const startPosition = this.position;
-    let lastPosition = this.position;
+    const maxIterations = Math.max(this.tokens.length, 500);
+    let iterations = 0;
+    let consecutiveFailures = 0;
 
-    while (this.position < this.tokens.length) {
+    while (this.position < this.tokens.length && iterations < maxIterations) {
       const token = this.peek();
       if (!token) break;
 
-      // Safety check to prevent infinite loops
-      if (this.position === lastPosition && this.position > startPosition) {
-        // Position hasn't advanced, consume token and break
-        this.consumeTokenAsText(node);
-        break;
-      }
-      lastPosition = this.position;
+      const startPosition = this.position;
 
+      try {
+        // Check for end marker first
+        if (
+          token.type === TOKEN_TYPES.END_MARKER &&
+          this.extractMarkerName(token.value) === markerName
+        ) {
+          // Add the end marker as a node
+          const endMarkerToken = this.advance();
+          const endMarkerNode = new ASTNode(
+            NODE_TYPES.END_MARKER,
+            markerName,
+            endMarkerToken.value
+          );
+          node.addChild(endMarkerNode);
+          break;
+        }
+
+        // Check for structural markers that should end this context
+        if (token.type === TOKEN_TYPES.MARKER) {
+          const innerMarkerName = this.extractMarkerName(token.value);
+          const innerMarkerInfo = getMarkerInfo(innerMarkerName);
+
+          // Stop at paragraph, chapter, or verse markers
+          if (
+            innerMarkerName === "c" ||
+            innerMarkerName === "v" ||
+            (innerMarkerInfo && innerMarkerInfo.type === MARKER_TYPES.PARAGRAPH)
+          ) {
+            break;
+          }
+
+          if (innerMarkerInfo && innerMarkerInfo.type === MARKER_TYPES.CHARACTER) {
+            this.parseCharacterInContext(node);
+          } else {
+            this.consumeTokenAsText(node);
+          }
+        } else {
+          this.consumeTokenAsText(node);
+        }
+      } catch (error) {
+        console.warn("Parser error in parseUntilEndMarker:", error);
+        this.consumeTokenAsText(node);
+      }
+
+      // Check if position advanced
+      if (this.position === startPosition) {
+        consecutiveFailures++;
+        if (consecutiveFailures > 2) {
+          // Force advancement and break to prevent infinite loops
+          this.consumeTokenAsText(node);
+          break;
+        }
+      } else {
+        consecutiveFailures = 0;
+      }
+
+      iterations++;
+    }
+
+    if (iterations >= maxIterations) {
+      console.warn(
+        `Parser reached maximum iterations in parseUntilEndMarker for marker: ${markerName}`
+      );
+    }
+  }
+
+  /**
+   * Parse content until end marker with limited depth to prevent hanging
+   * @param {ASTNode} node - Node to add content to
+   * @param {string} markerName - Marker name to find end for
+   * @param {number} maxDepth - Maximum depth/iterations allowed
+   */
+  parseUntilEndMarkerSafe(node, markerName, maxDepth = 20) {
+    let iterations = 0;
+
+    while (this.position < this.tokens.length && iterations < maxDepth) {
+      const token = this.peek();
+      if (!token) break;
+
+      // Check for end marker first
       if (
         token.type === TOKEN_TYPES.END_MARKER &&
         this.extractMarkerName(token.value) === markerName
@@ -525,28 +693,13 @@ export class USFMParser {
         break;
       }
 
-      // Check for structural markers that should end this context
-      if (token.type === TOKEN_TYPES.MARKER) {
-        const innerMarkerName = this.extractMarkerName(token.value);
-        const innerMarkerInfo = getMarkerInfo(innerMarkerName);
+      // For safety, just consume as text and avoid recursive parsing
+      this.consumeTokenAsText(node);
+      iterations++;
+    }
 
-        // Stop at paragraph, chapter, or verse markers
-        if (
-          innerMarkerName === "c" ||
-          innerMarkerName === "v" ||
-          (innerMarkerInfo && innerMarkerInfo.type === MARKER_TYPES.PARAGRAPH)
-        ) {
-          break;
-        }
-
-        if (innerMarkerInfo && innerMarkerInfo.type === MARKER_TYPES.CHARACTER) {
-          this.parseCharacterInContext(node);
-        } else {
-          this.consumeTokenAsText(node);
-        }
-      } else {
-        this.consumeTokenAsText(node);
-      }
+    if (iterations >= maxDepth) {
+      console.warn(`Safe parser stopped at max depth for marker: ${markerName}`);
     }
   }
 
