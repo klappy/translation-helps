@@ -24,6 +24,7 @@ export function LLMChatPanel({ reference }) {
     areResourcesReady,
     getResourceStatus,
     resourceChangeNotification,
+    referenceHistory,
     dismissResourceChangeNotification,
     startNewConversation,
     sessionCost,
@@ -173,6 +174,10 @@ Model: ${message.costEstimate.model}`}
   };
 
   const contextInfo = getContextInfo();
+  const referenceDisplay =
+    referenceHistory && referenceHistory.length > 0
+      ? referenceHistory.join(' \u2192 ')
+      : contextInfo?.reference;
 
   return (
     <div className={styles.chatPanel} data-testid='llm-chat-panel'>
@@ -187,7 +192,7 @@ Model: ${message.costEstimate.model}`}
             <div className={styles.contextIndicator} title='Current context loaded'>
               <span className={styles.contextIcon}>📚</span>
               <span className={styles.contextText}>
-                {contextInfo.reference} ({contextInfo.resourceCount} resources)
+                {referenceDisplay} ({contextInfo.resourceCount} resources)
               </span>
             </div>
           )}

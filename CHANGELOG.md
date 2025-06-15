@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.4.0] - 2025-06-16
+
+### Added
+
+- **Reference History Bubble in LLM Chat**
+  - ✅ Displays list of verse references used during conversation
+  - ✅ Updated ChatContext to track `referenceHistory`
+  - ✅ Expanded context indicator UI to show history
+  - ✅ Documentation and version updated
+
 ## [2.3.0] - 2025-06-15
 
 ### Added
