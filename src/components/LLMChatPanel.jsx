@@ -226,18 +226,30 @@ Model: GPT-4o-mini`}
         </div>
       </div>
 
-      {/* Resource Change Notification */}
+      {/* Context Change Indicator - Non-blocking visual feedback */}
       {resourceChangeNotification && (
-        <React.Fragment>
-          {/* Automatically start a new conversation when reference changes */}
-          {useEffect(() => {
-            if (resourceChangeNotification) {
-              startNewConversation();
-            }
-            // Only run when resourceChangeNotification changes
-            // eslint-disable-next-line
-          }, [resourceChangeNotification])}
-        </React.Fragment>
+        <div className={styles.contextChangeIndicator}>
+          <div className={styles.contextChangeContent}>
+            <span className={styles.contextChangeIcon}>📚</span>
+            <div className={styles.contextChangeText}>
+              <strong>Context Updated</strong>
+              <p>
+                Switched from {resourceChangeNotification.previousReference} to{" "}
+                {resourceChangeNotification.newReference}
+              </p>
+              <p className={styles.contextChangeNote}>
+                Your next message will use the new reference and resources.
+              </p>
+            </div>
+            <button
+              onClick={dismissResourceChangeNotification}
+              className={styles.dismissButton}
+              title='Dismiss notification'
+            >
+              ✕
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Resource Loading Status */}

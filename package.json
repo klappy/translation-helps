@@ -1,7 +1,7 @@
 {
   "name": "translation-helps",
   "homepage": "https://klappy.github.io/translation-helps/",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "dependencies": {
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",

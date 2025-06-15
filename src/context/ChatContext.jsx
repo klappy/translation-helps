@@ -96,7 +96,7 @@ export function ChatProvider({ children }) {
 
   /**
    * Sends a message to the LLM with current context from ResourcesContext
-   * Now includes resource readiness checks and enhanced logging
+   * Uses seamless context slipstreaming - no blocking behavior on context changes
    */
   const sendMessage = useCallback(
     async (message) => {
@@ -104,43 +104,54 @@ export function ChatProvider({ children }) {
       setError(null);
 
       try {
-        // Check if resources are ready before sending
-        if (!areResourcesReady()) {
-          throw new Error(
-            "Translation resources are still loading. Please wait for all resources to load before sending a message."
-          );
-        }
-
-        // Get context from ResourcesContext (replaces DOM parsing and packageContext)
+        // Get the latest context from ResourcesContext - always use current context
         const context = getFormattedContext();
 
-        if (!context) {
-          throw new Error("No context available. Please ensure resources are loaded.");
-        }
+        // Track context changes for seamless slipstreaming
+        const previousRef = conversationReference;
+        const currentRef = context?.reference?.citation;
+        const contextChanged = previousRef && currentRef && previousRef !== currentRef;
 
-        // Validate the request
-        const validation = validateChatRequest(message, context);
-        if (!validation.valid) {
-          throw new Error(validation.errors.join(", "));
-        }
-
-        // Track reference for this conversation
-        if (!conversationReference) {
-          setConversationReference(context.reference.citation);
-        }
-
-        setCurrentContext(context);
-
-        // Add user message to history immediately
+        // Add user message to history immediately with context info
         const userMessage = {
           id: Date.now().toString(),
           type: "user",
           content: message,
           timestamp: new Date().toISOString(),
-          contextUsed: context.reference.citation,
+          contextUsed: currentRef || "Loading...",
+          contextChanged: contextChanged,
         };
 
         setChatHistory((prev) => [...prev, userMessage]);
+
+        // If context is not available, provide helpful error without crashing
+        if (!context) {
+          const errorMessage = {
+            id: (Date.now() + 1).toString(),
+            type: "assistant",
+            content:
+              "I don't have access to translation resources for the current reference yet. Please wait a moment for the resources to load, or try a different verse.",
+            timestamp: new Date().toISOString(),
+            metadata: {
+              mock: false,
+              noContext: true,
+              contextUsed: "No context available",
+            },
+          };
+
+          setChatHistory((prev) => [...prev, errorMessage]);
+          return;
+        }
+
+        // Validate the request (but don't block on loading states)
+        const validation = validateChatRequest(message, context);
+        if (!validation.valid) {
+          throw new Error(validation.errors.join(", "));
+        }
+
+        // Update conversation reference and context
+        setConversationReference(currentRef);
+        setCurrentContext(context);
 
         // Determine if we should use mock response
         const useMock = import.meta.env.VITE_USE_MOCK_CHAT === "true";
@@ -152,20 +163,28 @@ export function ChatProvider({ children }) {
           // Simulate network delay
           await new Promise((resolve) => setTimeout(resolve, 1000));
         } else {
-          // Send to actual LLM
+          // Send to actual LLM with current context
           response = await sendChatMessage(message, context, chatHistory);
         }
 
         if (response.success) {
+          // Prepare context change notification for AI response
+          let contextChangeNote = "";
+          if (contextChanged) {
+            contextChangeNote = `\n\n📚 *Context updated to ${currentRef}* - I now have access to resources for this new reference.`;
+          }
+
           const aiMessage = {
-            id: (Date.now() + 1).toString(),
+            id: (Date.now() + 2).toString(),
             type: "assistant",
-            content: response.response,
+            content: response.response + contextChangeNote,
             timestamp: response.timestamp,
             costEstimate: response.costEstimate,
             metadata: {
               ...response.metadata,
-              contextUsed: context.reference.citation,
+              contextUsed: currentRef,
+              contextChanged: contextChanged,
+              previousContext: previousRef,
               resourceCounts: {
                 scripture: context.resources.scripture ? 1 : 0,
                 translationNotes: context.resources.translationNotes.length,
@@ -208,12 +227,16 @@ export function ChatProvider({ children }) {
         console.error("Error sending message:", err);
         setError(err.message);
 
-        // Add error message to chat
+        // Add error message to chat without crashing
         const errorMessage = {
-          id: (Date.now() + 2).toString(),
-          type: "error",
-          content: `Sorry, I encountered an error: ${err.message}`,
+          id: (Date.now() + 3).toString(),
+          type: "assistant",
+          content: `I encountered an issue: ${err.message}. Please try again or wait for resources to finish loading.`,
           timestamp: new Date().toISOString(),
+          metadata: {
+            error: true,
+            errorType: err.name || "ChatError",
+          },
         };
 
         setChatHistory((prev) => [...prev, errorMessage]);
@@ -221,7 +244,7 @@ export function ChatProvider({ children }) {
         setIsLoading(false);
       }
     },
-    [getFormattedContext, chatHistory, areResourcesReady, conversationReference]
+    [getFormattedContext, chatHistory, conversationReference]
   );
 
   /**
@@ -305,16 +328,14 @@ export function ChatProvider({ children }) {
     };
   }, [currentContext]);
 
-  // Detect reference changes during active conversations
+  // Track reference changes for seamless context updates (no blocking notifications)
   useEffect(() => {
     if (conversationReference && reference && chatHistory.length > 0) {
       const currentRef = `${reference.bookId} ${reference.chapter}:${reference.verse}`;
       if (conversationReference !== currentRef) {
-        setResourceChangeNotification({
-          previousReference: conversationReference,
-          newReference: currentRef,
-          timestamp: new Date().toISOString(),
-        });
+        // Just update the conversation reference silently - no blocking notifications
+        setConversationReference(currentRef);
+        console.log(`[ChatContext] Context updated from ${conversationReference} to ${currentRef}`);
       }
     }
   }, [reference, conversationReference, chatHistory.length]);

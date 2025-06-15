@@ -318,6 +318,77 @@
   border-color: var(--color-border-hover);
 }
 
+/* Context Change Indicator - Non-blocking visual feedback */
+.contextChangeIndicator {
+  background-color: var(--color-info-light);
+  border: 1px solid var(--color-info);
+  margin: var(--spacing-4);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+}
+
+.contextChangeContent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  position: relative;
+}
+
+.contextChangeIcon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+  color: var(--color-info);
+}
+
+.contextChangeText {
+  flex: 1;
+}
+
+.contextChangeText strong {
+  display: block;
+  margin-bottom: var(--spacing-1);
+  color: var(--color-info);
+  font-weight: var(--font-weight-semibold);
+}
+
+.contextChangeText p {
+  margin: var(--spacing-1) 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: var(--line-height-normal);
+}
+
+.contextChangeNote {
+  font-style: italic;
+  color: var(--color-text-muted) !important;
+}
+
+.dismissButton {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+}
+
+.dismissButton:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--color-text);
+}
+
 /* Resource Loading Status */
 .resourceLoadingStatus {
   background-color: var(--help-card-background);

@@ -1,5 +1,107 @@
 # LLM Chat Feature Documentation
 
+## Version 2.3.0 Update (2025-06-15) - Seamless Context Slipstreaming
+
+### 🚀 **Revolutionary Chat Experience Enhancement**
+
+Version 2.3.0 introduces **Seamless Context Slipstreaming** - a groundbreaking approach that eliminates chat crashes and conversation interruptions when users navigate between verses, chapters, books, resources, or languages while chatting.
+
+#### **The Problem Solved**
+
+Previously, changing any aspect of the biblical context (verse, chapter, book, resource, language) during an active chat session would:
+
+- ❌ **Crash the chat interface** causing complete conversation loss
+- ❌ **Force conversation resets** with blocking dialogs asking users to choose between old/new context
+- ❌ **Interrupt the natural flow** of biblical study and translation work
+- ❌ **Create user frustration** when trying to explore related passages while discussing with AI
+
+#### **The Seamless Solution**
+
+The new **Context Slipstreaming Architecture** provides:
+
+- ✅ **Zero Chat Crashes** - Navigation never interrupts active conversations
+- ✅ **Background Resource Loading** - New resources load silently while chat continues
+- ✅ **Automatic Context Integration** - Next user message seamlessly includes updated context
+- ✅ **Visual Context Feedback** - Subtle, non-blocking indicators show when context changes
+- ✅ **Uninterrupted Conversations** - Natural flow between different biblical passages
+
+#### **How Context Slipstreaming Works**
+
+1. **User Changes Context**: Navigate to Genesis 1:2 while chatting about Titus 1:1
+2. **Background Loading**: Resources for Genesis 1:2 begin loading silently
+3. **Visual Feedback**: Subtle indicator appears: 📚 "Updated to Genesis 1:2"
+4. **Seamless Integration**: Next chat message automatically includes Genesis 1:2 context
+5. **AI Awareness**: AI assistant naturally acknowledges the context change and responds appropriately
+
+#### **Technical Implementation**
+
+**Enhanced ChatContext**:
+
+```javascript
+// Removed blocking reset logic
+const sendMessage = useCallback(
+  async (message) => {
+    try {
+      // Always use latest available context without blocking
+      const currentContext = getFormattedContext();
+
+      if (!currentContext) {
+        // Graceful handling with helpful user guidance
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "Please ensure resources are loaded before continuing...",
+          },
+        ]);
+        return;
+      }
+
+      // Seamless message sending with updated context
+      const response = await sendChatMessage(message, currentContext, chatHistory);
+
+      // Context change detection and visual feedback
+      if (contextHasChanged(lastContext, currentContext)) {
+        showContextChangeIndicator(currentContext);
+      }
+    } catch (error) {
+      // Enhanced error recovery without crashes
+      handleErrorGracefully(error);
+    }
+  },
+  [getFormattedContext, chatHistory]
+);
+```
+
+**UI Enhancement**:
+
+```javascript
+// Non-blocking context change indicators
+const showContextChangeIndicator = (newContext) => {
+  setContextChangeNotification({
+    message: `📚 Updated to ${newContext.reference.citation}`,
+    timestamp: Date.now(),
+    dismissible: true,
+  });
+};
+```
+
+#### **User Experience Benefits**
+
+**For Bible Study Workflow**:
+
+- **Explore Freely**: Navigate between related passages while maintaining AI conversation
+- **Cross-Reference Discussions**: Ask about connections between different verses without losing context
+- **Translation Comparison**: Switch between Bible versions mid-conversation seamlessly
+- **Language Study**: Explore different language resources while discussing translation concepts
+
+**For Translation Teams**:
+
+- **Collaborative Context**: Team members can discuss different passages without conversation resets
+- **Resource Comparison**: Switch between translation notes, questions, and words while chatting
+- **Multi-Book Analysis**: Explore thematic connections across biblical books uninterrupted
+- **Real-Time Adaptation**: AI assistant adapts to new context automatically
+
 ## Version 2.1.0 Update (2025-06-14)
 
 - LLM context now always receives the exact raw USFM for the current chapter, matching what is rendered in the scripture pane.
@@ -9,7 +111,7 @@
 - Fixed bugs where the app was stuck on Titus 1:1 or an uninitialized context after navigation or refresh.
 - Improved reliability of context/resource synchronization across navigation and chat.
 
-## Status: ✅ COMPLETED & ENHANCED
+## Status: ✅ COMPLETED & ENHANCED WITH SEAMLESS CONTEXT SLIPSTREAMING
 
 ✅ **Fully Implemented, Tested, and Enhanced with Professional Citation System** - Feature is production-ready
 
