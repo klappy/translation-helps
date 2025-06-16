@@ -85,8 +85,8 @@
 
   /* Scripture-specific Design Tokens */
   --color-verse-background: var(--color-surface);
-  --color-verse-background-hover: #f1f5f9;
   --color-verse-background-selected: #e0f2fe;
+  --color-verse-background-hover: #f0f9ff; /* Lighter version of selected state */
   --color-verse-border: var(--color-border);
   --color-verse-border-selected: var(--color-primary);
   --color-verse-number: var(--color-primary);

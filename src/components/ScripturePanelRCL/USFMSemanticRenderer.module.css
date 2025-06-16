@@ -164,13 +164,13 @@
 }
 
 :global(v.selected) {
-  background-color: #fff3cd;
+  background-color: var(--color-verse-background-selected);
   border-radius: 4px;
   padding: 2px 4px;
 }
 
 :global(v:hover) {
-  background-color: #f8f9fa;
+  background-color: var(--color-verse-background-hover);
   border-radius: 4px;
   padding: 2px 4px;
   cursor: pointer;
