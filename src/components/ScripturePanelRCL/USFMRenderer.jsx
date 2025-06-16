@@ -300,6 +300,19 @@ const USFMRenderer = React.memo(function USFMRenderer({
   const verses = useMemo(() => {
     if (!usfm || !chapter) return {};
 
+    // Check cache first
+    const cacheKey = generateCacheKey(usfm, chapter);
+    if (versesCache.has(cacheKey)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log("📚 Using cached verses for chapter", chapter);
+      }
+      return versesCache.get(cacheKey);
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log("🔄 Parsing USFM for chapter", chapter);
+    }
+
     // Use our optimized parsing function with caching
     return parseUSFMToVerses(usfm, chapter);
   }, [usfm, chapter]);

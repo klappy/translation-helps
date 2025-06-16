@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.5.1]
+
+### Fixed
+
+- **USFM Text Extraction Enhancement**
+  - ✅ Fixed scripture text extraction to properly handle USFM markup and preserve punctuation
+  - ✅ Replaced HTML-based extraction with direct USFM text processing
+  - ✅ Improved handling of word markers, alignment data, and attributes
+  - ✅ Enhanced text cleaning with proper regex patterns for USFM markers
+  - ✅ Maintained consistent spacing and punctuation in extracted text
+
 ## [2.5.0]
 
 ### Added
@@ -1609,7 +1620,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ### Changed
 
-- Add `codex-version-guard` CLI script to verify dependencies against the Codex model cutoff date (May 31, 2024).
+- Add `codex-version-guard` CLI script to verify dependencies against the Codex model cutoff date (May 31, 2024).
 - Create `docs/codex-version-guard.md` describing the version guard policy.
 - Reference `codex-version-guard.md` in `codex.md`.
 

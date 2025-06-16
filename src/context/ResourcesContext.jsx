@@ -276,18 +276,11 @@ export function ResourcesProvider({ children }) {
         const logKey = `verse-${metadata.verse}`;
         if (!window._logCacheVerse) window._logCacheVerse = {};
         if (!window._logCacheVerse[logKey] || Date.now() - window._logCacheVerse[logKey] > 1000) {
-          console.log(
-            "[ResourcesContext] scriptureText for verse",
-            metadata.verse,
-            ":",
-            scriptureText
-          );
-          console.log(
-            "[ResourcesContext] alignmentData for verse",
-            metadata.verse,
-            ":",
-            alignmentDataFormatted
-          );
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[ResourcesContext] Verse ${metadata.bookId} ${metadata.chapter}:${metadata.verse}`);
+            console.log('Scripture Text:', scriptureText);
+            console.log('Alignment Data:', alignmentDataFormatted);
+          }
           window._logCacheVerse[logKey] = Date.now();
         }
       }, 0);
@@ -298,110 +291,39 @@ export function ResourcesProvider({ children }) {
       if (!usfmText) return "";
 
       try {
-        // First, use preview mode to get structured HTML
-        const html = parseUSFMToHTML(usfmText, "preview");
+        // Find the verse marker and extract text between it and the next verse marker
+        const verseMarker = `\\v ${verse}`;
+        const verseIndex = usfmText.indexOf(verseMarker);
+        
+        if (verseIndex === -1) return "";
 
-        // Create temporary DOM element to parse the HTML
-        if (typeof window !== "undefined" && typeof document !== "undefined") {
-          const tempDiv = document.createElement("div");
-          tempDiv.innerHTML = html;
-
-          // Find the specific verse element
-          const verseNum = String(verse);
-          let verseElement = null;
-
-          // Look for verse elements with matching number
-          const vElements = tempDiv.querySelectorAll("v");
-          for (const vEl of vElements) {
-            const numberEl = vEl.querySelector("number");
-            if (numberEl) {
-              const numberText = numberEl.textContent.trim();
-              // Handle exact match or verse bridge (e.g., "4-5" includes verse 4)
-              if (numberText === verseNum) {
-                verseElement = vEl;
-                break;
-              } else if (numberText.includes("-")) {
-                const [start, end] = numberText.split("-").map((n) => parseInt(n.trim()));
-                const targetVerse = parseInt(verse);
-                if (targetVerse >= start && targetVerse <= end) {
-                  verseElement = vEl;
-                  break;
-                }
-              }
-            }
-          }
-
-          if (verseElement) {
-            // Now extract just the word content, skipping markers and attributes
-            let verseText = "";
-
-            // Get all word elements within this verse
-            const wordElements = verseElement.querySelectorAll("word");
-            for (let i = 0; i < wordElements.length; i++) {
-              const wordEl = wordElements[i];
-              // Get the content element within the word
-              const contentEl = wordEl.querySelector("content");
-              if (contentEl) {
-                verseText += contentEl.textContent;
-                // Add space after word unless it's the last word
-                if (i < wordElements.length - 1) {
-                  verseText += " ";
-                }
-              }
-            }
-
-            // Also get any direct text nodes that aren't in word elements
-            const walker = document.createTreeWalker(verseElement, NodeFilter.SHOW_TEXT, {
-              acceptNode: function (node) {
-                // Skip text inside marker, number, attributes elements
-                const parent = node.parentElement;
-                if (
-                  parent.tagName === "MARKER" ||
-                  parent.tagName === "NUMBER" ||
-                  parent.tagName === "ATTRIBUTES" ||
-                  parent.tagName === "ZALN"
-                ) {
-                  return NodeFilter.FILTER_REJECT;
-                }
-                // Accept text that's not purely whitespace
-                return node.textContent.trim()
-                  ? NodeFilter.FILTER_ACCEPT
-                  : NodeFilter.FILTER_REJECT;
-              },
-            });
-
-            let textNode;
-            while ((textNode = walker.nextNode())) {
-              // If we already have text and this isn't just whitespace, add a space
-              if (verseText && textNode.textContent.trim()) {
-                verseText += " ";
-              }
-              verseText += textNode.textContent;
-            }
-
-            // Clean up the text
-            verseText = verseText.trim();
-
-            // Enhanced debugging for USFM text extraction
-            console.log("📖 USFM Text Extraction Debug:");
-            console.log("  - Target verse:", `${chapter}:${verse}`);
-            console.log("  - Input USFM (first 300 chars):", usfmText?.substring(0, 300));
-            console.log("  - Verse element found:", true);
-            console.log("  - Extracted verse text:", verseText);
-            console.log("  - Text length:", verseText.length);
-            console.log(
-              "  - Contains Greek/Hebrew?:",
-              /[\u0370-\u03FF\u0590-\u05FF]/.test(verseText)
-            );
-
-            return verseText;
-          }
+        // Extract text from verse marker to next verse marker or end
+        let verseText = usfmText.substring(verseIndex + verseMarker.length);
+        const nextVerseIndex = verseText.indexOf("\\v ");
+        if (nextVerseIndex !== -1) {
+          verseText = verseText.substring(0, nextVerseIndex);
         }
 
-        // Fallback: if DOM parsing isn't available, return empty string
-        return "";
+        // Clean up the text
+        verseText = verseText
+          // Remove alignment markers
+          .replace(/\\zaln-s[^\\]*?\\?\*/g, "")
+          .replace(/\\zaln-e\\?\*/g, "")
+          // Extract text from word markers
+          .replace(/\\w\s+([^|]+)\|[^\\]*?\\w\*/g, "$1")
+          // Remove any remaining USFM markers
+          .replace(/\\[a-z]+[-\w]*\s*[^\\]*?\*/g, "")
+          .replace(/\\[a-z]+[-\w]*\s*/g, "")
+          // Remove pipe-separated attributes
+          .replace(/\|[^|]*?\*/g, "")
+          // Normalize whitespace and punctuation
+          .replace(/\s*,\s*/g, ", ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        return verseText;
       } catch (err) {
-        console.error("Error extracting verse text using semantic parser:", err);
+        console.error("Error extracting verse text from USFM:", err);
         return "";
       }
     };
