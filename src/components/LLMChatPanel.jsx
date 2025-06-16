@@ -176,7 +176,7 @@ Model: ${message.costEstimate.model}`}
   const contextInfo = getContextInfo();
   const referenceDisplay =
     referenceHistory && referenceHistory.length > 0
-      ? referenceHistory.join(' \u2192 ')
+      ? referenceHistory.join(" \u2192 ")
       : contextInfo?.reference;
 
   return (
@@ -220,6 +220,34 @@ Model: GPT-4o-mini`}
               <span className={styles.sessionCostText}>{formatCostDisplay(sessionCost.total)}</span>
             </div>
           )}
+          <button
+            onClick={() => {
+              const contextInfo = getContextInfo();
+              console.log("🐛 DEBUG: Current Chat Context");
+              console.log("  - Context Info:", contextInfo);
+              console.log("  - Resources Ready:", areResourcesReady());
+              console.log("  - Resource Status:", resourceStatus);
+              console.log("  - Reference History:", referenceHistory);
+              console.log("  - Chat History Length:", chatHistory.length);
+
+              // Get the full formatted context from ResourcesContext
+              if (window._resourcesContext && window._resourcesContext.getFormattedContext) {
+                const formattedContext = window._resourcesContext.getFormattedContext();
+                console.log("📋 DEBUG: Formatted Context for LLM");
+                console.log("  - Reference:", formattedContext?.reference);
+                console.log("  - Scripture Text:", formattedContext?.resources?.scriptureText);
+                console.log("  - Alignment Data:", formattedContext?.resources?.alignmentData);
+                console.log("  - Full Context:", formattedContext);
+              } else {
+                console.log("⚠️ ResourcesContext not available in window._resourcesContext");
+              }
+            }}
+            className={styles.clearButton}
+            title='Debug: Log current context'
+            style={{ marginRight: "8px" }}
+          >
+            🐛
+          </button>
           <button
             onClick={clearChat}
             className={styles.clearButton}

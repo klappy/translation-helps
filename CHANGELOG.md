@@ -1,5 +1,53 @@
 # Changelog
 
+## [2.5.0]
+
+### Added
+
+- **Text Mode for USFM Parser**: Added a new "text" mode to USFMSemanticParser that extracts clean, readable text without alignment markers, Greek/Hebrew words, or USFM markup for better LLM scripture quoting accuracy
+- **Scripture Quoting Documentation**: Added comprehensive documentation for different approaches to ensure accurate scripture quotation in LLM responses
+  - Created `docs/scripture-quoting-approaches.md` with detailed analysis of three approaches:
+    1. **Placeholder System** - 100% accuracy by using placeholders that get replaced post-processing
+    2. **Enhanced Prompt Engineering** - Strengthening existing system prompt with better instructions
+    3. **Hybrid Solution** - Combining both approaches for maximum flexibility
+  - Recommended Placeholder System for guaranteed scripture accuracy in Bible translation work
+  - Documented pros/cons, implementation examples, and testing strategies for each approach
+
+### Changed
+
+- **ResourcesContext Scripture Extraction**: Updated to use "text" mode when extracting scripture for LLM context, providing cleaner text without distracting markup
+
+### Fixed
+
+- Fixed scripture text extraction in ResourcesContext to use `innerText` instead of `textContent`, ensuring LLM context only includes visible scripture text without USFM markers or alignment attributes
+
+### Added
+
+- Debug button in LLM Chat Panel to inspect current context and scripture data
+- Enhanced logging in Netlify function to track scripture text flow
+- Window-exposed ResourcesContext for debugging scripture extraction issues
+- Comprehensive documentation of scripture quoting approaches in `docs/scripture-quoting-approaches.md`
+
+### Fixed
+
+- **LLM Scripture Quoting Field Confusion**
+  - ✅ Fixed LLM quoting Greek/Hebrew alignment data instead of English scripture text
+  - ✅ Added critical field clarification to system prompt to distinguish between `[SCRIPTURE]` (English) and `[ALIGNMENT DATA]` (Greek/Hebrew)
+  - ✅ Enhanced system prompt with explicit instructions: "The ONLY field to quote scripture from is [SCRIPTURE]"
+  - ✅ Updated documentation in `docs/scripture-quoting-approaches.md` documenting the root cause and solution
+  - ✅ Updated `docs/llm-system-prompt-specification.md` with field clarification requirements
+
+### Changed
+
+- **Enhanced LLM Scripture Quoting System Prompt**
+  - ✅ Restructured system prompt to place critical field distinction warning at the very top
+  - ✅ Added explicit examples of the common mistake: quoting Greek text instead of English
+  - ✅ Enhanced visual clarity with emoji markers (📖) and prominent warnings (⚠️)
+  - ✅ Moved alignment data to the very end of the prompt with strong visual separators
+  - ✅ Added clear labeling: "THIS IS THE ENGLISH TEXT TO QUOTE FROM" for scripture field
+  - ✅ Implemented fallback message when no scripture text is available
+  - ✅ Reduced confusion by physically separating Greek/Hebrew data from English scripture
+
 ## [2.4.0] - 2025-06-16
 
 ### Added

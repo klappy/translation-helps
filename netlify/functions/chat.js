@@ -13,9 +13,32 @@ const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 function formatSystemPrompt(contextData) {
   const { reference, resources } = contextData;
 
-  let prompt = `You are a Bible translation assistant for ${reference.citation} in ${reference.language}. You have access to specific translation resources listed below.
+  let prompt = `You are a Bible translation assistant for ${reference.citation} in ${reference.language}.
+
+⚠️ CRITICAL FIELD DISTINCTION - READ THIS FIRST ⚠️
+This context contains TWO DIFFERENT types of data that MUST NOT be confused:
+
+1. **[SCRIPTURE]** = ENGLISH TRANSLATION (the ONLY source for quoting scripture)
+2. **[ALIGNMENT DATA]** = GREEK/HEBREW TEXT (NEVER quote this as scripture except for linguistic analysis and alignment/interlinear work)
+
+COMMON MISTAKE TO AVOID:
+❌ WRONG: Quoting "Παῦλος, δοῦλος Θεοῦ..." as scripture
+✅ RIGHT: Quoting "Paul, a servant of God..." as scripture
+
+The [SCRIPTURE] field below contains the English text.
+The [ALIGNMENT DATA] field contains Greek/Hebrew - NEVER quote from it!
 
 CRITICAL CONSTRAINTS:
+
+**#1 ABSOLUTE PRIORITY - SCRIPTURE ACCURACY:**
+- Scripture MUST be quoted EXACTLY character-for-character from the [SCRIPTURE] field ONLY
+- NEVER quote Greek or Hebrew text as scripture
+- Character-for-character precision is MANDATORY - even one word change is a VIOLATION  
+- Paraphrasing, rewording, or summarizing scripture is STRICTLY FORBIDDEN
+- This rule OVERRIDES ALL other instructions and conversational flow
+- ALWAYS use double quotation marks around scripture quotes
+
+**Other Critical Constraints:**
 - You MUST ONLY use information explicitly provided in the resources below
 - You MUST cite every piece of information using the specified format
 - You MUST NOT use any external knowledge beyond what is provided
@@ -29,12 +52,71 @@ CURRENT CONTEXT:
 
 AVAILABLE RESOURCES WITH CITATION IDs:`;
 
-  // Add Scripture with citation format
+  // Add Scripture with citation format AND clear labeling
   if (resources.scripture) {
     const scriptureTitle = contextData.metadata?.manifestTitles?.scripture || "Scripture Text";
-    prompt += `\n\n[SCRIPTURE] ${scriptureTitle}:
-"${resources.scripture}"`;
+    prompt += `\n\n📖 [SCRIPTURE] ${scriptureTitle} - THIS IS THE ENGLISH TEXT TO QUOTE FROM:
+"${resources.scripture}"
+⬆️ ONLY QUOTE FROM THE TEXT ABOVE ⬆️`;
+  } else {
+    prompt += `\n\n⚠️ NO SCRIPTURE TEXT AVAILABLE - You cannot quote scripture for this reference.`;
   }
+
+  prompt += `
+
+## SCRIPTURE QUOTING REQUIREMENTS - CRITICAL:
+
+**Scripture text MUST be quoted EXACTLY character-for-character from the provided resources.**
+
+### Specific Rules:
+
+1. **Exact Text Matching**
+   - Copy scripture text character-for-character from provided resources
+   - Never paraphrase, summarize, or reword scripture
+   - Preserve original punctuation, capitalization, and formatting
+
+2. **Quotation Formatting**
+   - Always enclose scripture quotes in double quotation marks
+   - Include [SCRIPTURE] citation immediately after quotes
+   - For partial quotes, use ellipsis (...) to indicate omitted portions
+
+3. **Examples of Correct Quoting**
+   
+   ✅ CORRECT:
+   "In the beginning God created the heavens and the earth." [SCRIPTURE]
+   
+   ❌ INCORRECT:
+   God made the heavens and earth at the start. [SCRIPTURE]
+   In the beginning, God created the heavens and the earth [SCRIPTURE]
+
+4. **Partial Quote Handling**
+   "In the beginning God created..." [SCRIPTURE]
+   "...the heavens and the earth." [SCRIPTURE]
+
+5. **Multi-Verse Quotes**
+   - Quote each verse exactly as provided
+   - Include inline verse numbers unless asked not to
+   - Maintain original verse boundaries
+
+## COMMON SCRIPTURE QUOTING VIOLATIONS TO AVOID:
+❌ "God made..." instead of "God created..."
+❌ Missing quotation marks around scripture
+❌ Adding words not in the original
+❌ Changing word order
+❌ Modernizing or simplifying language
+❌ Using synonyms (e.g., "made" for "created", "started" for "beginning")
+❌ Omitting punctuation or capitalization
+❌ Paraphrasing for clarity - NEVER do this!
+
+## FINAL VERIFICATION BEFORE RESPONDING - MANDATORY:
+**STOP! Before sending your response, you MUST:**
+1. REVIEW every scripture quote in your response
+2. VERIFY each quote is EXACTLY character-for-character from [SCRIPTURE] above
+3. CONFIRM quotation marks are present around ALL scripture quotes
+4. CHECK that [SCRIPTURE] citation follows immediately after each quote
+5. If ANY scripture is paraphrased or reworded, you MUST revise it before responding
+6. This verification step is MANDATORY and cannot be skipped
+`;
 
   // Add Translation Notes with individual citation IDs
   if (resources.translationNotes?.length > 0) {
@@ -166,9 +248,24 @@ STRICT PROHIBITIONS:
 - NO theological interpretations not found in the resources
 - NO historical or cultural context not explicitly provided
 - NO assumptions about word meanings beyond provided definitions
-- NO references to other Bible verses unless provided in resources
+- NO references to other Bible verses unless provided in resources`;
 
-Please answer the user's question following these strict guidelines.`;
+  // Add alignment data at the very end with strong warnings
+  if (resources.alignmentData && resources.alignmentData.length > 0) {
+    prompt += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ ALIGNMENT DATA - DO NOT QUOTE AS SCRIPTURE ⚠️
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The following is GREEK/HEBREW text for linguistic reference ONLY.
+NEVER quote this as scripture. Scripture quotes MUST come from [SCRIPTURE] above.
+
+[ALIGNMENT DATA]:
+${resources.alignmentData.join("\n")}
+
+REMINDER: This Greek/Hebrew text is NOT scripture - it's linguistic data only!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  }
+
+  prompt += `\n\nPlease answer the user's question following these strict guidelines.`;
 
   return prompt;
 }
@@ -207,6 +304,14 @@ exports.handler = async (event, context) => {
   try {
     // Parse request body
     const { message, context: translationContext, chatHistory = [] } = JSON.parse(event.body);
+
+    // Enhanced debugging for LLM request
+    console.log("🚀 LLM Request Debug:");
+    console.log("  - Message:", message);
+    console.log("  - Scripture in context:", translationContext?.resources?.scripture);
+    console.log("  - Scripture text:", translationContext?.resources?.scriptureText);
+    console.log("  - Alignment data present?", !!translationContext?.resources?.alignmentData);
+    console.log("  - Reference:", translationContext?.reference?.citation);
 
     // Validate required fields
     if (!message || !translationContext) {
@@ -276,8 +381,8 @@ exports.handler = async (event, context) => {
       model: "gpt-4o-mini", // Updated to GPT-4o-mini for improved output consistency
       messages: messages,
       max_tokens: 500,
-      temperature: 0.2,
-      top_p: 0.2,
+      temperature: 0.1, // Reduced from 0.2 for even more literal responses
+      top_p: 0.1, // Reduced from 0.2 to minimize creativity
       frequency_penalty: 0.4,
       presence_penalty: 0.4,
     };

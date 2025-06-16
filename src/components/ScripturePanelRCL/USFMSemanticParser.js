@@ -68,12 +68,13 @@ export class USFMSemanticParser {
     this.markerStack = [];
     this.zalnStack = [];
     this.currentBlock = null; // Can be 'headers' or 'chapters'
+    this.mode = "preview"; // default mode
   }
 
   /**
    * Parse USFM text and generate semantic HTML
    * @param {string} usfmText - Raw USFM text
-   * @param {string} mode - Rendering mode (preview, full, debug)
+   * @param {string} mode - Rendering mode (preview, full, debug, text)
    * @returns {string} Semantic HTML
    */
   parse(usfmText, mode = "preview") {
@@ -83,9 +84,12 @@ export class USFMSemanticParser {
     this.markerStack = [];
     this.zalnStack = [];
     this.currentBlock = null;
+    this.mode = mode; // Store mode for use in other methods
 
-    // Start with root usfm element
-    this.output += `<usfm class="${mode}">`;
+    // Start with root usfm element (except in text mode)
+    if (mode !== "text") {
+      this.output += `<usfm class="${mode}">`;
+    }
 
     // Process all characters
     while (this.position < this.input.length) {
@@ -98,18 +102,20 @@ export class USFMSemanticParser {
       }
     }
 
-    // Close any remaining open elements
-    this.closeAllMarkers();
+    // Close any remaining open elements (not in text mode)
+    if (this.mode !== "text") {
+      this.closeAllMarkers();
 
-    // Close the final block if it's still open
-    if (this.currentBlock === "chapters") {
-      this.output += `</chapters>`;
-    } else if (this.currentBlock === "headers") {
-      this.output += `</headers>`;
+      // Close the final block if it's still open
+      if (this.currentBlock === "chapters") {
+        this.output += `</chapters>`;
+      } else if (this.currentBlock === "headers") {
+        this.output += `</headers>`;
+      }
+
+      // Close root element
+      this.output += "</usfm>";
     }
-
-    // Close root element
-    this.output += "</usfm>";
 
     return this.output;
   }
@@ -156,6 +162,19 @@ export class USFMSemanticParser {
    * Handle alignment markers (zaln-s, zaln-e)
    */
   handleAlignmentMarker(markerName, markerStart) {
+    // In text mode, skip alignment markers entirely
+    if (this.mode === "text") {
+      // Consume the marker and any attributes/content until the next marker
+      while (this.position < this.input.length && this.peek() !== "\\" && this.peek() !== "\n") {
+        this.consume();
+      }
+      // Also consume the closing \* if present
+      if (this.peek() === "\\" && this.input[this.position + 1] === "*") {
+        this.position += 2; // consume \*
+      }
+      return;
+    }
+
     const markerText = this.input.substring(markerStart, this.position);
 
     if (markerName === "zaln-s") {
@@ -220,6 +239,47 @@ export class USFMSemanticParser {
    * Handle start markers
    */
   handleStartMarker(markerName, markerStart) {
+    // In text mode, handle word markers specially
+    if (this.mode === "text" && markerName === "w") {
+      // Parse and output only the word content
+      const wordContent = this.parseWordContent();
+      this.output += wordContent;
+
+      // Skip attributes if present
+      if (this.peek() === "|") {
+        while (this.position < this.input.length && this.peek() !== "\\" && this.peek() !== "\n") {
+          this.consume();
+        }
+      }
+
+      // Skip the end marker \w*
+      if (
+        this.peek() === "\\" &&
+        this.input.substring(this.position, this.position + 3) === "\\w*"
+      ) {
+        this.position += 3; // consume \w*
+      }
+
+      return;
+    }
+
+    // In text mode, skip all other markers but keep their content
+    if (this.mode === "text") {
+      // Skip the marker itself
+      // Already consumed in parseMarker()
+
+      // For verse/chapter markers, output the number
+      if (markerName === "v" || markerName === "c") {
+        const number = this.parseNumber();
+        if (number) {
+          this.output += number + " ";
+        }
+      }
+
+      // Continue parsing content without wrapping in elements
+      return;
+    }
+
     const markerText = this.input.substring(markerStart, this.position);
     const info = MARKER_INFO[markerName] || {
       type: "unknown",

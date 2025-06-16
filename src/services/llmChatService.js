@@ -33,6 +33,17 @@ AVAILABLE RESOURCES:`;
       "[LLM System Prompt] Full metadata.manifestTitles:",
       contextData.metadata?.manifestTitles
     );
+
+    // Enhanced debugging for scripture text
+    console.log("🔴 CRITICAL DEBUG - Scripture being sent to LLM:");
+    console.log("  - Full scriptureText:", resources.scriptureText);
+    console.log("  - Length:", resources.scriptureText.length);
+    console.log("  - First 200 chars:", resources.scriptureText.substring(0, 200));
+    console.log(
+      "  - Contains Greek/Hebrew?:",
+      /[\u0370-\u03FF\u0590-\u05FF]/.test(resources.scriptureText)
+    );
+
     prompt += `\n- ${scriptureTitle}: "${resources.scriptureText}"`;
   }
   // Include raw USFM to preserve annotations (e.g., curly brace content)
@@ -40,6 +51,12 @@ AVAILABLE RESOURCES:`;
     prompt += `\n- Raw USFM (preserves all annotations):\n${resources.rawUSFM}`;
   }
   if (resources.alignmentData && resources.alignmentData.length > 0) {
+    // Enhanced debugging for alignment data
+    console.log("⚠️ ALIGNMENT DATA being sent:");
+    console.log("  - Full alignmentData:", JSON.stringify(resources.alignmentData, null, 2));
+    console.log("  - Number of entries:", resources.alignmentData.length);
+    console.log("  - First entry:", resources.alignmentData[0]);
+
     prompt += `\n- Alignment Data for this verse:\n${JSON.stringify(
       resources.alignmentData,
       null,

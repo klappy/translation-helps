@@ -14,7 +14,6 @@ so you can easily track which passages have been discussed.
   arrows (e.g., `TIT 1:1 → GEN 1:2`).
 - Clearing the chat resets the history so a fresh conversation starts clean.
 
-
 ## Version 2.3.0 Update (2025-06-15) - Seamless Context Slipstreaming
 
 ### 🚀 **Revolutionary Chat Experience Enhancement**
@@ -129,6 +128,10 @@ const showContextChangeIndicator = (newContext) => {
 ## Status: ✅ COMPLETED & ENHANCED WITH SEAMLESS CONTEXT SLIPSTREAMING
 
 ✅ **Fully Implemented, Tested, and Enhanced with Professional Citation System** - Feature is production-ready
+
+### System Prompt Specification
+
+**📋 [LLM System Prompt Specification](./llm-system-prompt-specification.md)** - Comprehensive specification document defining all requirements for LLM behavior, scripture quoting accuracy, citation requirements, and response formatting standards.
 
 ### Implementation Status - ENHANCED v0.13.4
 

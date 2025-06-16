@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>USFM Visible Text Extraction Test</title>
+    <style>
+      /* Styles from USFMSemanticRenderer.module.css */
+      .preview marker,
+      .preview attributes,
+      .preview zaln {
+        display: none !important;
+      }
+
+      .test-container {
+        margin: 20px;
+        padding: 20px;
+        border: 1px solid #ccc;
+      }
+
+      .result {
+        margin: 10px 0;
+        padding: 10px;
+        background: #f5f5f5;
+        font-family: monospace;
+      }
+
+      .success {
+        color: green;
+      }
+
+      .error {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>USFM Visible Text Extraction Test</h1>
+
+    <div class="test-container">
+      <h2>Test Case: Titus 1:1</h2>
+
+      <div id="test-content" class="preview">
+        <!-- This simulates the parsed USFM HTML structure -->
+        <v>
+          <marker class="v">\\v 1 </marker>
+          <number>1</number>
+          <zaln>
+            <marker class="zaln-s">\\zaln-s </marker>
+            <attributes
+              >|x-strong="G39720" x-lemma="Παῦλος" x-morph="Gr,N,,,,,NMS," x-occurrence="1"
+              x-occurrences="1" x-content="Παῦλος"</attributes
+            >
+            <marker>\\*</marker>
+            <word>
+              <content>Paul</content>
+              <attributes>|x-occurrence="1" x-occurrences="1"</attributes>
+            </word>
+            <marker class="w*">\\w*</marker>
+            <marker class="zaln-e">\\zaln-e\\*</marker>
+          </zaln>
+          ,
+          <zaln>
+            <marker class="zaln-s">\\zaln-s </marker>
+            <attributes
+              >|x-strong="G14010" x-lemma="δοῦλος" x-morph="Gr,N,,,,,NMS," x-occurrence="1"
+              x-occurrences="1" x-content="δοῦλος"</attributes
+            >
+            <marker>\\*</marker>
+            <word>
+              <content>a</content>
+              <attributes>|x-occurrence="1" x-occurrences="1"</attributes>
+            </word>
+            <marker class="w*">\\w*</marker>
+            <word>
+              <content>servant</content>
+              <attributes>|x-occurrence="1" x-occurrences="1"</attributes>
+            </word>
+            <marker class="w*">\\w*</marker>
+            <marker class="zaln-e">\\zaln-e\\*</marker>
+          </zaln>
+          <zaln>
+            <marker class="zaln-s">\\zaln-s </marker>
+            <attributes
+              >|x-strong="G23160" x-lemma="θεός" x-morph="Gr,N,,,,,GMS," x-occurrence="1"
+              x-occurrences="2" x-content="Θεοῦ"</attributes
+            >
+            <marker>\\*</marker>
+            <word>
+              <content>of</content>
+              <attributes>|x-occurrence="1" x-occurrences="5"</attributes>
+            </word>
+            <marker class="w*">\\w*</marker>
+            <word>
+              <content>God</content>
+              <attributes>|x-occurrence="1" x-occurrences="2"</attributes>
+            </word>
+            <marker class="w*">\\w*</marker>
+            <marker class="zaln-e">\\zaln-e\\*</marker>
+          </zaln>
+        </v>
+      </div>
+
+      <h3>Test Results:</h3>
+      <div id="results"></div>
+    </div>
+
+    <script>
+      // Run the test
+      const testElement = document.getElementById("test-content");
+      const verseElement = testElement.querySelector("v");
+      const results = document.getElementById("results");
+
+      // Test 1: textContent (includes hidden elements)
+      const textContentResult = verseElement.textContent;
+      results.innerHTML += `
+      <div class="result">
+        <strong>textContent (includes hidden):</strong><br>
+        Length: ${textContentResult.length} characters<br>
+        Contains USFM markers: ${
+          textContentResult.includes("\\v")
+            ? '<span class="error">YES</span>'
+            : '<span class="success">NO</span>'
+        }<br>
+        Contains attributes: ${
+          textContentResult.includes("x-strong")
+            ? '<span class="error">YES</span>'
+            : '<span class="success">NO</span>'
+        }<br>
+        Raw output: <pre>${JSON.stringify(textContentResult)}</pre>
+      </div>
+    `;
+
+      // Test 2: innerText (excludes hidden elements)
+      const innerTextResult = verseElement.innerText;
+      results.innerHTML += `
+      <div class="result">
+        <strong>innerText (excludes hidden):</strong><br>
+        Length: ${innerTextResult.length} characters<br>
+        Contains USFM markers: ${
+          innerTextResult.includes("\\v")
+            ? '<span class="error">YES</span>'
+            : '<span class="success">NO</span>'
+        }<br>
+        Contains attributes: ${
+          innerTextResult.includes("x-strong")
+            ? '<span class="error">YES</span>'
+            : '<span class="success">NO</span>'
+        }<br>
+        Clean output: <pre>${JSON.stringify(innerTextResult.trim().replace(/\s+/g, " "))}</pre>
+      </div>
+    `;
+
+      // Test 3: What the user actually sees
+      results.innerHTML += `
+      <div class="result">
+        <strong>Visual rendering (what users see):</strong><br>
+        <div style="border: 1px dashed #999; padding: 10px; margin: 10px 0;">
+          ${testElement.innerHTML}
+        </div>
+      </div>
+    `;
+
+      // Test 4: Expected vs Actual
+      const cleanedInnerText = innerTextResult.trim().replace(/\s+/g, " ");
+      const expectedText = "1 Paul, a servant of God";
+      const isCorrect = cleanedInnerText === expectedText;
+
+      results.innerHTML += `
+      <div class="result">
+        <strong>Verification:</strong><br>
+        Expected: "${expectedText}"<br>
+        Actual: "${cleanedInnerText}"<br>
+        Status: ${
+          isCorrect
+            ? '<span class="success">✓ CORRECT</span>'
+            : '<span class="error">✗ INCORRECT</span>'
+        }
+      </div>
+    `;
+    </script>
+  </body>
+</html>

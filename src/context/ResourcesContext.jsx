@@ -298,7 +298,7 @@ export function ResourcesProvider({ children }) {
       if (!usfmText) return "";
 
       try {
-        // Use the existing semantic parser in preview mode (same as UI)
+        // First, use preview mode to get structured HTML
         const html = parseUSFMToHTML(usfmText, "preview");
 
         // Create temporary DOM element to parse the HTML
@@ -332,8 +332,69 @@ export function ResourcesProvider({ children }) {
           }
 
           if (verseElement) {
-            // Extract clean text content (this automatically handles all USFM markup)
-            return verseElement.textContent.trim();
+            // Now extract just the word content, skipping markers and attributes
+            let verseText = "";
+
+            // Get all word elements within this verse
+            const wordElements = verseElement.querySelectorAll("word");
+            for (let i = 0; i < wordElements.length; i++) {
+              const wordEl = wordElements[i];
+              // Get the content element within the word
+              const contentEl = wordEl.querySelector("content");
+              if (contentEl) {
+                verseText += contentEl.textContent;
+                // Add space after word unless it's the last word
+                if (i < wordElements.length - 1) {
+                  verseText += " ";
+                }
+              }
+            }
+
+            // Also get any direct text nodes that aren't in word elements
+            const walker = document.createTreeWalker(verseElement, NodeFilter.SHOW_TEXT, {
+              acceptNode: function (node) {
+                // Skip text inside marker, number, attributes elements
+                const parent = node.parentElement;
+                if (
+                  parent.tagName === "MARKER" ||
+                  parent.tagName === "NUMBER" ||
+                  parent.tagName === "ATTRIBUTES" ||
+                  parent.tagName === "ZALN"
+                ) {
+                  return NodeFilter.FILTER_REJECT;
+                }
+                // Accept text that's not purely whitespace
+                return node.textContent.trim()
+                  ? NodeFilter.FILTER_ACCEPT
+                  : NodeFilter.FILTER_REJECT;
+              },
+            });
+
+            let textNode;
+            while ((textNode = walker.nextNode())) {
+              // If we already have text and this isn't just whitespace, add a space
+              if (verseText && textNode.textContent.trim()) {
+                verseText += " ";
+              }
+              verseText += textNode.textContent;
+            }
+
+            // Clean up the text
+            verseText = verseText.trim();
+
+            // Enhanced debugging for USFM text extraction
+            console.log("📖 USFM Text Extraction Debug:");
+            console.log("  - Target verse:", `${chapter}:${verse}`);
+            console.log("  - Input USFM (first 300 chars):", usfmText?.substring(0, 300));
+            console.log("  - Verse element found:", true);
+            console.log("  - Extracted verse text:", verseText);
+            console.log("  - Text length:", verseText.length);
+            console.log(
+              "  - Contains Greek/Hebrew?:",
+              /[\u0370-\u03FF\u0590-\u05FF]/.test(verseText)
+            );
+
+            return verseText;
           }
         }
 
@@ -436,6 +497,20 @@ export function ResourcesProvider({ children }) {
       },
     };
   }, [resources, metadata, isLoading, verse]);
+
+  // Expose getFormattedContext to window for debugging
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window._resourcesContext = {
+        getFormattedContext,
+        resources,
+        metadata,
+        manifests,
+        isLoading,
+        error,
+      };
+    }
+  }, [getFormattedContext, resources, metadata, manifests, isLoading, error]);
 
   const value = {
     resources,
