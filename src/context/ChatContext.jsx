@@ -29,6 +29,8 @@ export function ChatProvider({ children }) {
   const [error, setError] = useState(null);
   const [currentContext, setCurrentContext] = useState(null);
   const [conversationReference, setConversationReference] = useState(null);
+  // Keep a running history of references used during the conversation
+  const [referenceHistory, setReferenceHistory] = useState([]);
   const [resourceChangeNotification, setResourceChangeNotification] = useState(null);
   const [sessionCost, setSessionCost] = useState({
     total: 0,
@@ -36,6 +38,20 @@ export function ChatProvider({ children }) {
     totalTokens: { input: 0, output: 0 },
     messages: [], // Store individual message costs
   });
+
+  /**
+   * Updates the active reference and records it in the history array
+   */
+  const updateConversationReference = useCallback((newRef) => {
+    setConversationReference((prevRef) => {
+      if (prevRef !== newRef) {
+        setReferenceHistory((hist) =>
+          hist[hist.length - 1] !== newRef ? [...hist, newRef] : hist
+        );
+      }
+      return newRef;
+    });
+  }, []);
 
   // Get current reference from ReferenceContext
   const referenceContext = useReferenceContext();
@@ -150,7 +166,7 @@ export function ChatProvider({ children }) {
         }
 
         // Update conversation reference and context
-        setConversationReference(currentRef);
+        updateConversationReference(currentRef);
         setCurrentContext(context);
 
         // Determine if we should use mock response
@@ -255,6 +271,7 @@ export function ChatProvider({ children }) {
     setCurrentContext(null);
     setError(null);
     setConversationReference(null);
+    setReferenceHistory([]);
     setResourceChangeNotification(null);
     setSessionCost({
       total: 0,
@@ -334,11 +351,11 @@ export function ChatProvider({ children }) {
       const currentRef = `${reference.bookId} ${reference.chapter}:${reference.verse}`;
       if (conversationReference !== currentRef) {
         // Just update the conversation reference silently - no blocking notifications
-        setConversationReference(currentRef);
+        updateConversationReference(currentRef);
         console.log(`[ChatContext] Context updated from ${conversationReference} to ${currentRef}`);
       }
     }
-  }, [reference, conversationReference, chatHistory.length]);
+  }, [reference, conversationReference, chatHistory.length, updateConversationReference]);
 
   const value = {
     chatHistory,
@@ -346,6 +363,7 @@ export function ChatProvider({ children }) {
     error,
     currentContext,
     conversationReference,
+    referenceHistory,
     resourceChangeNotification,
     sendMessage,
     clearChat,

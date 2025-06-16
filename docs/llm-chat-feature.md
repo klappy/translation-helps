@@ -1,5 +1,20 @@
 # LLM Chat Feature Documentation
 
+## Version 2.4.0 Update (2025-06-16) - Reference History Bubble
+
+The chat header now shows a running list of references used during the conversation.
+As you navigate between verses, the badge expands to include each new reference
+so you can easily track which passages have been discussed.
+
+### Implementation Highlights
+
+- `ChatContext` now maintains a `referenceHistory` array tracking each reference
+  used in order.
+- `LLMChatPanel` renders this list in the context indicator badge, joined by
+  arrows (e.g., `TIT 1:1 → GEN 1:2`).
+- Clearing the chat resets the history so a fresh conversation starts clean.
+
+
 ## Version 2.3.0 Update (2025-06-15) - Seamless Context Slipstreaming
 
 ### 🚀 **Revolutionary Chat Experience Enhancement**
