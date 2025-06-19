@@ -85,16 +85,46 @@ export function LLMChatPanel({ reference }) {
     return `$${cost.toFixed(4)}`;
   };
 
-  const getCostColor = (cost) => {
-    if (cost < 0.01) return styles.costLow;
-    if (cost < 0.1) return styles.costMedium;
-    return styles.costHigh;
-  };
+
 
   const getSessionCostColor = (total) => {
     if (total < 0.01) return styles.sessionCostLow;
     if (total < 0.1) return styles.sessionCostMedium;
     return styles.sessionCostHigh;
+  };
+
+  // Handle clicking on prompt suggestions
+  const handlePromptSuggestionClick = async (prompt) => {
+    if (!areResourcesReady() || isLoading) return;
+    
+    setInputMessage(prompt);
+    
+    // Auto-send the message
+    await sendMessage(prompt);
+  };
+
+  // Get contextual prompt suggestions based on available resources
+  const getPromptSuggestions = () => {
+    const suggestions = [
+      "What are the key translation challenges for this verse?",
+      "Explain the cultural context of this passage",
+      "What are the important words to understand in this verse?",
+    ];
+
+    // Add resource-specific suggestions
+    if (resourceStatus.resourceCounts?.translationNotes > 0) {
+      suggestions.push("Summarize the translation notes for this verse");
+    }
+    
+    if (resourceStatus.resourceCounts?.translationQuestions > 0) {
+      suggestions.push("What questions should translators consider?");
+    }
+    
+    if (resourceStatus.resourceCounts?.translationWords > 0) {
+      suggestions.push("Define the key theological terms in this passage");
+    }
+
+    return suggestions.slice(0, 6); // Limit to 6 suggestions
   };
 
   const renderMessage = (message) => {
@@ -131,7 +161,7 @@ export function LLMChatPanel({ reference }) {
             {formatTimestamp(message.timestamp)}
             {isAssistant && message.costEstimate && (
               <div
-                className={`${styles.messageCost} ${getCostColor(message.costEstimate.totalCost)}`}
+                className={styles.messageCost}
                 title={`Message Cost Breakdown
 Context: ${message.costEstimate.contextSize}
 Input: ${
@@ -406,9 +436,22 @@ Model: GPT-4o-mini`}
               )}
             </div>
           </div>
-          <p className={styles.promptSuggestion}>
-            Try asking: "What are the key translation challenges for this verse?"
-          </p>
+          <div className={styles.promptSuggestions}>
+            <p><strong>Try asking:</strong></p>
+            <div className={styles.suggestionsList}>
+              {getPromptSuggestions().map((suggestion, index) => (
+                <button
+                  key={index}
+                  className={styles.suggestionButton}
+                  onClick={() => handlePromptSuggestionClick(suggestion)}
+                  disabled={isLoading || !areResourcesReady()}
+                  title={`Click to ask: "${suggestion}"`}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

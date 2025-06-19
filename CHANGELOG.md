@@ -1,5 +1,39 @@
 # Changelog
 
+## [2.10.0] - 2025-01-27
+
+### Added
+
+- **Interactive Prompt Suggestions in AI Chat Panel** - Enhanced user experience with clickable suggestion buttons
+  - ✅ **Multiple Smart Suggestions**: 3-6 contextual prompts based on available resources
+  - ✅ **Click-to-Send Functionality**: Users can click any suggestion to automatically send that message
+  - ✅ **Resource-Aware Prompts**: Dynamic suggestions adapt to loaded translation resources
+  - ✅ **Professional Styling**: ETEN Lab themed buttons with hover effects and accessibility support
+
+### Changed
+
+- **AI Chat Panel Welcome Message Enhancement**
+  - ✅ **Replaced Static Text**: Converted single italic suggestion to interactive button grid
+  - ✅ **Improved Discovery**: Users can now easily explore AI assistant capabilities
+  - ✅ **Better Onboarding**: Clear visual hierarchy with "Try asking:" header
+
+### Fixed
+
+- **Cost Badge Theme Consistency Issues**
+  - ✅ **Removed Unique Colors**: Eliminated cost-based color differentiation that caused inconsistent styling
+  - ✅ **ETEN Lab Branding**: All cost badges now use consistent green background with black text
+  - ✅ **Simplified Logic**: Removed unnecessary `getCostColor()` function and dynamic class application
+- **Light Theme Contrast Improvements**
+  - ✅ **Suggestion Button Text**: Changed from green to dark text for better readability on light backgrounds
+  - ✅ **Help Quote Colors**: Updated light theme to use proper contrast ratios
+
+### Technical Implementation
+
+- **Smart Prompt Generation**: `getPromptSuggestions()` function dynamically creates relevant prompts
+- **Accessibility Compliance**: Proper focus states, keyboard navigation, and ARIA labels
+- **Theme Integration**: Consistent styling using CSS variables and ETEN Lab design system
+- **Performance Optimization**: Efficient rendering with proper disabled states and loading indicators
+
 ## [2.9.0] - 2025-01-27
 
 ### Changed

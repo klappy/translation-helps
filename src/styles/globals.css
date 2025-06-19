@@ -186,7 +186,7 @@
   --help-card-margin: var(--spacing-3);
   --help-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 
-  --help-quote-background: #1a3a4a;
+  --help-quote-background: #2a2a2a;
   --help-quote-color: #d1e74e;
   --help-quote-padding: var(--spacing-1) var(--spacing-2);
   --help-quote-border-radius: var(--radius-sm);
@@ -283,8 +283,8 @@
   /* Light theme help panel */
   --help-card-background: #f8f9fa;
   --help-card-border: 4px solid var(--color-primary);
-  --help-quote-background: #e3f2fd;
-  --help-quote-color: #1565c0;
+  --help-quote-background: #f0f0f0;
+  --help-quote-color: var(--color-text);
   --help-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -375,7 +375,7 @@
   /* Dark theme help panel */
   --help-card-background: #1a1a1a;
   --help-card-border: 4px solid var(--color-primary);
-  --help-quote-background: #1a3a4a;
+  --help-quote-background: #2a2a2a;
   --help-quote-color: #d1e74e;
 }
 
