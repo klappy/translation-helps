@@ -27,7 +27,7 @@ export function RcLink({ rcUri, children, onRcLinkClick }) {
       style={{
         background: "none",
         border: "none",
-        color: "#1976d2",
+        color: "var(--color-primary)",
         textDecoration: "underline",
         cursor: "pointer",
         padding: 0,

@@ -12,51 +12,57 @@
 .usfm-semantic-renderer {
   width: 100%;
   max-width: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  color: #333;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text);
 }
 
 /* Mode toggle buttons */
 .mode-toggle {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding: 8px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+  padding: var(--spacing-2);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
 }
 
 .mode-button {
-  padding: 8px 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: white;
-  color: #666;
+  padding: var(--spacing-2) var(--spacing-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s ease;
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
 }
 
 .mode-button:hover {
-  background-color: #f8f8f8;
-  border-color: #999;
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
 }
 
 .mode-button.active {
-  background-color: #007bff;
+  background-color: var(--color-primary);
   color: white;
-  border-color: #007bff;
+  border-color: var(--color-primary);
+}
+
+.mode-button.active:hover {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  color: white;
 }
 
 /* Content container */
 .usfm-content {
-  padding: 16px;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  background-color: white;
+  padding: var(--spacing-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
@@ -64,17 +70,17 @@
 /* Loading and error states */
 .loading-state,
 .error-state {
-  padding: 32px;
+  padding: var(--spacing-8);
   text-align: center;
-  color: #666;
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
 .error-state {
-  background-color: #fff5f5;
-  border: 1px solid #fed7d7;
-  border-radius: 8px;
-  color: #c53030;
+  background-color: var(--color-error-light);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
 }
 
 /* 
@@ -97,16 +103,16 @@
 
 :global(header) {
   display: block;
-  margin-bottom: 8px;
-  font-family: Georgia, "Times New Roman", Times, serif;
-  font-size: 1.25em;
-  font-weight: 600;
+  margin-bottom: var(--spacing-2);
+  font-family: var(--font-family);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   text-align: center;
   letter-spacing: 0.02em;
-  line-height: 1.2;
-  color: #2d3748;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+  margin-top: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
 }
 
 /* Sections */
@@ -118,33 +124,33 @@
 /* Chapters */
 :global(c) {
   display: block;
-  margin: 24px 0 16px 0;
-  color: #2d3748;
+  margin: var(--spacing-6) 0 var(--spacing-4) 0;
+  color: var(--color-text);
 }
 
 /* Only style the chapter marker and number as large bold */
 :global(c) > :global(marker.c),
 :global(c) > :global(number) {
-  font-size: 1.5em;
-  font-weight: bold;
-  color: #2d3748;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
   display: inline-block;
   vertical-align: middle;
-  margin-right: 8px;
+  margin-right: var(--spacing-2);
 }
 
 /* Drop cap style for the first chapter number */
 :global(c) > :global(number):first-of-type {
-  font-size: 2.5em;
-  font-weight: bold;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
   float: left;
   line-height: 0.9;
   margin-right: 0.4em;
   margin-top: 0.1em;
   margin-bottom: 0.1em;
-  color: #2d3748;
-  font-family: Georgia, "Times New Roman", Times, serif;
-  text-shadow: 0 1px 2px #e2e8f0;
+  color: var(--color-text);
+  font-family: var(--font-family);
+  text-shadow: var(--shadow-sm);
   letter-spacing: 0.01em;
 }
 
@@ -178,9 +184,9 @@
 
 /* Verse and chapter numbers */
 :global(number) {
-  font-weight: bold;
-  color: #6c757d;
-  margin-right: 4px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  margin-right: var(--spacing-1);
 }
 
 /* Words and alignment */
@@ -203,11 +209,11 @@
   display: none; /* Hidden by default, shown in debug mode */
   font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
   font-size: 0.75em;
-  color: #6f42c1;
-  background-color: #f8f9fa;
+  color: var(--color-primary);
+  background-color: var(--color-surface-hover);
   padding: 1px 3px;
   border-radius: 2px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--color-border);
 }
 
 /* Markers */
@@ -215,11 +221,11 @@
   display: none; /* Hidden by default, shown based on mode */
   font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
   font-size: 0.75em;
-  color: #dc3545;
-  background-color: #fff5f5;
+  color: var(--color-error);
+  background-color: var(--color-error-light);
   padding: 1px 3px;
   border-radius: 2px;
-  border: 1px solid #fed7d7;
+  border: 1px solid var(--color-error-light);
   margin: 0 1px;
 }
 
@@ -236,7 +242,7 @@
   font-weight: bold;
   font-size: 1.1em;
   margin: 20px 0 12px 0;
-  color: #2d3748;
+  color: var(--color-text);
 }
 
 /* Section headings rendered as <heading class="section-heading"> */
@@ -245,7 +251,7 @@
   font-weight: bold;
   font-size: 1.5em;
   margin: 32px 0 16px 0;
-  color: #2d3748;
+  color: var(--color-text);
   font-family: Georgia, "Times New Roman", Times, serif;
   text-align: center;
   line-height: 1.2;
@@ -257,7 +263,7 @@
 :global(crossref) {
   display: inline;
   font-size: 0.9em;
-  color: #6c757d;
+  color: var(--color-text-muted);
 }
 
 /*
@@ -285,7 +291,7 @@
   margin: 16px 0 8px 0;
   font-family: Georgia, "Times New Roman", Times, serif;
   letter-spacing: 0.01em;
-  color: #2d3748;
+  color: var(--color-text);
 }
 
 :global(usfm.preview) :global(header.toc1) {
@@ -295,7 +301,7 @@
   text-align: center;
   margin: 8px 0 4px 0;
   font-family: Georgia, "Times New Roman", Times, serif;
-  color: #2d3748;
+  color: var(--color-text);
 }
 
 :global(usfm.preview) :global(header.toc2) {
@@ -305,7 +311,7 @@
   text-align: center;
   margin: 4px 0 2px 0;
   font-family: Georgia, "Times New Roman", Times, serif;
-  color: #2d3748;
+  color: var(--color-text);
 }
 
 :global(usfm.preview) :global(header.toc3) {
@@ -315,7 +321,7 @@
   text-align: center;
   margin: 2px 0 2px 0;
   font-family: Georgia, "Times New Roman", Times, serif;
-  color: #2d3748;
+  color: var(--color-text);
 }
 
 :global(usfm.preview) :global(header.mt) {
@@ -325,7 +331,7 @@
   text-align: center;
   margin: 2px 0 2px 0;
   font-family: Georgia, "Times New Roman", Times, serif;
-  color: #2d3748;
+  color: var(--color-text);
 }
 
 :global(usfm.preview marker) {
@@ -378,7 +384,7 @@
 
 /* Debug mode visual indicators */
 :global(usfm.debug zaln) {
-  border: 1px dashed #28a745;
+  border: 1px dashed var(--color-success);
   border-radius: 3px;
   padding: 1px 2px;
   margin: 1px;
@@ -386,7 +392,7 @@
 }
 
 :global(usfm.debug word) {
-  border: 1px dashed #007bff;
+  border: 1px dashed var(--color-primary);
   border-radius: 3px;
   padding: 1px 2px;
   margin: 1px;
@@ -394,7 +400,7 @@
 }
 
 :global(usfm.debug v) {
-  border-left: 3px solid #fd7e14;
+  border-left: 3px solid var(--color-warning);
   padding-left: 8px;
   margin: 4px 0;
   display: block;
@@ -402,7 +408,7 @@
 }
 
 :global(usfm.debug c) {
-  border: 2px solid #6f42c1;
+  border: 2px solid var(--color-primary-dark);
   padding: 8px;
   margin: 8px 0;
   background-color: rgba(111, 66, 193, 0.05);

@@ -54,12 +54,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-button-secondary);
+  background-color: var(--color-surface);
   color: var(--color-text);
 }
 
 .search-toggle:hover {
-  background-color: var(--color-button-secondary-hover);
+  background-color: var(--color-surface-hover);
   border-color: var(--color-border-hover);
 }
 
@@ -75,8 +75,9 @@
 }
 
 .search-toggle.active:hover {
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  color: white;
 }
 
 .search-panel {
@@ -113,8 +114,8 @@
   padding: var(--spacing-6);
   text-align: center;
   color: var(--color-error);
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
+  background-color: var(--color-error-light);
+  border: 1px solid var(--color-error-dark);
   border-radius: var(--radius-md);
   margin: var(--spacing-4) 0;
 }

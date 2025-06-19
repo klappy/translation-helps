@@ -42,24 +42,25 @@
   gap: var(--spacing-3);
 }
 
-.contextIndicator {
-  display: flex;
+.contextIndicator, .costBadge, .sessionCostIndicator {
+  background-color: var(--color-primary);
+  color: var(--color-text);
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--help-meta-size);
+  font-weight: var(--font-weight-medium);
+  display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
-  padding: var(--spacing-1) var(--spacing-2);
-  background-color: var(--help-quote-background);
-  border-radius: var(--radius-full);
-  font-size: var(--help-meta-size);
-  color: var(--help-quote-color);
-  border: 1px solid var(--color-primary-light);
 }
 
 .contextIcon {
-  font-size: var(--font-size-sm);
+  color: var(--color-text);
 }
 
 .contextText {
-  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
 }
 
 .loadingIndicator {
@@ -113,7 +114,7 @@
   border-radius: var(--radius-full);
   font-size: var(--help-meta-size);
   font-weight: var(--font-weight-medium);
-  border: 1px solid;
+  border: 1px solid transparent;
   transition: all var(--transition-fast);
   cursor: help;
 }
@@ -123,22 +124,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.sessionCostLow {
-  background-color: #f0f9ff;
-  color: #0369a1;
-  border-color: #7dd3fc;
-}
-
-.sessionCostMedium {
-  background-color: #fefce8;
-  color: #a16207;
-  border-color: #fde047;
-}
-
-.sessionCostHigh {
-  background-color: #fef2f2;
-  color: #dc2626;
-  border-color: #fca5a5;
+.sessionCostLow, .sessionCostMedium, .sessionCostHigh {
+  background: none;
+  color: inherit;
+  border: none;
 }
 
 .sessionCostIcon {
@@ -218,13 +207,13 @@
 }
 
 .resourceTag {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: var(--color-text);
   padding: var(--spacing-1) var(--spacing-2);
   border-radius: var(--radius-full);
   font-size: var(--help-meta-size);
   font-weight: var(--font-weight-medium);
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--color-primary-light);
 }
 
 /* Resource Change Notification */
@@ -286,7 +275,7 @@
 
 .primaryButton {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-text);
   border: none;
   border-radius: var(--radius-md);
   padding: var(--spacing-2) var(--spacing-3);
@@ -536,8 +525,9 @@
 }
 
 .userMessage .messageContent {
-  background-color: var(--color-primary);
-  color: white;
+  background-color: var(--color-surface-hover);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-primary);
   border-radius: 18px 18px 4px 18px;
   padding: var(--spacing-3) var(--spacing-4);
   font-size: var(--font-size-sm);
@@ -773,7 +763,7 @@
   font-weight: var(--font-weight-medium);
   font-variant-numeric: tabular-nums;
   cursor: help;
-  border: 1px solid;
+  border: 1px solid transparent;
   transition: all var(--transition-fast);
   margin-left: var(--spacing-2);
 }
@@ -783,22 +773,17 @@
   opacity: 1;
 }
 
-.costLow {
-  background-color: #f0f9ff;
-  color: #0369a1;
-  border-color: #7dd3fc;
-}
-
-.costMedium {
-  background-color: #fefce8;
-  color: #a16207;
-  border-color: #fde047;
-}
-
-.costHigh {
-  background-color: #fef2f2;
-  color: #dc2626;
-  border-color: #fca5a5;
+.costBadge {
+  background-color: var(--color-primary);
+  color: var(--color-text);
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--help-meta-size);
+  font-weight: var(--font-weight-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
 }
 
 /* Loading Message */
@@ -896,7 +881,7 @@
 
 .messageInput {
   flex: 1;
-  border: 1px solid var(--color-border);
+  border: 1.5px solid var(--color-primary);
   border-radius: 20px;
   padding: var(--spacing-3) var(--spacing-4);
   font-size: var(--font-size-sm);
@@ -905,8 +890,9 @@
   max-height: 120px;
   min-height: var(--touch-target-min);
   line-height: var(--line-height-normal);
-  background-color: var(--help-card-background);
+  background-color: var(--color-surface);
   transition: all var(--transition-fast);
+  color: var(--color-text);
 }
 
 .messageInput:focus {
@@ -914,6 +900,7 @@
   border-color: var(--color-primary);
   background-color: var(--color-surface);
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  color: var(--color-text);
 }
 
 .messageInput:disabled {
@@ -923,7 +910,7 @@
 
 .sendButton {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-text);
   border: none;
   border-radius: 50%;
   width: var(--touch-target-min);
@@ -989,7 +976,7 @@
 
 .devIndicator {
   background-color: var(--color-warning);
-  color: white;
+  color: var(--color-text);
   padding: var(--spacing-1) var(--spacing-2);
   border-radius: var(--radius-md);
   font-weight: var(--font-weight-medium);

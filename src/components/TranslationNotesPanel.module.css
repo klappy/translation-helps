@@ -26,7 +26,7 @@
 }
 
 .noteCard {
-  background-color: var(--help-card-background);
+  background-color: var(--color-surface);
   border-left: var(--help-card-border);
   border-radius: var(--help-card-border-radius);
   padding: var(--help-card-padding);
@@ -37,23 +37,24 @@
 .noteQuote {
   font-weight: var(--font-weight-bold);
   font-size: var(--font-size-sm);
-  color: var(--help-quote-color);
+  color: var(--color-primary);
   margin-bottom: var(--spacing-2);
-  font-family: monospace;
-  background-color: var(--help-quote-background);
+  font-family: var(--font-family-mono);
+  background-color: var(--color-surface);
   padding: var(--help-quote-padding);
   border-radius: var(--help-quote-border-radius);
   display: inline-block;
+  border: 1px solid var(--color-border);
 }
 
 .noteOccurrence {
   font-size: var(--help-meta-size);
-  opacity: 0.8;
+  color: var(--color-text-muted);
 }
 
 .noteText {
   line-height: var(--line-height-relaxed);
-  color: var(--help-text-color);
+  color: var(--color-text);
   font-size: var(--font-size-sm);
   margin: 0;
 }
@@ -61,21 +62,21 @@
 .noteTags {
   margin-top: var(--spacing-2);
   font-size: var(--help-meta-size);
-  color: var(--help-meta-color);
+  color: var(--color-text-muted);
   font-style: italic;
 }
 
 .noteSupportReference {
   margin-top: var(--spacing-1);
   font-size: var(--help-meta-size);
-  color: var(--help-meta-color);
+  color: var(--color-text-muted);
 }
 
 /* Loading, error, and empty states */
 .loadingState,
 .errorState,
 .emptyState {
-  color: #888;
+  color: var(--color-text-muted);
   font-style: italic;
   margin: 24px 0;
 }
@@ -96,7 +97,7 @@
   right: 0;
   bottom: 0;
   height: 2.5em;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #fff 100%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, var(--color-surface) 100%);
   pointer-events: none;
 }
 
@@ -111,12 +112,19 @@
 
 .showMoreBtn {
   display: block;
-  margin: 8px auto 0 auto;
-  background: #f8f9fa;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 4px 12px;
+  margin: var(--spacing-2) auto 0 auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-1) var(--spacing-3);
   cursor: pointer;
+  color: var(--color-text);
+  transition: all var(--transition-fast);
+}
+
+.showMoreBtn:hover {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
 }
 
 .showLessBtn {

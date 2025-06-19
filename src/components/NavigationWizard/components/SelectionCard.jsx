@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from "react";
+import styles from "./SelectionCard.module.css";
 
 export function SelectionCard({
   id,
@@ -23,112 +24,45 @@ export function SelectionCard({
     icon && typeof icon === "string" && (icon.startsWith("http") || icon.startsWith("/"));
   const shouldShowAvatar = isAvatarUrl && !imageError;
   const displayIcon = shouldShowAvatar ? null : icon || fallbackIcon;
-  const cardStyles = {
-    padding: isDesktop ? "20px" : "16px",
-    border: `2px solid ${isSelected ? "#007bff" : "#e1e5e9"}`,
-    borderRadius: "12px",
-    backgroundColor: isSelected ? "#f8fcff" : "#ffffff",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    position: "relative",
-    display: "flex",
-    alignItems: "center",
-    gap: isDesktop ? "16px" : "12px",
-    boxShadow: isSelected ? "0 4px 12px rgba(0, 123, 255, 0.1)" : "0 2px 4px rgba(0, 0, 0, 0.05)",
-  };
 
-  const iconStyles = {
-    fontSize: isDesktop ? "32px" : "24px",
-    minWidth: isDesktop ? "40px" : "32px",
-    textAlign: "center",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  };
+  // Build CSS classes
+  const cardClasses = [
+    styles.card,
+    isDesktop ? styles.cardDesktop : styles.cardMobile,
+    isSelected ? styles.cardSelected : ""
+  ].filter(Boolean).join(" ");
 
-  const avatarStyles = {
-    width: isDesktop ? "40px" : "32px",
-    height: isDesktop ? "40px" : "32px",
-    borderRadius: "50%",
-    objectFit: "cover",
-    border: "2px solid #e1e5e9",
-  };
+  const iconClasses = [
+    styles.icon,
+    isDesktop ? styles.iconDesktop : styles.iconMobile
+  ].join(" ");
 
-  const contentStyles = {
-    flex: 1,
-    minWidth: 0, // Allows text to wrap
-  };
+  const avatarClasses = [
+    styles.avatar,
+    isDesktop ? styles.avatarDesktop : styles.avatarMobile
+  ].join(" ");
 
-  const titleStyles = {
-    fontSize: isDesktop ? "16px" : "14px",
-    fontWeight: "600",
-    color: isSelected ? "#007bff" : "#212529",
-    margin: "0 0 4px 0",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  };
+  const titleClasses = [
+    styles.title,
+    isDesktop ? styles.titleDesktop : styles.titleMobile,
+    isSelected ? styles.titleSelected : ""
+  ].filter(Boolean).join(" ");
 
-  const subtitleStyles = {
-    fontSize: isDesktop ? "14px" : "12px",
-    color: isSelected ? "#0056b3" : "#6c757d",
-    margin: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  };
+  const subtitleClasses = [
+    styles.subtitle,
+    isDesktop ? styles.subtitleDesktop : styles.subtitleMobile,
+    isSelected ? styles.subtitleSelected : ""
+  ].filter(Boolean).join(" ");
 
-  const badgeStyles = {
-    position: "absolute",
-    top: "8px",
-    right: "8px",
-    backgroundColor: "#28a745",
-    color: "#ffffff",
-    fontSize: "10px",
-    fontWeight: "600",
-    padding: "2px 6px",
-    borderRadius: "12px",
-    textTransform: "uppercase",
-  };
-
-  const checkmarkStyles = {
-    position: "absolute",
-    top: isDesktop ? "12px" : "8px",
-    right: isDesktop ? "12px" : "8px",
-    width: "20px",
-    height: "20px",
-    borderRadius: "50%",
-    backgroundColor: "#007bff",
-    color: "#ffffff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "12px",
-    fontWeight: "600",
-  };
-
-  const handleMouseEnter = (e) => {
-    if (!isSelected) {
-      e.target.style.borderColor = "#007bff";
-      e.target.style.transform = "translateY(-2px)";
-      e.target.style.boxShadow = "0 4px 12px rgba(0, 123, 255, 0.15)";
-    }
-  };
-
-  const handleMouseLeave = (e) => {
-    if (!isSelected) {
-      e.target.style.borderColor = "#e1e5e9";
-      e.target.style.transform = "translateY(0)";
-      e.target.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.05)";
-    }
-  };
+  const checkmarkClasses = [
+    styles.checkmark,
+    isDesktop ? styles.checkmarkDesktop : styles.checkmarkMobile
+  ].join(" ");
 
   return (
     <div
-      style={cardStyles}
+      className={cardClasses}
       onClick={onClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       data-testid={`selection-card-${id}`}
       role='button'
       tabIndex={0}
@@ -140,19 +74,24 @@ export function SelectionCard({
       }}
     >
       {shouldShowAvatar ? (
-        <img src={icon} alt={title} style={avatarStyles} onError={() => setImageError(true)} />
+        <img 
+          src={icon} 
+          alt={title} 
+          className={avatarClasses} 
+          onError={() => setImageError(true)} 
+        />
       ) : (
-        displayIcon && <div style={iconStyles}>{displayIcon}</div>
+        displayIcon && <div className={iconClasses}>{displayIcon}</div>
       )}
 
-      <div style={contentStyles}>
-        <h3 style={titleStyles}>{title}</h3>
-        {subtitle && <p style={subtitleStyles}>{subtitle}</p>}
+      <div className={styles.content}>
+        <h3 className={titleClasses}>{title}</h3>
+        {subtitle && <p className={subtitleClasses}>{subtitle}</p>}
       </div>
 
-      {badge && <div style={badgeStyles}>{badge}</div>}
+      {badge && <div className={styles.badge}>{badge}</div>}
 
-      {isSelected && <div style={checkmarkStyles}>✓</div>}
+      {isSelected && <div className={checkmarkClasses}>✓</div>}
     </div>
   );
 }

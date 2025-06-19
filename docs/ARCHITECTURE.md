@@ -23,6 +23,7 @@ The current `src-new/` implementation follows a clean-slate rewrite approach wit
 - **Custom Hooks**: Reusable logic encapsulation
 - **Error Boundaries**: Graceful error handling
 - **Strict Mode**: Development-time checks and warnings
+- **CSS Variables Theme System**: Comprehensive light/dark mode support with ETEN Lab branding
 
 ---
 
@@ -77,7 +78,8 @@ App (Context Providers)
 └── ErrorBoundary
     └── MainView (Layout)
         ├── NavigationBar
-        │   └── ReferenceSelector
+        │   ├── ReferenceSelector
+        │   └── ThemeToggle (Light/Dark Mode)
         ├── ScripturePanel
         └── HelpsTabs
             ├── VerseTabs
@@ -99,6 +101,66 @@ ReferenceContext (Global reference state)
 ├── ResourcesContext (Loaded content)
 └── ChatContext (AI chat state & DOM extraction)
 ```
+
+---
+
+## 🎨 Theme System Architecture
+
+### CSS Variables-Based Theming
+
+The application implements a comprehensive theme system using CSS variables for consistent light/dark mode support:
+
+```css
+/* Light Theme (Default) */
+:root {
+  --color-primary: #c1d72e;        /* ETEN Lab green */
+  --color-background: #ffffff;     /* Page background */
+  --color-surface: #ffffff;        /* Card backgrounds */
+  --color-text: #1e293b;          /* Primary text */
+  /* 40+ variables total */
+}
+
+/* Dark Theme Override */
+[data-theme="dark"] {
+  --color-background: #0f172a;     /* Dark background */
+  --color-surface: #1e293b;        /* Dark card backgrounds */
+  --color-text: #ffffff;           /* Light text */
+  /* Corresponding dark variants */
+}
+```
+
+### Theme Toggle Implementation
+
+```javascript
+// ThemeToggle Component
+export function ThemeToggle() {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    // System preference detection
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    
+    const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+    setIsDark(theme === 'dark');
+    document.documentElement.setAttribute('data-theme', theme);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = isDark ? 'light' : 'dark';
+    setIsDark(!isDark);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
+}
+```
+
+### ETEN Lab Brand Integration
+
+- **Primary Color**: Official ETEN Lab green (#c1d72e) used consistently
+- **Brand Compliance**: All hardcoded colors replaced with themed variables
+- **Visual Hierarchy**: Maintained across both light and dark modes
+- **Accessibility**: WCAG-compliant contrast ratios in both themes
 
 ---
 

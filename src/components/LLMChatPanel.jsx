@@ -163,7 +163,7 @@ ${message.costEstimate.resources.translationWordLinks ? "✓" : "✗"} Links (${
 
 Model: ${message.costEstimate.model}`}
               >
-                💰 {formatCostDisplay(message.costEstimate.totalCost)}
+                <span className={styles.costBadge}>{formatCostDisplay(message.costEstimate.totalCost)}</span>
               </div>
             )}
             {message.metadata?.mock && <span className={styles.mockBadge}>MOCK</span>}

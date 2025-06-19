@@ -95,7 +95,7 @@ export function TWLPanel({ reference }) {
   if (error) {
     return (
       <div className="twl-panel" data-testid="twl-panel">
-        <p style={{ color: 'red' }}>{error}</p>
+        <p style={{ color: 'var(--color-error)' }}>{error}</p>
       </div>
     );
   }
@@ -114,7 +114,7 @@ export function TWLPanel({ reference }) {
       <div className="twl-content">
         {twlData.map((item) => (
           <div key={item.id} className="twl-item" style={{ marginBottom: '16px', padding: '12px', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
-            <h4 style={{ margin: '0 0 8px 0', color: '#1976d2' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: 'var(--color-primary)' }}>
               {item.word} 
               {item.occurrence !== '1' && <span style={{ fontSize: '0.8em', color: '#666' }}> (occurrence {item.occurrence})</span>}
             </h4>
@@ -123,7 +123,7 @@ export function TWLPanel({ reference }) {
                 href={`https://git.door43.org/unfoldingWord/en_tw/src/branch/master/bible/${item.twLink}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                style={{ color: '#1976d2' }}
+                style={{ color: 'var(--color-primary)' }}
               >
                 View Translation Word Article →
               </a>

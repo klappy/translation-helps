@@ -1,8 +1,43 @@
 # Changelog
 
-## [2.5.1]
+## [2.6.0] - 2025-01-26
+
+### Added
+
+- **Complete Theme System and Light/Dark Mode Support - ETEN Lab Brand Integration**
+  - ✅ **Theme Toggle Component**: New ThemeToggle.jsx with system preference detection, localStorage persistence, and accessibility features
+  - ✅ **Comprehensive CSS Variable System**: 40+ CSS variables for colors, spacing, typography, and effects with full light/dark mode support
+  - ✅ **ETEN Lab Brand Colors**: Integrated official ETEN Lab green (#c1d72e) as primary color throughout the application
+  - ✅ **Dark Mode Implementation**: Complete dark theme with proper contrast ratios and visual hierarchy
+  - ✅ **System Preference Detection**: Automatic theme selection based on user OS preference with manual override capability
+  - ✅ **Theme Persistence**: LocalStorage-based theme preference saving across browser sessions
+
+### Changed
+
+- **Component Modernization - CSS Modules Migration**
+  - ✅ **NavigationWizard Components**: Converted SearchableGrid and SelectionCard from inline styles to CSS modules with proper theming
+  - ✅ **Theme Toggle Integration**: Added theme toggle to NavigationBar with consistent styling and accessibility
+  - ✅ **CSS Architecture**: Migrated from hardcoded colors to CSS variable system across 25+ component files
+  - ✅ **Design System Consistency**: Unified color palette, spacing, and visual effects across all UI components
 
 ### Fixed
+
+- **Critical Theme Consistency Issues**
+  - ✅ **Scripture Headers Dark Mode**: Fixed USFM headers appearing as dark text on dark background by replacing hardcoded colors with CSS variables
+  - ✅ **Highlight Text Contrast**: Enhanced scripture search highlighting with proper contrast (white text on ETEN Lab green background)
+  - ✅ **Navigation Modal Theming**: Fixed white modal backgrounds and borders in dark mode for navigation wizard
+  - ✅ **Chat Input Visibility**: Resolved white text on white background issue in LLM chat input for light mode
+  - ✅ **RC Links Brand Consistency**: Updated all Resource Catalog links from hardcoded blue (#1976d2) to ETEN Lab green theme
+  - ✅ **Message Cost Pill Border**: Removed unwanted black border by making border transparent
+  - ✅ **Undefined CSS Variables**: Added missing --color-dark and --color-darker variables that were causing console errors
+
+### Removed
+
+- **Legacy Theme System**: Removed src/theme.js in favor of CSS-based theming system for better performance and maintainability
+
+## [2.5.1]
+
+### Added
 
 - **USFM Text Extraction Enhancement**
   - ✅ Fixed scripture text extraction to properly handle USFM markup and preserve punctuation
@@ -28,7 +63,7 @@
 
 - **ResourcesContext Scripture Extraction**: Updated to use "text" mode when extracting scripture for LLM context, providing cleaner text without distracting markup
 
-### Fixed
+### Added
 
 - Fixed scripture text extraction in ResourcesContext to use `innerText` instead of `textContent`, ensuring LLM context only includes visible scripture text without USFM markers or alignment attributes
 
@@ -39,7 +74,7 @@
 - Window-exposed ResourcesContext for debugging scripture extraction issues
 - Comprehensive documentation of scripture quoting approaches in `docs/scripture-quoting-approaches.md`
 
-### Fixed
+### Added
 
 - **LLM Scripture Quoting Field Confusion**
   - ✅ Fixed LLM quoting Greek/Hebrew alignment data instead of English scripture text
@@ -126,7 +161,7 @@ This feature transforms the AI chat from a static, single-context tool into a dy
 
 ## [2.2.1] - 2025-06-15
 
-### Fixed
+### Added
 
 - **USFM Scripture Text Extraction - Architectural Enhancement Using Semantic Rendering System**
   - ✅ **Fixed LLM Getting Truncated Scripture Text**: Replaced broken regex-based USFM text extraction with robust semantic rendering system
@@ -147,7 +182,7 @@ This feature transforms the AI chat from a static, single-context tool into a dy
 
 ## [2.2.0] - 2025-06-15
 
-### Fixed
+### Added
 
 - **Critical USFM Alignment Data Extraction Bug - LLM Scripture Context Issue Resolved**
 
@@ -199,7 +234,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 - Chat interface now auto-starts a new conversation with updated resources when the reference changes, removing the blocking "Reference Changed" dialog.
 
-### Fixed
+### Added
 
 - Fixed bug where the app was stuck on Titus 1:1 or an uninitialized context after navigation or refresh.
 - Fixed race conditions and resource/context mismatch on initial load and navigation.
@@ -219,7 +254,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.13.16] - 2025-06-14
 
-### Fixed & Changed
+### Added & Changed
 
 - **USFM Parser/Renderer Pipeline Robustness**
   - 🛠️ Section headings (`\s`, `\s1`, etc.) now render as `<heading class="section-heading">` and always self-close before any block-level marker (paragraph, verse, heading, chapter, etc.), never nesting or containing block-level elements.
@@ -255,7 +290,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 - **Version Bump**
   - 🚀 Bumped version to 0.13.16 for release of all USFM parser, renderer, and documentation improvements.
 
-### Fixed
+### Added
 
 - **Book Manifest Loading Failure**
   - ✅ Updated `BookStep` to use manifests from `MultiManifestsContext`
@@ -265,7 +300,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.13.14] - 2025-06-13
 
-### Fixed
+### Added
 
 - **USFM Performance Optimization - Eliminated Multiple Parsing Cycles ([Performance Issue])**
   - ✅ **Root Cause Identified**: Multiple redundant USFM processing operations causing severe performance degradation on medium and large books
@@ -318,7 +353,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.13.13] - 2025-06-15
 
-### Fixed
+### Added
 
 - **tN Introduction Markdown Rendering**
   - ✅ `parseTsv` now converts literal "\\n" sequences to actual newlines
@@ -327,7 +362,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.13.12] - 2025-06-14
 
-### Fixed
+### Added
 
 - **Book and Chapter tN Notes Missing**
   - ✅ `tnService` now includes book-level (`front:intro`) and chapter-level (`<chapter>:intro`) notes when fetching notes for a verse
@@ -336,14 +371,14 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.13.11] - 2025-06-13
 
-### Fixed
+### Added
 
 - **Search Panel Resource Info Bug**
   - ✅ Search panel now displays selected Bible resource title, version, and rights instead of static TWL info
 
 ## [0.13.10] - 2025-06-12
 
-### Fixed
+### Added
 
 - **LLM Chat Actual Token Display Enhancement**
   - ✅ Fixed output tokens always showing hardcoded 500 instead of actual response token counts
@@ -374,7 +409,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.13.9] - 2025-06-12
 
-### Fixed
+### Added
 
 - **LLM Chat Context Missing Translation Questions - Critical ResourcesContext Synchronization Issue Resolved**
   - ✅ Fixed translation questions showing as `translationQuestions: 0` in LLM cost estimates when questions were available in the UI
@@ -407,7 +442,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.13.8] - 2025-06-12
 
-### Fixed
+### Added
 
 - **Book Listing Functionality Restored - Critical Navigation Issue Resolved**
   - ✅ Fixed broken book listing in Navigation Wizard that had been non-functional for days
@@ -440,7 +475,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.13.7] - 2025-06-12
 
-### Fixed
+### Added
 
 - **LLM Chat Nested List Styling - Enhanced Visual Hierarchy**
   - ✅ Fixed nested list items in AI responses to use normal bullet styling instead of card-based blue sidebar
@@ -546,7 +581,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
   - ✅ Verified functionality through testing with Genesis 1:1 showing proper markdown formatting
   - ✅ AI responses now include professional structure: Analysis headers, Key Terms sections, Translation Considerations
 
-### Fixed
+### Added
 
 - **LLM Chat Panel Timeout Issues - Production Reliability Enhancement**
   - ✅ Fixed timeout errors where requests failed after 10 seconds but OpenAI responded seconds later
@@ -581,7 +616,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.13.3] - 2025-06-12
 
-### Fixed
+### Added
 
 - **LLM Chat Translation Words Content Access and Enhanced Citation System**
   - ✅ Fixed translation words content missing in LLM chat responses due to incorrect field access
@@ -829,7 +864,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 - **Accessibility**: Complete support for screen readers and keyboard navigation
 - **Performance**: Smooth interactions with large USFM documents containing complex milestone markers
 
-### Fixed in Implementation
+### Added in Implementation
 
 - **Preview Mode Rendering**: Fixed decorator implementation to properly strip all USFM markup in preview mode
 - **Comprehensive Cleanup**: Added complete decorator cascade for removing all USFM tags, alignment markers, footnotes
@@ -903,7 +938,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.9.2] - 2025-06-06
 
-### Fixed
+### Added
 
 - **Enable Verse Click Navigation in Scripture Panel to Sync Helps Resources**
   - ✅ Enhanced verse click detection in USFMRenderer with comprehensive DOM traversal
@@ -952,7 +987,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.9.1] - 2025-06-06
 
-### Fixed
+### Added
 
 - **Scripture Panel RCL Navigation and Rendering Issues - COMPLETED**
   - ✅ Fixed chapter heading and verse block click navigation not updating helps resources context
@@ -1165,7 +1200,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.5.1] - 2025-06-04
 
-### Fixed
+### Added
 
 - **Code Usage Verification and Original Implementation Restoration**
   - ✅ Verified that application exclusively uses `/src-new` codebase with comprehensive audit
@@ -1217,7 +1252,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.4.9] - 2025-06-04
 
-### Fixed
+### Added
 
 - **Race Condition in Resource Loading (Regression)**
   - ✅ Fixed race condition causing intermittent resource loading failures for Bible resources like GLT
@@ -1238,7 +1273,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.4.8] - 2025-06-04
 
-### Fixed
+### Added
 
 - **Test Suite Hanging Issue Resolved**
   - ✅ Fixed infinite hanging on `useAppState.test.jsx` that prevented test completion
@@ -1259,7 +1294,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.4.7] - 2025-06-04
 
-### Fixed
+### Added
 
 - **Translation Helps Organization and Language Context Support - COMPLETED**
   - ✅ Updated Translation Notes (tN) service to accept and use organization and language parameters
@@ -1275,7 +1310,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.4.6] - 2025-06-04
 
-### Fixed
+### Added
 
 - **RC URI Language Code Duplication in URLs**
   - ✅ Fixed URL generation creating duplicate language codes (`/en/en_ult/` → `/en/ult/`)
@@ -1293,7 +1328,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.4.5] - 2025-06-04
 
-### Fixed
+### Added
 
 - **Language Code Duplication in DCS Repository URLs**
   - ✅ Fixed dcsClient.js to prevent language code duplication in repository URLs
@@ -1305,7 +1340,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.4.4] - 2025-06-04
 
-### Fixed
+### Added
 
 - **Critical Dropdown Synchronization Regression After Bad Implementation**
   - ✅ Fixed broken ManifestsWrapper component that corrupted context flow
@@ -1322,7 +1357,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.4.3] - 2025-06-04
 
-### Fixed
+### Added
 
 - **Dropdown Changes Not Reflecting in Scripture Panel**
   - ✅ Added missing `organization` dependency to ScripturePanel useEffect array
@@ -1345,7 +1380,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
   - ✅ Added comprehensive test coverage in catalogService.bible.test.js
   - ✅ Dynamic resource discovery shows actual Bible translations (ULT, UST, T4T, UEB)
 
-### Fixed
+### Added
 
 - **Resources vs Subjects API Mismatch**
   - ✅ Resolved UI showing "resources" while API uses "subjects" terminology
@@ -1361,7 +1396,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.4.1] - 2025-06-04
 
-### Fixed
+### Added
 
 - **DCS Catalog Language Display and Coverage Issues**
   - Enhanced language dropdown to show proper names instead of just codes ("EN - English" vs "en")
@@ -1374,7 +1409,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [Unreleased]
 
-### Fixed
+### Added
 
 - **USFM Performance Optimization - Eliminated Multiple Parsing Cycles ([Performance Issue])**
   - ✅ **Fixed Re-fetch Cycle**: Removed `usfmContent` from useEffect dependencies in ScripturePanelRCL to prevent fetch → update → re-fetch cycles
@@ -1492,7 +1527,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
   - ✅ Service function signatures updated to accept organization and language parameters
   - ✅ Test cases updated to match new service signatures
 
-### Fixed
+### Added
 
 - **Corrected misleading v0.4.0 changelog claims**
   - v0.4.0 claimed dynamic API integration was complete but actually used hardcoded values
@@ -1522,7 +1557,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
   - ✅ Fallback data when API calls fail to ensure app remains functional
   - ✅ Professional UI with consistent styling and responsive design
 
-### Fixed
+### Added
 
 - **URL Synchronization Issues**
   - ✅ Fixed URL parameters being overridden by app state instead of respecting URL as source of truth
@@ -1537,7 +1572,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.3.4] - 2025-05-31
 
-### Fixed
+### Added
 
 - **RC Links issues completely resolved**
   - ✅ Fixed article word links creating duplicate tabs (e.g., Tit 1:1 Paul)
@@ -1594,7 +1629,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 
 ## [0.3.1] - 2025-05-31
 
-### Fixed
+### Added
 
 - Verify verse click synchronization with translation helps panels
 

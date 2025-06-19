@@ -3,7 +3,7 @@
  * Root shell and provider wiring for clean-slate rewrite.
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ReferenceProvider } from "../context/ReferenceContext";
 import { MultiManifestsProvider } from "../context/MultiManifestsContext";
@@ -16,6 +16,18 @@ import { NavigationWizard } from "./NavigationWizard/index.jsx";
 export function App() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardInitialStep, setWizardInitialStep] = useState(1);
+
+  // Initialize theme on app load
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else if (systemPrefersDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }, []);
 
   const handleOpenWizard = (initialStep = 1) => {
     setWizardInitialStep(initialStep);
@@ -37,7 +49,11 @@ export function App() {
       <MultiManifestsProvider>
         <ResourcesProvider>
           <ChatProvider>
-            <div style={{ backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
+            <div style={{ 
+              backgroundColor: "var(--color-background)", 
+              minHeight: "100vh",
+              color: "var(--color-text)"
+            }}>
               <NavigationBar onOpenWizard={handleOpenWizard} />
               <Routes>
                 <Route path='/' element={<MainView />} />

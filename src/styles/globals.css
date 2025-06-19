@@ -4,23 +4,76 @@
  */
 
 :root {
-  /* Color Palette */
-  --color-primary: #2563eb;
-  --color-primary-light: #60a5fa;
-  --color-primary-dark: #1e40af;
-  --color-primary-hover: #1d4ed8;
+  /* Color Palette - ETEN Lab Theme */
+  --color-primary: #c1d72e; /* ETEN Lab green - exact color from website */
+  --color-primary-light: #d1e74e;
+  --color-primary-dark: #a1c70e;
+  --color-primary-hover: #b8d025;
   --color-secondary: #f59e42;
-  --color-background: #f8fafc;
+  --color-background: #ffffff; /* White */
   --color-surface: #ffffff;
+  --color-surface-hover: #f8f9fa;
   --color-border: #e2e8f0;
   --color-border-hover: #cbd5e1;
   --color-text: #1e293b;
   --color-text-light: #64748b;
   --color-text-muted: #94a3b8;
-  --color-success: #22c55e;
+  --color-dark: #1e293b;
+  --color-darker: #0f172a;
+  --color-success: #c1d72e; /* ETEN Lab green */
   --color-warning: #facc15;
   --color-error: #ef4444;
   --color-info: #0ea5e9;
+
+  /* Additional color variants for consistency */
+  --color-success-light: #e8f5e9;
+  --color-success-dark: #1b5e20;
+  --color-warning-light: #fff8e1;
+  --color-warning-dark: #f57c00;
+  --color-error-light: #ffebee;
+  --color-error-dark: #c62828;
+  --color-info-light: #e3f2fd;
+  --color-info-dark: #0277bd;
+
+  /* Status colors for chat and notifications */
+  --color-status-low: #e3f2fd;
+  --color-status-low-text: #0277bd;
+  --color-status-low-border: #90caf9;
+  --color-status-medium: #fff8e1;
+  --color-status-medium-text: #f57c00;
+  --color-status-medium-border: #ffcc80;
+  --color-status-high: #ffebee;
+  --color-status-high-text: #c62828;
+  --color-status-high-border: #ef9a9a;
+
+  /* Highlight colors for search and debug */
+  --color-highlight-yellow: var(--color-primary);
+  --color-highlight-yellow-dark: var(--color-primary-dark);
+  --color-highlight-green: rgba(193, 215, 46, 0.1);
+  --color-highlight-green-border: var(--color-primary);
+  --color-highlight-blue: rgba(193, 215, 46, 0.05);
+  --color-highlight-blue-border: var(--color-primary);
+  --color-highlight-orange: rgba(245, 158, 66, 0.05);
+  --color-highlight-orange-border: var(--color-secondary);
+  --color-highlight-purple: rgba(193, 215, 46, 0.08);
+  --color-highlight-purple-border: var(--color-primary-dark);
+
+  /* Tip and note colors */
+  --color-tip-background: #f0f9ff;
+  --color-tip-text: #0369a1;
+  --color-note-background: #fef3c7;
+  --color-note-text: #92400e;
+
+  /* Navigation Wizard specific colors */
+  --color-wizard-primary: var(--color-primary);
+  --color-wizard-primary-dark: var(--color-primary-dark);
+  --color-wizard-primary-light: var(--color-primary-light);
+  --color-wizard-secondary: #6c757d;
+  --color-wizard-success: var(--color-success);
+  --color-wizard-success-light: #d4edda;
+  --color-wizard-danger: #dc3545;
+  --color-wizard-warning: #ffc107;
+  --color-wizard-info: #17a2b8;
 
   /* Typography - Optimized for content density */
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
@@ -86,7 +139,7 @@
   /* Scripture-specific Design Tokens */
   --color-verse-background: var(--color-surface);
   --color-verse-background-selected: #e0f2fe;
-  --color-verse-background-hover: #f0f9ff; /* Lighter version of selected state */
+  --color-verse-background-hover: #f0f9ff;
   --color-verse-border: var(--color-border);
   --color-verse-border-selected: var(--color-primary);
   --color-verse-number: var(--color-primary);
@@ -123,6 +176,95 @@
   --help-text-color: var(--color-text);
   --help-meta-color: var(--color-text-light);
   --help-meta-size: var(--font-size-xs);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --color-primary: #c1d72e; /* ETEN Lab green - exact color from website */
+  --color-primary-light: #d1e74e;
+  --color-primary-dark: #a1c70e;
+  --color-primary-hover: #b8d025;
+  --color-secondary: #f59e42;
+  --color-background: #000000; /* Black */
+  --color-surface: #1a1a1a;
+  --color-surface-hover: #2d2d2d;
+  --color-border: #333333;
+  --color-border-hover: #404040;
+  --color-text: #ffffff; /* White */
+  --color-text-light: #cccccc;
+  --color-text-muted: #999999;
+  --color-dark: #cccccc;
+  --color-darker: #ffffff;
+  --color-success: #c1d72e; /* ETEN Lab green */
+  --color-warning: #facc15;
+  --color-error: #ef4444;
+  --color-info: #0ea5e9;
+
+  /* Additional color variants for dark theme */
+  --color-success-light: #1b5e20;
+  --color-success-dark: #e8f5e9;
+  --color-warning-light: #f57c00;
+  --color-warning-dark: #fff8e1;
+  --color-error-light: #c62828;
+  --color-error-dark: #ffebee;
+  --color-info-light: #0277bd;
+  --color-info-dark: #e3f2fd;
+
+  /* Status colors for dark theme */
+  --color-status-low: #0277bd;
+  --color-status-low-text: #e3f2fd;
+  --color-status-low-border: #90caf9;
+  --color-status-medium: #f57c00;
+  --color-status-medium-text: #fff8e1;
+  --color-status-medium-border: #ffcc80;
+  --color-status-high: #c62828;
+  --color-status-high-text: #ffebee;
+  --color-status-high-border: #ef9a9a;
+
+  /* Highlight colors for dark theme */
+  --color-highlight-yellow: var(--color-primary-light);
+  --color-highlight-yellow-dark: var(--color-primary);
+  --color-highlight-green: rgba(193, 215, 46, 0.2);
+  --color-highlight-green-border: var(--color-primary-light);
+  --color-highlight-blue: rgba(193, 215, 46, 0.1);
+  --color-highlight-blue-border: var(--color-primary-light);
+  --color-highlight-orange: rgba(245, 158, 66, 0.1);
+  --color-highlight-orange-border: var(--color-secondary);
+  --color-highlight-purple: rgba(193, 215, 46, 0.15);
+  --color-highlight-purple-border: var(--color-primary-light);
+
+  /* Tip and note colors for dark theme */
+  --color-tip-background: #0369a1;
+  --color-tip-text: #f0f9ff;
+  --color-note-background: #92400e;
+  --color-note-text: #fef3c7;
+
+  /* Dark theme shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px 0 rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 16px 0 rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+
+  /* Dark theme scripture tokens */
+  --color-verse-background: var(--color-surface);
+  --color-verse-background-selected: #1a3a4a;
+  --color-verse-background-hover: #2a4a5a;
+  --color-verse-border: var(--color-border);
+  --color-verse-border-selected: var(--color-primary);
+  --color-verse-number: var(--color-primary);
+  --color-verse-text: var(--color-text);
+  --color-chapter-header: var(--color-text);
+
+  /* Dark theme interactive states */
+  --color-button-secondary: #1a1a1a;
+  --color-button-secondary-hover: #2a2a2a;
+  --color-button-secondary-active: #333333;
+
+  /* Dark theme help panel */
+  --help-card-background: #1a1a1a;
+  --help-card-border: 4px solid var(--color-primary);
+  --help-quote-background: #1a3a4a;
+  --help-quote-color: #d1e74e;
 }
 
 /* Global Styles */

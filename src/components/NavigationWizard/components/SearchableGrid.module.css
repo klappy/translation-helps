@@ -1,0 +1,62 @@
+/**
+ * SearchableGrid Component Styles
+ * Using CSS variables for proper theming
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.searchInput {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-md);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-6);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-family);
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.grid {
+  display: grid;
+  gap: var(--spacing-4);
+  flex: 1;
+}
+
+.gridDesktop {
+  grid-template-columns: repeat(var(--columns, 2), 1fr);
+  gap: var(--spacing-4);
+}
+
+.gridMobile {
+  grid-template-columns: 1fr;
+  gap: var(--spacing-3);
+}
+
+.empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+  padding: var(--spacing-12) var(--spacing-4);
+  background-color: var(--color-surface-hover);
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--color-border);
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: var(--spacing-4);
+} 

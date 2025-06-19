@@ -6,6 +6,7 @@
 import React, { useContext } from "react";
 import { ReferenceContext } from "../context/ReferenceContext";
 import { NavigationBreadcrumbs } from "./NavigationBreadcrumbs";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function NavigationBar({ onOpenWizard }) {
   const { reference } = useContext(ReferenceContext);
@@ -13,23 +14,28 @@ export function NavigationBar({ onOpenWizard }) {
   return (
     <nav
       style={{
-        backgroundColor: "#1976d2",
+        backgroundColor: "var(--color-primary)",
         color: "white",
-        padding: "16px",
+        padding: "var(--spacing-4)",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        boxShadow: "var(--shadow-sm)",
         flexWrap: "wrap",
-        gap: "16px",
+        gap: "var(--spacing-4)",
       }}
     >
-      <h1 style={{ margin: 0, fontSize: "24px", flexShrink: 0 }}>Translation Helps Viewer</h1>
+      <h1 style={{ margin: 0, fontSize: "var(--font-size-2xl)", flexShrink: 0 }}>
+        Translation Helps Viewer
+      </h1>
 
       {/* Navigation Breadcrumbs */}
       <div style={{ flex: 1, minWidth: "300px" }}>
         <NavigationBreadcrumbs onOpenWizard={onOpenWizard} />
       </div>
+
+      {/* Theme Toggle */}
+      <ThemeToggle />
     </nav>
   );
 }

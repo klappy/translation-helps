@@ -119,7 +119,7 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
             style={{
               display: "flex",
               alignItems: "center",
-              background: activeTab === tab.id ? "#1976d2" : "transparent",
+              background: activeTab === tab.id ? "var(--color-primary)" : "transparent",
               borderRadius: "4px 4px 0 0",
               overflow: "hidden",
             }}
@@ -131,7 +131,7 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
                 padding: "8px 12px",
                 border: "none",
                 background: "transparent",
-                color: activeTab === tab.id ? "white" : "#666",
+                color: activeTab === tab.id ? "white" : "var(--color-text-muted)",
                 cursor: "pointer",
                 fontSize: "14px",
                 fontWeight: activeTab === tab.id ? "bold" : "normal",
@@ -152,14 +152,14 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
                   padding: "4px 8px",
                   border: "none",
                   background: "transparent",
-                  color: activeTab === tab.id ? "white" : "#666",
+                  color: activeTab === tab.id ? "white" : "var(--color-text-muted)",
                   cursor: "pointer",
                   fontSize: "16px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   borderLeft:
-                    activeTab === tab.id ? "1px solid rgba(255,255,255,0.3)" : "1px solid #e0e0e0",
+                    activeTab === tab.id ? "1px solid rgba(255, 255, 255, 0.3)" : "1px solid var(--color-border)",
                 }}
                 title='Close tab'
               >

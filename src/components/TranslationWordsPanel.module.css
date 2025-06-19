@@ -23,18 +23,18 @@
 }
 
 .wordCard {
-  background-color: var(--help-card-background);
+  background-color: var(--color-surface);
   border-left: var(--help-card-border);
   border-radius: var(--help-card-border-radius);
   padding: var(--help-card-padding);
   box-shadow: var(--help-card-shadow);
   cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .wordCard:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .wordCard.nonClickable {
@@ -64,7 +64,7 @@
 
 .wordSummary {
   margin: 0 0 var(--spacing-2) 0;
-  color: var(--help-text-color);
+  color: var(--color-text);
   line-height: var(--line-height-relaxed);
   font-size: var(--font-size-sm);
 }
@@ -80,22 +80,25 @@
 .tipSection {
   margin-top: var(--spacing-4);
   padding: var(--spacing-3);
-  background-color: #f0f7ff;
-  border-radius: var(--border-radius);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
 }
 
 .tipText {
   margin: 0;
-  color: #0066cc;
+  color: var(--color-text);
 }
 
 .tipIcon {
   margin-right: var(--spacing-1);
+  color: var(--color-primary);
 }
 
 .tipBold {
   font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
 }
 
 /* Loading, error, and empty states */

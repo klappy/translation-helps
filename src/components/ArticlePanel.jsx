@@ -29,48 +29,48 @@ export function ArticlePanel({ article, reference }) {
   return (
     <article data-testid='article-panel' style={{ lineHeight: "1.6" }}>
       <header
-        style={{ marginBottom: "20px", borderBottom: "1px solid #e0e0e0", paddingBottom: "16px" }}
+        style={{ marginBottom: "20px", borderBottom: "1px solid var(--color-border)", paddingBottom: "16px" }}
       >
-        <h2 style={{ margin: "0 0 8px 0", color: "#1976d2" }}>{article.title}</h2>
+        <h2 style={{ margin: "0 0 8px 0", color: "var(--color-primary)" }}>{article.title}</h2>
         {article.rcUri && (
-          <p style={{ margin: 0, fontSize: "0.9em", color: "#666" }}>
+          <p style={{ margin: 0, fontSize: "0.9em", color: "var(--color-text-muted)" }}>
             Source: <code>{article.rcUri}</code>
           </p>
         )}
       </header>
 
-      <div style={{ fontSize: "16px", color: "#333" }}>
+      <div style={{ fontSize: "16px", color: "var(--color-text)" }}>
         {article.content ? (
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
               h1: ({ children }) => (
-                <h1 style={{ margin: "20px 0 16px 0", color: "#1976d2", fontSize: "24px" }}>
+                <h1 style={{ margin: "20px 0 16px 0", color: "var(--color-primary)", fontSize: "24px" }}>
                   {children}
                 </h1>
               ),
               h2: ({ children }) => (
-                <h2 style={{ margin: "20px 0 16px 0", color: "#1976d2", fontSize: "20px" }}>
+                <h2 style={{ margin: "20px 0 16px 0", color: "var(--color-primary)", fontSize: "20px" }}>
                   {children}
                 </h2>
               ),
               h3: ({ children }) => (
-                <h3 style={{ margin: "16px 0 12px 0", color: "#1976d2", fontSize: "18px" }}>
+                <h3 style={{ margin: "16px 0 12px 0", color: "var(--color-primary)", fontSize: "18px" }}>
                   {children}
                 </h3>
               ),
               h4: ({ children }) => (
-                <h4 style={{ margin: "14px 0 10px 0", color: "#1976d2", fontSize: "16px" }}>
+                <h4 style={{ margin: "14px 0 10px 0", color: "var(--color-primary)", fontSize: "16px" }}>
                   {children}
                 </h4>
               ),
               h5: ({ children }) => (
-                <h5 style={{ margin: "12px 0 8px 0", color: "#1976d2", fontSize: "15px" }}>
+                <h5 style={{ margin: "12px 0 8px 0", color: "var(--color-primary)", fontSize: "15px" }}>
                   {children}
                 </h5>
               ),
               h6: ({ children }) => (
-                <h6 style={{ margin: "10px 0 6px 0", color: "#1976d2", fontSize: "14px" }}>
+                <h6 style={{ margin: "10px 0 6px 0", color: "var(--color-primary)", fontSize: "14px" }}>
                   {children}
                 </h6>
               ),
@@ -89,8 +89,8 @@ export function ArticlePanel({ article, reference }) {
                   style={{
                     margin: "12px 0",
                     padding: "8px 16px",
-                    borderLeft: "4px solid #1976d2",
-                    backgroundColor: "#f5f5f5",
+                    borderLeft: "4px solid var(--color-primary)",
+                    backgroundColor: "var(--color-surface-hover)",
                     fontStyle: "italic",
                   }}
                 >
@@ -101,7 +101,7 @@ export function ArticlePanel({ article, reference }) {
                 inline ? (
                   <code
                     style={{
-                      backgroundColor: "#f5f5f5",
+                      backgroundColor: "var(--color-surface-hover)",
                       padding: "2px 4px",
                       borderRadius: "3px",
                       fontSize: "0.9em",
@@ -112,7 +112,7 @@ export function ArticlePanel({ article, reference }) {
                 ) : (
                   <pre
                     style={{
-                      backgroundColor: "#f5f5f5",
+                      backgroundColor: "var(--color-surface-hover)",
                       padding: "12px",
                       borderRadius: "4px",
                       overflow: "auto",
@@ -129,7 +129,7 @@ export function ArticlePanel({ article, reference }) {
                   style={{
                     margin: "20px 0",
                     border: "none",
-                    borderTop: "1px solid #e0e0e0",
+                    borderTop: "1px solid var(--color-border)",
                   }}
                 />
               ),
@@ -139,7 +139,7 @@ export function ArticlePanel({ article, reference }) {
                     width: "100%",
                     borderCollapse: "collapse",
                     margin: "12px 0",
-                    border: "1px solid #e0e0e0",
+                    border: "1px solid var(--color-border)",
                   }}
                 >
                   {children}
@@ -149,8 +149,8 @@ export function ArticlePanel({ article, reference }) {
                 <th
                   style={{
                     padding: "8px 12px",
-                    backgroundColor: "#f5f5f5",
-                    border: "1px solid #e0e0e0",
+                    backgroundColor: "var(--color-surface-hover)",
+                    border: "1px solid var(--color-border)",
                     fontWeight: "600",
                     textAlign: "left",
                   }}
@@ -162,7 +162,7 @@ export function ArticlePanel({ article, reference }) {
                 <td
                   style={{
                     padding: "8px 12px",
-                    border: "1px solid #e0e0e0",
+                    border: "1px solid var(--color-border)",
                   }}
                 >
                   {children}
@@ -173,7 +173,7 @@ export function ArticlePanel({ article, reference }) {
             {article.content}
           </ReactMarkdown>
         ) : (
-          <p style={{ fontStyle: "italic", color: "#666" }}>
+          <p style={{ fontStyle: "italic", color: "var(--color-text-muted)" }}>
             No content available for this article.
           </p>
         )}
@@ -184,10 +184,10 @@ export function ArticlePanel({ article, reference }) {
           style={{
             marginTop: "20px",
             padding: "12px",
-            backgroundColor: "#fff3cd",
-            border: "1px solid #ffeaa7",
+            backgroundColor: "var(--color-warning-light)",
+            border: "1px solid var(--color-warning-dark)",
             borderRadius: "4px",
-            color: "#856404",
+            color: "var(--color-warning)",
           }}
         >
           <strong>Error loading content:</strong> {article.error}

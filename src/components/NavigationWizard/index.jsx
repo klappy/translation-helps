@@ -44,7 +44,8 @@ export function NavigationWizard({ onComplete, onClose, initialStep = 1 }) {
   };
 
   const modalContentStyles = {
-    backgroundColor: "white",
+    backgroundColor: "var(--color-surface)",
+    border: "1px solid var(--color-border)",
     borderRadius: "12px",
     width: "100%",
     maxWidth: "1200px",
@@ -58,14 +59,14 @@ export function NavigationWizard({ onComplete, onClose, initialStep = 1 }) {
     position: "absolute",
     top: "16px",
     right: "16px",
-    background: "rgba(0, 0, 0, 0.1)",
-    border: "none",
+    background: "var(--color-surface-hover)",
+    border: "1px solid var(--color-border)",
     borderRadius: "50%",
     width: "40px",
     height: "40px",
     cursor: "pointer",
     fontSize: "20px",
-    color: "#666",
+    color: "var(--color-text)",
     zIndex: 10,
     transition: "all 0.2s ease",
   };
@@ -95,10 +96,10 @@ export function NavigationWizard({ onComplete, onClose, initialStep = 1 }) {
           style={closeButtonStyles}
           onClick={handleCloseClick}
           onMouseEnter={(e) => {
-            e.target.style.backgroundColor = "rgba(0, 0, 0, 0.2)";
+            e.target.style.backgroundColor = "var(--color-border-hover)";
           }}
           onMouseLeave={(e) => {
-            e.target.style.backgroundColor = "rgba(0, 0, 0, 0.1)";
+            e.target.style.backgroundColor = "var(--color-surface-hover)";
           }}
           title='Close Navigation Wizard'
         >

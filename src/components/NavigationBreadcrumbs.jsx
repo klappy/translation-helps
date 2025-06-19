@@ -119,30 +119,30 @@ export function NavigationBreadcrumbs({ onOpenWizard }) {
           }
           
           .breadcrumb-disabled {
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--color-text-muted);
             cursor: not-allowed;
           }
           
           .breadcrumb-completed {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background-color: var(--color-surface-hover);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
             cursor: pointer;
           }
           
           .breadcrumb-default {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: var(--color-surface);
+            color: var(--color-text-muted);
+            border: 1px solid var(--color-border);
             cursor: pointer;
           }
           
           .breadcrumb-completed:hover,
           .breadcrumb-default:hover {
-            background-color: rgba(255, 255, 255, 0.3) !important;
-            border-color: rgba(255, 255, 255, 0.5) !important;
+            background-color: var(--color-surface-hover) !important;
+            border-color: var(--color-border-hover) !important;
             transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-sm);
           }
           
           .breadcrumb-disabled:hover {
@@ -178,7 +178,7 @@ export function NavigationBreadcrumbs({ onOpenWizard }) {
             {index < breadcrumbSteps.length - 1 && (
               <span
                 style={{
-                  color: "rgba(255, 255, 255, 0.6)",
+                  color: "var(--color-text-muted)",
                   fontSize: "12px",
                   userSelect: "none",
                 }}

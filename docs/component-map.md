@@ -12,6 +12,7 @@ This document lists and describes the major components in the viewer and their r
 | `MainView`              | `src-new/components/MainView.jsx`              | Orchestrates scripture, navigation, and helps panels     |
 | `NavigationBar`         | `src-new/components/NavigationBar.jsx`         | Application header with title and navigation breadcrumbs |
 | `NavigationBreadcrumbs` | `src-new/components/NavigationBreadcrumbs.jsx` | Visual breadcrumb navigation with context display        |
+| `ThemeToggle`           | `src/components/ThemeToggle.jsx`               | Light/dark theme toggle with system preference detection |
 | `ErrorBoundary`         | `src-new/components/ErrorBoundary.jsx`         | Error boundary for graceful error handling               |
 
 ---
