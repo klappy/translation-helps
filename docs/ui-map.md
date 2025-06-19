@@ -1,4 +1,4 @@
-# 🗺️ UI Map: translationHelps Viewer
+# 🗺️ UI Map: ETEN Innovation Lab Translation Helps
 
 This document explains the layout and function of each major area of the user interface.
 
@@ -8,9 +8,10 @@ This document explains the layout and function of each major area of the user in
 
 | Area                          | Description                                                                                                   |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Top App Bar**               | Displays project or book name; offers language selection and navigation options                               |
-| **Navigation Breadcrumbs**    | Visual breadcrumb display showing current organization, language, resource, book, and chapter:verse selection |
-| **Book/Chapter/Verse Picker** | Interactive selection to set the current passage context                                                      |
+| **Navigation Bar**            | Compact header with ETEN Lab logo button, collapsible breadcrumbs, and theme toggle                         |
+| **Logo Button**               | Clickable ETEN Lab logo that toggles breadcrumb navigation visibility                                        |
+| **Navigation Breadcrumbs**    | Collapsible breadcrumb display showing organization, language, resource, book, and chapter:verse (hidden by default) |
+| **Theme Toggle**              | Button to switch between dark/light themes with green icons                                                   |
 | **Navigation Wizard**         | Modal step-by-step wizard for guided selection of organization, language, resource, book, and chapter/verse   |
 | **Scripture Panel**           | Main area showing selected scripture content                                                                  |
 | **Helps Panel**               | Side or bottom panel with tabs for Notes, Words, Questions                                                    |
@@ -25,6 +26,8 @@ This document explains the layout and function of each major area of the user in
 
 | Action                      | Result                                           |
 | --------------------------- | ------------------------------------------------ |
+| Click ETEN Lab logo         | Toggles breadcrumb navigation visibility         |
+| Click theme toggle          | Switches between dark and light themes           |
 | Select book/chapter/verse   | Loads scripture and fetches relevant tN, tQ, TWL |
 | Click on a translation word | Loads tW article content in side panel           |
 | Toggle between tabs         | Switches between notes, questions, words, etc.   |
@@ -38,8 +41,9 @@ This document explains the layout and function of each major area of the user in
 
 - `App` → top-level application shell with context providers
 - `MainView` → main layout orchestrating all panels
-- `NavigationBar` → Application header with title and navigation breadcrumbs
-- `NavigationBreadcrumbs` → visual breadcrumb navigation display
+- `NavigationBar` → Compact header with ETEN Lab logo button, collapsible breadcrumbs, and theme toggle
+- `NavigationBreadcrumbs` → Collapsible breadcrumb navigation display (hidden by default)
+- `ThemeToggle` → Theme switching component with green icons and localStorage persistence
 - `NavigationWizard` → modal step-by-step selection wizard
 - `ScripturePanel` → displays selected scripture text
 - `HelpsTabs` → tabbed interface for translation helps

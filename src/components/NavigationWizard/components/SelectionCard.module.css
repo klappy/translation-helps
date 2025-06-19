@@ -125,7 +125,7 @@
   top: var(--spacing-2);
   right: var(--spacing-2);
   background-color: var(--color-success);
-  color: white;
+  color: var(--color-text-on-primary);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   padding: var(--spacing-1) var(--spacing-2);
@@ -139,7 +139,7 @@
   height: 20px;
   border-radius: 50%;
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-text-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;

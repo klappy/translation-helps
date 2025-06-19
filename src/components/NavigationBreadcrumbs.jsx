@@ -106,10 +106,10 @@ export function NavigationBreadcrumbs({ onOpenWizard }) {
           .breadcrumb-button {
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 14px;
+            gap: 3px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
             font-weight: 500;
             transition: all 0.2s ease;
             border: 1px solid transparent;
@@ -155,7 +155,7 @@ export function NavigationBreadcrumbs({ onOpenWizard }) {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "8px",
+          gap: "6px",
           flexWrap: "wrap",
         }}
       >
@@ -169,9 +169,9 @@ export function NavigationBreadcrumbs({ onOpenWizard }) {
               }
               data-testid={`breadcrumb-${step.id}`}
             >
-              <span style={{ fontSize: "16px" }}>{step.icon}</span>
+              <span style={{ fontSize: "12px" }}>{step.icon}</span>
               <span>{step.label}</span>
-              {step.completed && <span style={{ fontSize: "12px", marginLeft: "4px" }}>✓</span>}
+              {step.completed && <span style={{ fontSize: "9px", marginLeft: "3px" }}>✓</span>}
             </button>
 
             {/* Separator Arrow */}
@@ -179,7 +179,7 @@ export function NavigationBreadcrumbs({ onOpenWizard }) {
               <span
                 style={{
                   color: "var(--color-text-muted)",
-                  fontSize: "12px",
+                  fontSize: "9px",
                   userSelect: "none",
                 }}
               >

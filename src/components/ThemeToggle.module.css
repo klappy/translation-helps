@@ -4,31 +4,37 @@
  */
 
 .themeToggle {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  padding: var(--spacing-2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-1);
   cursor: pointer;
-  color: var(--color-text);
+  color: var(--color-primary);
   font-size: var(--font-size-md);
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-fast);
-  background-color: var(--color-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  outline: none;
 }
 
 .themeToggle:hover {
-  border-color: var(--color-border-hover);
-  background-color: var(--color-surface-hover);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--color-border) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .themeToggle:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-primary-light), 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  outline: none !important;
+}
+
+.themeToggle:active {
+  transform: translateY(0) !important;
 }
 
 .themeToggle:active {
@@ -38,10 +44,10 @@
 /* Ensure proper contrast in both themes */
 [data-theme="light"] .themeToggle {
   border-color: var(--color-border);
-  color: var(--color-text);
+  color: var(--color-primary);
 }
 
 [data-theme="dark"] .themeToggle {
   border-color: var(--color-border);
-  color: var(--color-text);
+  color: var(--color-primary);
 } 

@@ -47,14 +47,14 @@
 
 .mode-button.active {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-text-on-primary);
   border-color: var(--color-primary);
 }
 
 .mode-button.active:hover {
   background-color: var(--color-primary-dark);
   border-color: var(--color-primary-dark);
-  color: white;
+  color: var(--color-text-on-primary);
 }
 
 /* Content container */
@@ -171,6 +171,7 @@
 
 :global(v.selected) {
   background-color: var(--color-verse-background-selected);
+  color: var(--color-text-on-primary);
   border-radius: 4px;
   padding: 2px 4px;
 }
@@ -187,6 +188,11 @@
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary);
   margin-right: var(--spacing-1);
+}
+
+/* Verse numbers in selected verses should use contrasting color */
+:global(v.selected number) {
+  color: var(--color-text-on-primary);
 }
 
 /* Words and alignment */

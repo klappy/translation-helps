@@ -70,14 +70,14 @@
 
 .search-toggle.active {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-text-on-primary);
   border-color: var(--color-primary);
 }
 
 .search-toggle.active:hover {
   background-color: var(--color-primary-dark);
   border-color: var(--color-primary-dark);
-  color: white;
+  color: var(--color-text-on-primary);
 }
 
 .search-panel {

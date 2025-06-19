@@ -2,7 +2,7 @@
 
 ## Overview
 
-The ETEN Innovation Lab Translation Helps implements a comprehensive theme system with light/dark mode support and ETEN Lab brand integration. The system uses CSS variables for consistent theming across all components.
+The ETEN Innovation Lab Translation Helps implements a comprehensive theme system that matches the official ETEN Lab website design. The system defaults to a dark theme with black backgrounds and proper contrast ratios, with an optional light theme for accessibility.
 
 ## Architecture
 
@@ -11,18 +11,47 @@ The ETEN Innovation Lab Translation Helps implements a comprehensive theme syste
 The theme system is built on 40+ CSS variables defined in `src/styles/globals.css`. These variables provide a complete design system covering colors, typography, spacing, shadows, and transitions.
 
 Key features:
-- **ETEN Lab Brand Integration**: Official green (#c1d72e) as primary color
+- **ETEN Lab Brand Integration**: Official green (#c1d72e) as primary color with black text for readability
+- **Dark Theme Default**: Matches etenlab.org with black backgrounds and grey surfaces
 - **Semantic Color Names**: Variables like `--color-primary`, `--color-text`, `--color-surface`
-- **Dark Mode Support**: Complete override system using `[data-theme="dark"]`
+- **Proper Contrast**: Black text on green buttons for WCAG compliance
 - **Performance Optimized**: CSS-only theme switching with no JavaScript overhead
+
+### Navigation Bar Enhancement
+
+The `NavigationBar` component (`src/components/NavigationBar.jsx`) has been completely redesigned:
+- **ETEN Lab Logo Integration**: Official lab logo replaces text branding
+- **Collapsible Navigation**: Breadcrumbs hidden by default, toggled by logo click
+- **Compact Design**: Reduced height through optimized padding and spacing
+- **Footer Grey Background**: Uses `--color-footer` instead of green for better brand consistency
+- **Consistent Button Styling**: Logo and theme toggle buttons use identical styling patterns
 
 ### Theme Toggle Component
 
 The `ThemeToggle` component (`src/components/ThemeToggle.jsx`) provides:
-- **System Preference Detection**: Automatically detects user OS preference on first visit
+- **Dark Theme Default**: Starts in dark theme to match ETEN Lab website
 - **localStorage Persistence**: Saves theme choice across browser sessions
 - **Accessibility**: Proper ARIA labels and keyboard navigation support
-- **Visual Feedback**: 🌙/☀️ icons for clear state indication
+- **Visual Feedback**: Green ○/● icons (50% larger) for clear state indication
+- **Consistent Styling**: Matches logo button with subtle background and hover effects
+- **CSS-Only Interactions**: Pure CSS hover/focus states for reliable behavior
+
+## ETEN Lab Color Scheme
+
+### Default Dark Theme (Matching etenlab.org)
+- **Background**: #000000 (Pure black)
+- **Surface**: #1a1a1a (Dark grey for content areas)
+- **Footer**: #262626 (Grey matching ETEN Lab footer)
+- **Text**: #ffffff (White on dark backgrounds)
+- **Primary**: #c1d72e (ETEN Lab green)
+- **Button Text**: #000000 (Black text on green for readability)
+
+### Light Theme (For Accessibility)
+- **Background**: #ffffff (White)
+- **Surface**: #ffffff (White content areas)
+- **Text**: #1e293b (Dark text)
+- **Primary**: #c1d72e (ETEN Lab green)
+- **Button Text**: #000000 (Black text on green - consistent across themes)
 
 ## Critical Fixes Implemented
 
@@ -49,6 +78,26 @@ The `ThemeToggle` component (`src/components/ThemeToggle.jsx`) provides:
 ### 6. Highlight Text Contrast
 **Problem**: Yellow highlights with no text color specification - completely unreadable
 **Solution**: ETEN Lab green background with white text for proper contrast ratios
+
+### 7. Button Contrast Fix
+**Problem**: White text on green (#c1d72e) background fails WCAG contrast requirements
+**Solution**: Changed to black text (`--color-text-on-primary`) on all green buttons
+
+### 8. Dark Theme as Default
+**Problem**: Light theme didn't match ETEN Lab's website aesthetic
+**Solution**: Made dark theme the default with proper black/grey backgrounds
+
+### 9. Button Synchronization Issue
+**Problem**: JavaScript event handlers caused button backgrounds to get out of sync after multiple interactions
+**Solution**: Replaced JavaScript event handlers with pure CSS hover/focus states using `!important` declarations
+
+### 10. Navigation Bar Usability
+**Problem**: Large breadcrumbs cluttered the interface and took up too much space
+**Solution**: Made breadcrumbs collapsible (hidden by default) and added logo button to toggle visibility
+
+### 11. Scripture Selection Colors
+**Problem**: Scripture verse hover and selection used default browser blue colors instead of ETEN Lab green theme
+**Solution**: Updated all verse background colors and global text selection to use ETEN Lab green with proper contrast
 
 ## CSS Modules Migration
 
@@ -110,7 +159,8 @@ Migrated to CSS modules using semantic variables:
 - `src/theme.js` (REMOVED) - Legacy Material-UI theme system
 
 #### Navigation Components
-- `src/components/NavigationBar.jsx` - Added theme toggle integration
+- `src/components/NavigationBar.jsx` - Complete redesign with logo integration, collapsible breadcrumbs, and theme toggle
+- `src/components/NavigationBreadcrumbs.jsx` - Optimized sizing for compact navigation (75% of original size)
 - `src/components/NavigationWizard/components/SearchableGrid.jsx` - CSS modules migration
 - `src/components/NavigationWizard/components/SearchableGrid.module.css` (NEW)
 - `src/components/NavigationWizard/components/SelectionCard.jsx` - CSS modules migration  
@@ -118,9 +168,10 @@ Migrated to CSS modules using semantic variables:
 - `src/components/NavigationWizard/index.jsx` - Modal theming fixes
 
 #### Scripture Rendering (Major fixes)
-- `src/components/ScripturePanelRCL/USFMSemanticRenderer.module.css` - Fixed 15+ hardcoded colors
+- `src/components/ScripturePanelRCL/USFMSemanticRenderer.module.css` - Fixed 15+ hardcoded colors and verse selection styling
 - `src/components/ScripturePanelRCL/USFMRenderer.module.css` - Fixed error backgrounds
 - `src/components/ScripturePanelRCL/SearchPanel.module.css` - Fixed highlight contrast
+- `src/styles/globals.css` - Updated scripture selection colors and global text selection to ETEN Lab green
 
 #### Chat System
 - `src/components/LLMChatPanel.jsx` - Fixed white text visibility issues
@@ -134,7 +185,24 @@ Migrated to CSS modules using semantic variables:
 
 ### For Developers
 
-#### 1. Always Use CSS Variables
+#### 1. Button Contrast
+When using the primary color for buttons or interactive elements, always use black text:
+
+```css
+/* ✅ CORRECT - Black text on green */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary); /* Black */
+}
+
+/* ❌ WRONG - White text on green */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white; /* Poor contrast */
+}
+```
+
+#### 2. Always Use CSS Variables
 ```css
 /* ❌ NEVER do this */
 .component {
@@ -151,7 +219,7 @@ Migrated to CSS modules using semantic variables:
 }
 ```
 
-#### 2. CSS Variable Categories
+#### 3. CSS Variable Categories
 - `--color-primary*` - ETEN Lab green variants (brand colors)
 - `--color-surface*` - Background colors for cards/panels
 - `--color-text*` - Text colors (primary, secondary, muted)
@@ -162,7 +230,7 @@ Migrated to CSS modules using semantic variables:
 - `--shadow-*` - Elevation shadows (sm, md, lg, xl)
 - `--transition-*` - Animation timing (fast: 150ms)
 
-#### 3. Testing Requirements
+#### 5. Testing Requirements
 - Test both light and dark themes thoroughly
 - Verify text contrast and readability in both themes
 - Check component hover/focus states work properly
@@ -277,9 +345,9 @@ h1, h2, h3 {
 
 ### Accessibility Compliance
 - WCAG 2.1 AA contrast ratios maintained in both themes
-- White text on green backgrounds for optimal readability
+- Black text on green buttons for optimal readability and WCAG compliance
 - Proper focus indicators for keyboard navigation users
-- System preference detection for user comfort and accessibility
+- Dark theme default matches ETEN Lab website for brand consistency
 - Font size minimums: 14px body text, 12px small text
 
 ## Font Loading and Performance

@@ -1,5 +1,74 @@
 # Changelog
 
+## [2.9.0] - 2025-01-27
+
+### Changed
+
+- **Complete Navigation Bar and Theme System Redesign - Professional UI Enhancement**
+  - ✅ **ETEN Lab Logo Integration**: Replaced "ETEN Innovation Lab" text with official lab logo for professional branding
+  - ✅ **Collapsible Navigation**: Implemented click-to-toggle breadcrumb navigation that hides by default for cleaner interface
+  - ✅ **Compact Navigation Bar**: Significantly reduced navigation bar height by optimizing padding, margins, and logo size
+  - ✅ **Consistent Button Styling**: Unified lab logo and theme toggle buttons with identical subtle styling and hover effects
+  - ✅ **Enhanced Theme Toggle**: Improved theme button with green color scheme, larger icons, and proper button appearance
+  - ✅ **Dark Theme as Default**: Changed default theme to dark mode to match ETEN Lab website aesthetic
+  - ✅ **Navigation Bar Color Scheme**: Updated navigation background from green to footer grey for better brand consistency
+  - ✅ **Scripture Selection Colors**: Replaced default browser blue with ETEN Lab green for verse hover/selection and global text selection
+
+### Fixed
+
+- **Critical Button Contrast and Accessibility Issues**
+  - ✅ **WCAG Compliance**: Fixed white text on green buttons that failed contrast requirements by implementing black text (`--color-text-on-primary`)
+  - ✅ **Button Synchronization**: Resolved JavaScript event handler conflicts that caused button backgrounds to get out of sync after multiple interactions
+  - ✅ **Consistent Hover States**: Replaced problematic JavaScript event handlers with reliable CSS-only hover effects
+  - ✅ **Green Text Visibility**: Fixed theme toggle icon not displaying in green color by adding explicit color styling and CSS override fixes
+  - ✅ **Button Visibility**: Ensured both buttons have subtle but visible default appearance so users can identify them as interactive elements
+  - ✅ **Scripture Color Consistency**: Fixed scripture verse hover and selection using default browser blue instead of ETEN Lab green theme
+
+### Added
+
+- **Enhanced Navigation User Experience**
+  - ✅ **Logo Button Functionality**: Lab logo now serves as clickable button to show/hide navigation breadcrumbs
+  - ✅ **Visual Feedback**: Added hover effects, tooltips, and smooth transitions for all interactive elements
+  - ✅ **Keyboard Accessibility**: Proper focus states and keyboard navigation support for all buttons
+  - ✅ **Responsive Design**: Navigation adapts properly to different screen sizes while maintaining functionality
+  - ✅ **Professional Appearance**: Clean, minimal design that matches ETEN Lab's corporate aesthetic
+
+### Technical Implementation
+
+- **CSS Architecture Improvements**:
+  - Migrated from JavaScript event handlers to pure CSS for button interactions
+  - Added `!important` declarations to ensure CSS precedence over inline styles
+  - Implemented consistent button styling patterns across components
+  - Enhanced CSS variable system for theme-aware color management
+  - Updated scripture selection colors across all themes with proper contrast ratios
+
+- **Component Updates**:
+  - `NavigationBar.jsx` - Added logo button functionality and collapsible breadcrumbs
+  - `ThemeToggle.jsx` - Enhanced with proper color styling and larger icons
+  - `ThemeToggle.module.css` - Added reliable CSS-only hover and focus states
+  - `NavigationBreadcrumbs.jsx` - Optimized sizing for compact navigation bar
+
+- **Theme System Enhancements**:
+  - Updated default theme preference to dark mode
+  - Added `--color-text-on-primary` variable for proper button contrast
+  - Enhanced color consistency across light and dark themes
+  - Improved accessibility compliance with WCAG contrast requirements
+
+### User Experience Benefits
+
+- **Cleaner Interface**: Navigation breadcrumbs hidden by default reduce visual clutter
+- **Professional Branding**: Logo integration provides clear ETEN Lab brand identity
+- **Better Accessibility**: Improved contrast ratios and keyboard navigation support
+- **Intuitive Interactions**: Clear visual feedback for all interactive elements
+- **Consistent Styling**: Unified button appearance throughout the application
+- **Mobile Friendly**: Compact navigation bar improves mobile screen real estate
+
+### Performance Improvements
+
+- **CSS-Only Interactions**: Eliminated JavaScript event handlers for better performance
+- **Reduced DOM Manipulation**: Pure CSS approach reduces browser reflows and repaints
+- **Optimized Rendering**: Fewer inline style changes improve rendering performance
+
 ## [2.8.0] - 2025-01-27
 
 ### Changed
