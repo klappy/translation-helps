@@ -1,6 +1,6 @@
-# 🏗️ Architecture Overview: translationHelps Viewer
+# 🏗️ Architecture Overview: ETEN Innovation Lab Translation Helps
 
-This document provides a high-level overview of the translationHelps Viewer architecture, including component hierarchy, data flow, and key design decisions.
+This document provides a high-level overview of the ETEN Innovation Lab Translation Helps architecture, including component hierarchy, data flow, and key design decisions.
 
 ---
 
@@ -638,7 +638,7 @@ const pluginRegistry = {
 
 ## 📚 Summary
 
-The translationHelps Viewer architecture provides:
+The ETEN Innovation Lab Translation Helps architecture provides:
 
 - **Clean Separation**: Clear boundaries between UI, state, services, and utilities
 - **Scalable Design**: Service-based architecture supports multiple resource types

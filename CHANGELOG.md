@@ -1,5 +1,74 @@
 # Changelog
 
+## [2.8.0] - 2025-01-27
+
+### Changed
+
+- **Complete ETEN Innovation Lab Rebranding - Professional Brand Identity Implementation**
+  - ✅ **Application Name**: Updated from "unfoldingWord translationHelps Viewer" to "ETEN Innovation Lab Translation Helps"
+  - ✅ **Navigation Header**: Changed app title to "ETEN Innovation Lab" in NavigationBar component
+  - ✅ **HTML Meta Tags**: Updated page titles and theme colors to reflect ETEN Lab branding
+  - ✅ **Web App Manifest**: Comprehensive manifest.json update with ETEN Lab names and new icon
+  - ✅ **Package Identity**: Updated package.json name to "eten-lab-translation-helps"
+  - ✅ **Theme Color Integration**: Applied ETEN Lab green (#c1d72e) as primary theme color across all HTML meta tags
+  - ✅ **Professional Documentation**: Updated README.md and AGENTS.md with ETEN Lab branding and mission
+
+### Added
+
+- **ETEN Lab Visual Identity System**
+  - ✅ **Custom Icon Integration**: Implemented lab-green-icon.png (592x500) as primary app icon
+  - ✅ **Multi-Size Favicon Support**: Created favicon-16x16.png and favicon-32x32.png for optimal browser display
+  - ✅ **Progressive Web App Icons**: Added 512x512 PNG icon for PWA installation and home screen
+  - ✅ **Enhanced HTML Meta Tags**: Added comprehensive favicon links with multiple sizes for cross-browser compatibility
+  - ✅ **Brand Color Consistency**: Applied ETEN Lab green theme color throughout manifest and HTML meta tags
+
+### Removed
+
+- **Legacy unfoldingWord Branding Assets**
+  - ✅ **Removed Old Logos**: Deleted uw-logo-icon.png and uw-logo-wordmark.png files
+  - ✅ **Clean Asset Directory**: Streamlined public folder with only ETEN Lab branded assets
+  - ✅ **Brand Consistency**: Eliminated all visual references to previous branding
+
+### Technical Implementation
+
+- **Files Modified**:
+  - `public/manifest.json` - Complete rewrite with ETEN Lab branding and new icon references
+  - `public/index.html` - Updated title and favicon links with multi-size support
+  - `index.html` - Updated title and theme color to ETEN Lab green
+  - `package.json` - Changed name to "eten-lab-translation-helps" and version bump
+  - `src/components/NavigationBar.jsx` - Updated app title to "ETEN Innovation Lab"
+  - `README.md` - Updated main title and URL reference to etenlab.org
+  - `AGENTS.md` - Updated description to reflect ETEN Lab mission
+
+- **Files Created**:
+  - `public/eten-lab-icon.png` - Copy of lab-green-icon.png for clarity
+  - `public/favicon-16x16.png` - 16x16 favicon generated from lab-green-icon.png
+  - `public/favicon-32x32.png` - 32x32 favicon generated from lab-green-icon.png
+
+- **Files Removed**:
+  - `public/uw-logo-icon.png` - Legacy unfoldingWord icon
+  - `public/uw-logo-wordmark.png` - Legacy unfoldingWord wordmark
+
+### Brand Identity Benefits
+
+- **Professional Presentation**: Complete visual alignment with ETEN Innovation Lab's mission and identity
+- **Consistent User Experience**: Unified branding across all touchpoints (browser tabs, PWA installation, app header)
+- **Modern Visual Identity**: High-quality icon system with proper sizing for all display contexts
+- **Brand Recognition**: Clear association with ETEN Lab's Bible translation acceleration mission
+- **Technical Excellence**: Proper favicon implementation following web standards for optimal display
+
+### User Experience Impact
+
+- **Clear Brand Identity**: Users immediately recognize the application as an ETEN Innovation Lab product
+- **Professional Appearance**: Modern, cohesive branding enhances credibility and user trust
+- **Improved Recognition**: Distinctive green icon and branding make the app easily identifiable
+- **Mission Alignment**: Branding reflects ETEN Lab's focus on Bible translation innovation and acceleration
+
+### Note on API References
+
+- **Preserved Functionality**: All references to "unfoldingWord" in API calls and service layers remain unchanged as these refer to legitimate unfoldingWord organization resources on the DCS API, not branding elements
+- **Separation of Concerns**: Clear distinction maintained between user-facing branding (now ETEN Lab) and backend resource organization references (unfoldingWord, STR, WA, etc.)
+
 ## [2.7.0] - 2025-06-19
 
 ### Added

@@ -1,7 +1,7 @@
 # AGENTS.md
 
-name: translationHelps Viewer
-description: An application for viewing unfoldingWord Bible translation resources including Translation Notes (tN), Translation Questions (tQ), Translation Words (tW), and the new Translation Words Links (TWL) format.
+name: ETEN Innovation Lab Translation Helps
+description: An application for viewing Bible translation resources from ETEN Innovation Lab and partner organizations including Translation Notes (tN), Translation Questions (tQ), Translation Words (tW), and the new Translation Words Links (TWL) format.
 
 ## 🧭 Project Structure
 

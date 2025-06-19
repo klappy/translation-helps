@@ -1,4 +1,4 @@
-# unfoldingWord translationHelps Viewer
+# ETEN Innovation Lab Translation Helps
 
 ## Version 2.1.0 (2025-06-14)
 
@@ -9,7 +9,7 @@
 - Fixed bugs where the app was stuck on Titus 1:1 or an uninitialized context after navigation or refresh.
 - Improved reliability of context/resource synchronization across navigation and chat.
 
-[https://unfoldingword.bible/content/]
+[https://etenlab.org]
 
 ## Purpose
 

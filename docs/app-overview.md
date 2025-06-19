@@ -1,9 +1,9 @@
 
-# 📘 App Overview: translationHelps Viewer
+# 📘 App Overview: ETEN Innovation Lab Translation Helps
 
 ## 🎯 Purpose
 
-The **translationHelps Viewer** is a browser-based application that helps Bible translators and checkers engage with multiple types of translation resources, aligned by verse and passage.
+The **ETEN Innovation Lab Translation Helps** is a browser-based application that helps Bible translators and checkers engage with multiple types of translation resources, aligned by verse and passage.
 
 It is built to support **just-in-time access** to reference materials for any given book, chapter, and verse — including:
 

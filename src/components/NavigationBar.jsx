@@ -26,7 +26,7 @@ export function NavigationBar({ onOpenWizard }) {
       }}
     >
       <h1 style={{ margin: 0, fontSize: "var(--font-size-2xl)", flexShrink: 0 }}>
-        Translation Helps Viewer
+        ETEN Innovation Lab
       </h1>
 
       {/* Navigation Breadcrumbs */}

@@ -1,4 +1,4 @@
-# 🧩 Component Map: translationHelps Viewer
+# 🧩 Component Map: ETEN Innovation Lab Translation Helps
 
 This document lists and describes the major components in the viewer and their responsibilities.
 
