@@ -194,6 +194,34 @@ netlify.toml                          # Netlify configuration
 - **Context awareness**: Automatically includes current verse reference
 - **Typing indicators**: Visual feedback during API calls
 - **Error handling**: Graceful degradation when API is unavailable
+- **Interactive Prompt Suggestions**: Clickable suggestion buttons for easy conversation starters (v2.10.0)
+
+### Interactive Prompt Suggestions (v2.10.0)
+
+The welcome interface now features an interactive prompt suggestion system that transforms the static text into engaging, clickable buttons:
+
+#### Smart Suggestion System
+- **Dynamic Generation**: 3-6 contextual prompts based on available translation resources
+- **Resource-Aware**: Suggestions adapt to loaded notes, questions, words, and links
+- **Click-to-Send**: Users can click any suggestion to automatically send that message
+- **Professional Styling**: ETEN Lab themed buttons with hover effects and accessibility support
+
+#### Suggestion Categories
+**Core Suggestions (Always Available):**
+- "What are the key translation challenges for this verse?"
+- "Explain the cultural context of this passage"
+- "What are the important words to understand in this verse?"
+
+**Resource-Specific Suggestions (Conditional):**
+- "Summarize the translation notes for this verse" (if notes available)
+- "What questions should translators consider?" (if questions available)
+- "Define the key theological terms in this passage" (if words available)
+
+#### User Experience Benefits
+- **Improved Discovery**: Users learn what the AI can help with
+- **Quick Start**: No need to think of questions from scratch
+- **Contextual Guidance**: Suggestions match available resources
+- **Professional UI**: Consistent with ETEN Lab design standards
 
 ### Context Integration
 
