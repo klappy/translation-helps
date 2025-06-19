@@ -1,0 +1,320 @@
+/**
+ * OrganizationResourceGroup.module.css
+ * Styles for the OrganizationResourceGroup component
+ */
+
+.organizationGroup {
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.organizationGroup.desktop {
+  margin-bottom: 20px;
+}
+
+.organizationGroup:hover {
+  border-color: var(--color-border-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Organization header */
+.organizationHeader {
+  padding: 16px;
+  background: var(--color-surface-secondary);
+  border-bottom: 1px solid var(--color-border-tertiary);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.organizationHeader.desktop {
+  padding: 20px;
+}
+
+.organizationHeader:hover {
+  background: var(--color-surface-tertiary);
+}
+
+.organizationInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.organizationName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.expandIcon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.orgTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  truncate: true;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.organizationStats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.resourceCount {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.selectedCount {
+  background: var(--color-primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* Resource types preview */
+.resourceTypesPreview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.resourceTypeTag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-surface-tertiary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.moreTypes {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+/* Expand button */
+.expandButton {
+  flex-shrink: 0;
+  padding: 4px;
+}
+
+.chevron {
+  display: inline-block;
+  transition: transform 0.2s ease;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.chevron.expanded {
+  transform: rotate(180deg);
+}
+
+/* Resources grid */
+.resourcesGrid {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.resourcesGrid.desktop {
+  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.resourceCardWrapper {
+  position: relative;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.resourceCardWrapper:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.resourceCardWrapper.selected {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+/* Resource type indicator */
+.resourceTypeIndicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+
+.typeIcon {
+  font-size: 11px;
+}
+
+.typeName {
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Selection overlay */
+.selectionOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(var(--color-primary-rgb), 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  backdrop-filter: blur(1px);
+}
+
+.selectionIcon {
+  background: var(--color-primary);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Collapsed summary */
+.collapsedSummary {
+  padding: 12px 16px;
+  background: var(--color-surface-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.summaryText {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.summaryTypes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.summaryTypeIcon {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .organizationHeader {
+    padding: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .organizationInfo {
+    width: 100%;
+  }
+  
+  .resourceTypesPreview {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .expandButton {
+    align-self: flex-end;
+    margin-top: -24px;
+  }
+  
+  .resourcesGrid {
+    padding: 12px;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .resourceTypeIndicator {
+    position: static;
+    margin-top: 8px;
+    background: var(--color-surface-tertiary);
+    color: var(--color-text-secondary);
+    justify-content: flex-start;
+  }
+}
+
+/* Dark theme adjustments */
+@media (prefers-color-scheme: dark) {
+  .resourceTypeIndicator {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+  }
+  
+  .organizationGroup:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .resourceCardWrapper:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Animation for expand/collapse */
+.resourcesGrid {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 

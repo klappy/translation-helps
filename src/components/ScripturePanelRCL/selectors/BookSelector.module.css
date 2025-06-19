@@ -1,0 +1,233 @@
+/* Inherit shared styles from LanguageSelector */
+@import './LanguageSelector.module.css';
+
+/* Sort Toggle */
+.sortContainer {
+  display: flex;
+  padding: var(--spacing-2) var(--spacing-3);
+  gap: var(--spacing-1);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.sortButton {
+  flex: 1;
+  padding: var(--spacing-1) var(--spacing-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sortButton:hover {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+}
+
+.sortButton.active {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+/* Book Group Styles */
+.bookGroup {
+  margin-bottom: var(--spacing-2);
+}
+
+.groupHeader {
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--color-surface-hover);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.categoryName {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Book Section (contains book item + chapter grid) */
+.bookSection {
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Book Item */
+.bookItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--spacing-3);
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  text-align: left;
+}
+
+.bookItem:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.bookItem:active {
+  background-color: var(--color-surface-active);
+}
+
+.bookItem.expanded {
+  background-color: var(--color-surface-hover);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.bookInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+}
+
+.bookName {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bookId {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.bookArrow {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: transform var(--transition-fast);
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  text-align: center;
+  flex: 1;
+}
+
+.manifestIndicator {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  margin-left: 0.5rem;
+}
+
+.chapterCount {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+/* Chapter Grid (expandable) */
+.chapterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  animation: slideDown 0.2s ease-out;
+}
+
+.chapterButton {
+  aspect-ratio: 1;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.chapterButton:hover {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.chapterButton:active {
+  transform: translateY(0);
+  background-color: var(--color-surface-active);
+}
+
+.chapterButton:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+/* Slide down animation for chapter grid */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sortContainer {
+    padding: var(--spacing-1) var(--spacing-2);
+  }
+  
+  .sortButton {
+    padding: var(--spacing-1);
+    font-size: var(--font-size-xs);
+  }
+  
+  .bookItem {
+    padding: var(--spacing-2);
+  }
+  
+  .groupHeader {
+    padding: var(--spacing-1) var(--spacing-2);
+  }
+
+  .chapterGrid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--spacing-1);
+    padding: var(--spacing-2);
+  }
+  
+  .chapterButton {
+    min-height: 45px;
+    font-size: var(--font-size-xs);
+  }
+}

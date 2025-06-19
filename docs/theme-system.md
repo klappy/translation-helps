@@ -186,19 +186,24 @@ Migrated to CSS modules using semantic variables:
 ### For Developers
 
 #### 1. Button Contrast
-When using the primary color for buttons or interactive elements, always use black text:
+When using the primary color for buttons or interactive elements, always use black or dark grey text for proper legibility:
 
 ```css
-/* ✅ CORRECT - Black text on green */
+/* ✅ CORRECT - Black or dark grey text on green */
 .btn-primary {
   background-color: var(--color-primary);
   color: var(--color-text-on-primary); /* Black */
 }
 
-/* ❌ WRONG - White text on green */
+.alignedLabel {
+  background-color: var(--color-primary);
+  color: var(--color-surface); /* Dark grey/black for readability */
+}
+
+/* ❌ WRONG - White text on green (illegible) */
 .btn-primary {
   background-color: var(--color-primary);
-  color: white; /* Poor contrast */
+  color: white; /* Poor contrast and illegible */
 }
 ```
 

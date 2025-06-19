@@ -1,0 +1,259 @@
+/**
+ * ScripturePanelNavigation.jsx
+ * Integrated navigation component for scripture panel with breadcrumbs and controls
+ */
+import React, { useState, useContext, useEffect } from 'react';
+import { ReferenceContext } from '../../context/ReferenceContext';
+import { LanguageSelector } from './selectors/LanguageSelector';
+import { ResourceSelector } from './selectors/ResourceSelector';
+import { BookSelector } from './selectors/BookSelector';
+import { getBookEmoji, getResourceIcon, getLanguageFlag } from "../../utils/visualHelpers";
+import styles from './ScripturePanelNavigation.module.css';
+
+export function ScripturePanelNavigation({ 
+  onNavigationChange, 
+  showSearch, 
+  onToggleSearch, 
+  showDebugMode, 
+  onToggleDebugMode 
+}) {
+  const [currentStep, setCurrentStep] = useState('complete');
+  const [slideDirection, setSlideDirection] = useState('');
+  const { 
+    reference, 
+    organization, 
+    languageId, 
+    resourceId, 
+    updateContext 
+  } = useContext(ReferenceContext);
+
+  // Notify parent of navigation state changes
+  useEffect(() => {
+    if (onNavigationChange) {
+      onNavigationChange(currentStep !== 'complete');
+    }
+  }, [currentStep, onNavigationChange]);
+
+  // Auto-start navigation if context is incomplete
+  useEffect(() => {
+    if (!languageId) {
+      setCurrentStep('language');
+      setSlideDirection('left');
+    } else if (!resourceId) {
+      setCurrentStep('resource');
+      setSlideDirection('left');
+    } else if (!reference?.bookId || !reference?.chapter) {
+      setCurrentStep('book');
+      setSlideDirection('left');
+    } else {
+      setCurrentStep('complete');
+    }
+  }, [languageId, resourceId, reference]);
+
+  const handleStepChange = (step, direction = 'left') => {
+    setSlideDirection(direction);
+    setCurrentStep(step);
+  };
+
+  const handleLanguageSelect = (language) => {
+    console.log('🌐 ScripturePanelNavigation: Language selected:', language);
+    
+    // Handle both language object and language code for backward compatibility
+    const languageCode = typeof language === 'object' ? language.code : language;
+    
+    updateContext({ 
+      languageId: languageCode,
+      // Reset downstream selections when language changes
+      resourceId: null,
+      reference: { bookId: null, chapter: 1, verse: 1 }
+    });
+    
+    handleStepChange('resource', 'left');
+  };
+
+  const handleResourceSelect = (resource) => {
+    console.log('📚 ScripturePanelNavigation: Resource selected:', resource);
+    
+    updateContext({ 
+      resourceId: resource.id,
+      // Pass organization information to context for cross-organization support
+      resourceOrganization: resource.organization,
+      // Reset book selection when resource changes, keep same position if book exists
+      reference: reference?.bookId 
+        ? reference 
+        : { bookId: null, chapter: 1, verse: 1 }
+    });
+    handleStepChange('book', 'left');
+  };
+
+  const handleBookSelect = ({ bookId, chapter }) => {
+    updateContext({ 
+      reference: { 
+        bookId, 
+        chapter: chapter || 1, 
+        verse: 1 
+      }
+    });
+    handleStepChange('complete', 'left');
+  };
+
+  const handleBack = () => {
+    if (currentStep === 'resource') {
+      handleStepChange('language', 'right');
+    } else if (currentStep === 'book') {
+      handleStepChange('resource', 'right');
+    } else {
+      handleStepChange('complete', 'right');
+    }
+  };
+
+  // Get display names for breadcrumbs
+  const getLanguageName = () => {
+    if (!languageId) return null;
+    // Simple mapping for common languages
+    const languageNames = {
+      'en': 'English',
+      'es': 'Spanish', 
+      'fr': 'French',
+      'de': 'German',
+      'pt': 'Portuguese',
+      'zh': 'Chinese',
+      'ar': 'Arabic',
+      'hi': 'Hindi',
+      'ru': 'Russian',
+      'ja': 'Japanese'
+    };
+    const flag = getLanguageFlag(languageId);
+    const name = languageNames[languageId] || languageId.toUpperCase();
+    return `${flag} ${name}`;
+  };
+
+  const getResourceName = () => {
+    if (!resourceId) return null;
+    const icon = getResourceIcon(resourceId); return `${icon} ${resourceId.toUpperCase()}`;
+  };
+
+  const getBookName = () => {
+    if (!reference?.bookId) return null;
+    // Simple mapping for common book names
+    const bookNames = {
+      'gen': 'Genesis', 'exo': 'Exodus', 'lev': 'Leviticus', 'num': 'Numbers', 'deu': 'Deuteronomy',
+      'jos': 'Joshua', 'jdg': 'Judges', 'rut': 'Ruth', '1sa': '1 Samuel', '2sa': '2 Samuel',
+      '1ki': '1 Kings', '2ki': '2 Kings', '1ch': '1 Chronicles', '2ch': '2 Chronicles',
+      'ezr': 'Ezra', 'neh': 'Nehemiah', 'est': 'Esther', 'job': 'Job', 'psa': 'Psalms',
+      'pro': 'Proverbs', 'ecc': 'Ecclesiastes', 'sng': 'Song of Songs', 'isa': 'Isaiah',
+      'jer': 'Jeremiah', 'lam': 'Lamentations', 'ezk': 'Ezekiel', 'dan': 'Daniel',
+      'hos': 'Hosea', 'jol': 'Joel', 'amo': 'Amos', 'oba': 'Obadiah', 'jon': 'Jonah',
+      'mic': 'Micah', 'nam': 'Nahum', 'hab': 'Habakkuk', 'zep': 'Zephaniah',
+      'hag': 'Haggai', 'zec': 'Zechariah', 'mal': 'Malachi',
+      'mat': 'Matthew', 'mrk': 'Mark', 'luk': 'Luke', 'jhn': 'John', 'act': 'Acts',
+      'rom': 'Romans', '1co': '1 Corinthians', '2co': '2 Corinthians', 'gal': 'Galatians',
+      'eph': 'Ephesians', 'php': 'Philippians', 'col': 'Colossians', '1th': '1 Thessalonians',
+      '2th': '2 Thessalonians', '1ti': '1 Timothy', '2ti': '2 Timothy', 'tit': 'Titus',
+      'phm': 'Philemon', 'heb': 'Hebrews', 'jas': 'James', '1pe': '1 Peter', '2pe': '2 Peter',
+      '1jn': '1 John', '2jn': '2 John', '3jn': '3 John', 'jud': 'Jude', 'rev': 'Revelation'
+    };
+    const emoji = getBookEmoji(reference.bookId); const name = bookNames[reference.bookId] || reference.bookId.toUpperCase(); return `${emoji} ${name}`;
+  };
+
+  const getChapterVerse = () => {
+    if (!reference?.chapter) return null;
+    return `${reference.chapter}:${reference.verse || 1}`;
+  };
+
+  return (
+    <div className={styles.navigationContainer}>
+      {/* Breadcrumbs with Control Buttons */}
+      <div className={styles.breadcrumbs}>
+        <div className={styles.breadcrumbsContent}>
+          {/* Language Breadcrumb */}
+          <button
+            onClick={() => handleStepChange('language', 'right')}
+            className={`${styles.breadcrumbButton} ${languageId ? styles.completed : styles.incomplete}`}
+            title={languageId ? `Change ${getLanguageName()}` : 'Select Language'}
+            disabled={currentStep === 'language'}
+          >
+            {getLanguageName() || 'Language'}
+          </button>
+
+          {languageId && (
+            <>
+              <span className={styles.separator}>›</span>
+              <button
+                onClick={() => handleStepChange('resource', 'right')}
+                className={`${styles.breadcrumbButton} ${resourceId ? styles.completed : styles.incomplete}`}
+                title={resourceId ? `Change ${getResourceName()}` : 'Select Resource'}
+                disabled={currentStep === 'resource'}
+              >
+                {getResourceName() || 'Resource'}
+              </button>
+            </>
+          )}
+
+          {resourceId && (
+            <>
+              <span className={styles.separator}>›</span>
+              <button
+                onClick={() => handleStepChange('book', 'right')}
+                className={`${styles.breadcrumbButton} ${reference?.bookId ? styles.completed : styles.incomplete}`}
+                title={reference?.bookId ? `Change ${getBookName()}` : 'Select Book'}
+                disabled={currentStep === 'book'}
+              >
+                {getBookName() || 'Book'}
+              </button>
+            </>
+          )}
+
+          {reference?.bookId && (
+            <>
+              <span className={styles.separator}>›</span>
+              <button
+                onClick={() => handleStepChange('book', 'right')}
+                className={`${styles.breadcrumbButton} ${reference?.chapter ? styles.completed : styles.incomplete}`}
+                title={reference?.chapter ? `Change ${getChapterVerse()}` : 'Select Chapter'}
+                disabled={currentStep === 'book'}
+              >
+                {getChapterVerse() || 'Chapter'}
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Control Buttons - styled like theme toggle */}
+        <div className={styles.controlButtons}>
+          <button
+            onClick={onToggleSearch}
+            className={`${styles.controlButton} ${showSearch ? styles.active : ''}`}
+            title={showSearch ? "Hide Search" : "Show Search"}
+            aria-label={showSearch ? "Hide Search" : "Show Search"}
+          >
+            🔍
+          </button>
+          <button
+            onClick={onToggleDebugMode}
+            className={`${styles.controlButton} ${showDebugMode ? styles.active : ''}`}
+            title={showDebugMode ? "Hide Debug Mode" : "Show Debug Mode"}
+            aria-label={showDebugMode ? "Hide Debug Mode" : "Show Debug Mode"}
+          >
+            🐛
+          </button>
+        </div>
+      </div>
+
+      {/* Selection Container */}
+      {currentStep !== 'complete' && (
+        <div className={`${styles.selectionContainer} ${styles[slideDirection]}`}>
+          {currentStep === 'language' && (
+            <LanguageSelector onSelect={handleLanguageSelect} />
+          )}
+          {currentStep === 'resource' && (
+            <ResourceSelector onSelect={handleResourceSelect} onBack={handleBack} languageId={languageId} />
+          )}
+          {currentStep === 'book' && (
+            <BookSelector onSelect={handleBookSelect} onBack={handleBack} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

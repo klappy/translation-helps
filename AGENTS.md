@@ -34,6 +34,10 @@ description: An application for viewing Bible translation resources from ETEN In
 - `rc-links-specification.md`: Resource Catalog links specification and standards
 - `hidden-content-chat-context-feature.md`: Hidden content handling in chat context
 - `verse-1-test-case.md`: Verse 1 rendering test case documentation
+- `organization-avatar-system.md`: Organization logo/avatar display system architecture and debugging
+- `api-integration-patterns.md`: DCS API integration patterns, error handling, and best practices
+- `debugging-methodologies.md`: Systematic debugging approaches and troubleshooting frameworks
+- `cross-organization-resource-loading.md`: Cross-organization resource loading system architecture, bug fixes, and maintenance guidelines
 
 ## 🛠️ Development Environment
 

@@ -8,6 +8,11 @@ import {
   fetchOrganizations,
   fetchLanguages,
   fetchResources,
+  fetchBibleResources,
+  searchResourcesAcrossOrgs,
+  fetchAllLanguages,
+  analyzeResourceCompatibility,
+  fetchOrganizationDetails,
   clearCatalogCache,
   preloadCatalogData,
 } from "./catalogService.js";
@@ -753,6 +758,376 @@ describe("catalogService", () => {
 
       result = await fetchResources("unfoldingWord", "en");
       expect(result).toEqual(["ult", "ust", "tn", "tq", "tw", "twl", "ta"]);
+    });
+  });
+
+  describe("Cross-Organization Features", () => {
+    describe("searchResourcesAcrossOrgs", () => {
+      it("should search for resources across organizations successfully", async () => {
+        const mockResponse = {
+          data: [
+            {
+              name: 'en_ult',
+              identifier: 'ult',
+              full_name: 'unfoldingWord/en_ult',
+              description: 'unfoldingWord Literal Text',
+              subject: 'Aligned Bible',
+              owner: { login: 'unfoldingWord', avatar_url: 'https://example.com/avatar1.png' },
+              html_url: 'https://git.door43.org/unfoldingWord/en_ult',
+              stage: 'prod',
+              version: '10',
+              modified: '2023-01-01T00:00:00Z',
+              checking: { checking_level: '3' }
+            },
+            {
+              name: 'en_ust',
+              identifier: 'ust',
+              full_name: 'door43-catalog/en_ust',
+              description: 'Simplified Text',
+              subject: 'Bible',
+              owner: { login: 'door43-catalog', avatar_url: 'https://example.com/avatar2.png' },
+              html_url: 'https://git.door43.org/door43-catalog/en_ust',
+              stage: 'prod',
+              version: '8',
+              modified: '2023-01-02T00:00:00Z'
+            }
+          ]
+        };
+
+        fetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await searchResourcesAcrossOrgs('en', 'Bible');
+
+        expect(fetch).toHaveBeenCalledWith(
+          expect.stringContaining('api/catalog/v5/search?lang=en&stage=prod&limit=100&subject=Bible')
+        );
+
+        expect(result).toEqual({
+          'unfoldingWord': [{
+            id: 'ult',
+            name: 'en_ult',
+            fullName: 'unfoldingWord/en_ult',
+            description: 'unfoldingWord Literal Text',
+            subject: 'Aligned Bible',
+            organization: 'unfoldingWord',
+            combinedId: 'unfoldingWord/en_ult',
+            repoUrl: 'https://git.door43.org/unfoldingWord/en_ult',
+            avatarUrl: 'https://example.com/avatar1.png',
+            stage: 'prod',
+            version: '10',
+            modified: '2023-01-01T00:00:00Z',
+            checking: { checking_level: '3' },
+            raw: mockResponse.data[0]
+          }],
+          'door43-catalog': [{
+            id: 'ust',
+            name: 'en_ust',
+            fullName: 'door43-catalog/en_ust',
+            description: 'Simplified Text',
+            subject: 'Bible',
+            organization: 'door43-catalog',
+            combinedId: 'door43-catalog/en_ust',
+            repoUrl: 'https://git.door43.org/door43-catalog/en_ust',
+            avatarUrl: 'https://example.com/avatar2.png',
+            stage: 'prod',
+            version: '8',
+            modified: '2023-01-02T00:00:00Z',
+            checking: undefined,
+            raw: mockResponse.data[1]
+          }]
+        });
+      });
+
+      it("should return empty object for invalid language code", async () => {
+        const result = await searchResourcesAcrossOrgs('');
+        expect(result).toEqual({});
+        expect(fetch).not.toHaveBeenCalled();
+      });
+
+      it("should handle resources without organization gracefully", async () => {
+        const mockResponse = {
+          data: [{
+            name: 'mystery_resource',
+            identifier: 'mystery',
+            description: 'Unknown resource',
+            subject: 'Unknown'
+          }]
+        };
+
+        fetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await searchResourcesAcrossOrgs('en');
+
+        expect(result).toHaveProperty('unknown');
+        expect(result.unknown[0]).toMatchObject({
+          id: 'mystery_resource',
+          organization: 'unknown'
+        });
+      });
+    });
+
+    describe("fetchAllLanguages", () => {
+      it("should fetch all languages with organization info", async () => {
+        const mockResponse = {
+          data: [
+            { lc: 'en', ln: 'English', ld: 'ltr', owner: 'unfoldingWord' },
+            { lc: 'en', ln: 'English', ld: 'ltr', owner: 'door43-catalog' },
+            { lc: 'es', ln: 'Spanish', ld: 'ltr', owner: 'unfoldingWord' },
+            { lc: 'fr', ln: 'French', ld: 'ltr', owner: 'door43-catalog' }
+          ]
+        };
+
+        fetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await fetchAllLanguages(true);
+
+        expect(fetch).toHaveBeenCalledWith(
+          expect.stringContaining('api/v1/catalog/list/languages')
+        );
+
+        // Check that the result contains the expected languages (may have more from fallback)
+        expect(result).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            code: 'en',
+            name: 'English',
+            direction: 'ltr',
+            organizations: expect.arrayContaining(['door43-catalog', 'unfoldingWord']),
+            organizationCount: expect.any(Number)
+          }),
+          expect.objectContaining({
+            code: 'es',
+            name: 'Spanish',
+            direction: 'ltr',
+            organizations: expect.arrayContaining(['unfoldingWord']),
+            organizationCount: expect.any(Number)
+          }),
+          expect.objectContaining({
+            code: 'fr',
+            name: 'French',
+            direction: 'ltr',
+            organizations: expect.arrayContaining(['door43-catalog']),
+            organizationCount: expect.any(Number)
+          })
+        ]));
+      });
+
+      it("should handle missing language codes gracefully", async () => {
+        const mockResponse = {
+          data: [
+            { lc: 'en', ln: 'English', ld: 'ltr' },
+            { ln: 'Invalid Entry' }, // Missing lc
+            { lc: 'es', ln: 'Spanish' } // Missing ld
+          ]
+        };
+
+        fetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await fetchAllLanguages(false);
+
+        expect(result).toEqual([
+          {
+            code: 'en',
+            name: 'English',
+            direction: 'ltr',
+            organizations: undefined,
+            organizationCount: undefined
+          },
+          {
+            code: 'es',
+            name: 'Spanish',
+            direction: 'ltr', // Default value
+            organizations: undefined,
+            organizationCount: undefined
+          }
+        ]);
+      });
+    });
+
+    describe("analyzeResourceCompatibility", () => {
+      it("should return compatible for empty resources", () => {
+        const result = analyzeResourceCompatibility([]);
+        expect(result).toEqual({
+          compatible: true,
+          warnings: [],
+          organizations: [],
+          subjects: [],
+          stages: [],
+          analysis: {
+            multiOrg: false,
+            mixedQuality: false,
+            resourceTypes: 0
+          }
+        });
+      });
+
+      it("should detect mixed organizations", () => {
+        const resources = [
+          { organization: 'unfoldingWord', subject: 'Bible', stage: 'prod' },
+          { organization: 'door43-catalog', subject: 'Translation Notes', stage: 'prod' }
+        ];
+
+        const result = analyzeResourceCompatibility(resources);
+
+        expect(result.compatible).toBe(true);
+        expect(result.warnings).toHaveLength(1);
+        expect(result.warnings[0]).toMatchObject({
+          type: 'mixed_organizations',
+          severity: 'warning',
+          message: expect.stringContaining('2 different organizations')
+        });
+        expect(result.analysis.multiOrg).toBe(true);
+      });
+
+      it("should detect mixed quality levels", () => {
+        const resources = [
+          { organization: 'unfoldingWord', subject: 'Bible', stage: 'prod' },
+          { organization: 'unfoldingWord', subject: 'Translation Notes', stage: 'draft' }
+        ];
+
+        const result = analyzeResourceCompatibility(resources);
+
+        expect(result.compatible).toBe(true);
+        expect(result.warnings).toHaveLength(1);
+        expect(result.warnings[0]).toMatchObject({
+          type: 'mixed_quality',
+          severity: 'caution',
+          message: expect.stringContaining('Mixed quality levels')
+        });
+        expect(result.analysis.mixedQuality).toBe(true);
+      });
+
+      it("should suggest complementary resources", () => {
+        const resources = [
+          { organization: 'unfoldingWord', subject: 'Aligned Bible', stage: 'prod' }
+        ];
+
+        const result = analyzeResourceCompatibility(resources);
+
+        expect(result.compatible).toBe(true);
+        expect(result.warnings).toHaveLength(1);
+        expect(result.warnings[0]).toMatchObject({
+          type: 'missing_complement',
+          severity: 'info',
+          message: expect.stringContaining('no Translation Notes found')
+        });
+      });
+    });
+
+    describe("fetchOrganizationDetails", () => {
+      it("should fetch organization details successfully", async () => {
+        const mockResponse = {
+          username: 'unfoldingWord',
+          full_name: 'unfoldingWord',
+          description: 'Open Bible resources',
+          avatar_url: 'https://example.com/avatar.png',
+          website: 'https://unfoldingword.org',
+          location: 'Global',
+          visibility: 'public',
+          repo_count: 150,
+          repo_languages: ['en', 'es', 'fr'],
+          repo_subjects: ['Bible', 'Translation Notes', 'Translation Questions'],
+          created: '2020-01-01T00:00:00Z',
+          updated: '2023-01-01T00:00:00Z'
+        };
+
+        fetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await fetchOrganizationDetails('unfoldingWord');
+
+        expect(fetch).toHaveBeenCalledWith(
+          'https://git.door43.org/api/v1/orgs/unfoldingWord'
+        );
+
+        expect(result).toEqual({
+          login: 'unfoldingWord',
+          full_name: 'unfoldingWord',
+          description: 'Open Bible resources',
+          avatar_url: 'https://example.com/avatar.png',
+          website: 'https://unfoldingword.org',
+          location: 'Global',
+          visibility: 'public',
+          repo_count: 150,
+          repo_languages: ['en', 'es', 'fr'],
+          repo_subjects: ['Bible', 'Translation Notes', 'Translation Questions'],
+          created: '2020-01-01T00:00:00Z',
+          updated: '2023-01-01T00:00:00Z'
+        });
+      });
+
+      it("should return null for invalid organization", async () => {
+        const result = await fetchOrganizationDetails('');
+        expect(result).toBeNull();
+        expect(fetch).not.toHaveBeenCalled();
+      });
+
+      it("should handle API errors gracefully", async () => {
+        fetch.mockRejectedValueOnce(new Error('API Error'));
+
+        const result = await fetchOrganizationDetails('nonexistent');
+        expect(result).toBeNull();
+      });
+    });
+  });
+
+  describe("Existing Features", () => {
+    describe("fetchBibleResources", () => {
+      it("should fetch Bible resources successfully", async () => {
+        const mockResponse = {
+          data: [
+            {
+              name: 'en_ult',
+              full_name: 'unfoldingWord/en_ult',
+              description: 'unfoldingWord Literal Text',
+              subject: 'Aligned Bible',
+              html_url: 'https://git.door43.org/unfoldingWord/en_ult'
+            }
+          ]
+        };
+
+        fetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await fetchBibleResources('unfoldingWord', 'en');
+
+        expect(result).toEqual([
+          {
+            id: 'ult',
+            name: 'en_ult',
+            fullName: 'unfoldingWord/en_ult',
+            description: 'unfoldingWord Literal Text',
+            subject: 'Aligned Bible',
+            repoUrl: 'https://git.door43.org/unfoldingWord/en_ult',
+            avatarUrl: null,
+            owner: null
+          }
+        ]);
+      });
+
+      it("should return empty array for missing parameters", async () => {
+        const result1 = await fetchBibleResources('', 'en');
+        const result2 = await fetchBibleResources('org', '');
+        
+        expect(result1).toEqual([]);
+        expect(result2).toEqual([]);
+        expect(fetch).not.toHaveBeenCalled();
+      });
     });
   });
 });

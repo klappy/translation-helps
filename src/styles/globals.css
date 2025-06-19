@@ -15,13 +15,22 @@
   --color-background: #000000; /* Black background like ETEN Lab website */
   --color-surface: #1a1a1a; /* Dark grey for content areas */
   --color-surface-hover: #2d2d2d;
+  --color-surface-secondary: #2a2a2a; /* Secondary surface for cards/panels */
+  --color-surface-tertiary: #333333; /* Tertiary surface for nested elements */
+  --color-surface-quaternary: #404040; /* Quaternary surface for hover states */
   --color-footer: #262626; /* Footer grey from ETEN Lab website */
   --color-border: #333333;
   --color-border-hover: #404040;
+  --color-border-secondary: #404040; /* Secondary border color */
+  --color-border-tertiary: #555555; /* Tertiary border color */
   --color-text: #ffffff; /* White text on dark backgrounds */
+  --color-text-primary: #ffffff; /* Primary text color */
+  --color-text-secondary: #cccccc; /* Secondary text color */
+  --color-text-tertiary: #999999; /* Tertiary text color */
   --color-text-light: #cccccc;
   --color-text-muted: #999999;
   --color-text-on-primary: #000000; /* Black text on green buttons for readability */
+  --color-primary-rgb: 193, 215, 46; /* RGB values for primary color */
   --color-dark: #cccccc;
   --color-darker: #ffffff;
   --color-success: #c1d72e; /* ETEN Lab green */
@@ -206,13 +215,22 @@
   --color-background: #ffffff; /* White */
   --color-surface: #ffffff;
   --color-surface-hover: #f8f9fa;
+  --color-surface-secondary: #f8f9fa; /* Secondary surface for cards/panels */
+  --color-surface-tertiary: #f1f5f9; /* Tertiary surface for nested elements */
+  --color-surface-quaternary: #e2e8f0; /* Quaternary surface for hover states */
   --color-footer: #f8f9fa; /* Light grey for footer in light theme */
   --color-border: #e2e8f0;
   --color-border-hover: #cbd5e1;
+  --color-border-secondary: #cbd5e1; /* Secondary border color */
+  --color-border-tertiary: #94a3b8; /* Tertiary border color */
   --color-text: #1e293b;
+  --color-text-primary: #1e293b; /* Primary text color */
+  --color-text-secondary: #64748b; /* Secondary text color */
+  --color-text-tertiary: #94a3b8; /* Tertiary text color */
   --color-text-light: #64748b;
   --color-text-muted: #94a3b8;
   --color-text-on-primary: #000000; /* Black text on green buttons for readability */
+  --color-primary-rgb: 193, 215, 46; /* RGB values for primary color */
   --color-dark: #1e293b;
   --color-darker: #0f172a;
   --color-success: #c1d72e; /* ETEN Lab green */
@@ -298,13 +316,22 @@
   --color-background: #000000; /* Black */
   --color-surface: #1a1a1a;
   --color-surface-hover: #2d2d2d;
+  --color-surface-secondary: #2a2a2a; /* Secondary surface for cards/panels */
+  --color-surface-tertiary: #333333; /* Tertiary surface for nested elements */
+  --color-surface-quaternary: #404040; /* Quaternary surface for hover states */
   --color-footer: #262626; /* Footer grey from ETEN Lab website */
   --color-border: #333333;
   --color-border-hover: #404040;
+  --color-border-secondary: #404040; /* Secondary border color */
+  --color-border-tertiary: #555555; /* Tertiary border color */
   --color-text: #ffffff; /* White */
+  --color-text-primary: #ffffff; /* Primary text color */
+  --color-text-secondary: #cccccc; /* Secondary text color */
+  --color-text-tertiary: #999999; /* Tertiary text color */
   --color-text-light: #cccccc;
   --color-text-muted: #999999;
   --color-text-on-primary: #000000; /* Black text on green buttons for readability */
+  --color-primary-rgb: 193, 215, 46; /* RGB values for primary color */
   --color-dark: #cccccc;
   --color-darker: #ffffff;
   --color-success: #c1d72e; /* ETEN Lab green */

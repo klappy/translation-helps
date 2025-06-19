@@ -19,6 +19,7 @@ export default defineConfig({
       "src/utils/**/*.{test,spec}.{ts,tsx}",
       "src/modules/**/tests/**/*.{test,spec}.ts",
       "src/components/**/*.{test,spec}.{js,jsx,ts,tsx}",
+      "src/services/**/*.{test,spec}.{js,jsx}",
       "src-new/utils/**/*.{test,spec}.{js,jsx}",
       "src-new/hooks/**/*.{test,spec}.{js,jsx}",
       "src-new/services/**/*.{test,spec}.js",

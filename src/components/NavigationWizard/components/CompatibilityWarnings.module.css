@@ -1,0 +1,275 @@
+/**
+ * CompatibilityWarnings.module.css
+ * Styles for the CompatibilityWarnings component
+ */
+
+.compatibilityWarnings {
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.compatibilityWarnings.desktop {
+  padding: 20px;
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+
+/* Compatibility header */
+.compatibilityHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 4px solid transparent;
+}
+
+.compatibilityHeader.high {
+  background: rgba(34, 197, 94, 0.1);
+  border-left-color: #22c55e;
+  color: var(--color-text-primary);
+}
+
+.compatibilityHeader.medium {
+  background: rgba(249, 115, 22, 0.1);
+  border-left-color: #f97316;
+  color: var(--color-text-primary);
+}
+
+.compatibilityHeader.low {
+  background: rgba(239, 68, 68, 0.1);
+  border-left-color: #ef4444;
+  color: var(--color-text-primary);
+}
+
+.compatibilityIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.compatibilityInfo {
+  flex: 1;
+}
+
+.compatibilityTitle {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.compatibilityScore {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* Sections */
+.warningsSection,
+.recommendationsSection {
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.warningIcon,
+.recommendationIcon {
+  font-size: 16px;
+}
+
+/* Warning and recommendation lists */
+.warningsList,
+.recommendationsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.warningItem,
+.recommendationItem {
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  background: var(--color-surface-tertiary);
+  border-left: 3px solid transparent;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.warningItem {
+  border-left-color: #f59e0b;
+}
+
+.recommendationItem {
+  border-left-color: #3b82f6;
+}
+
+.warningType {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.warningMessage {
+  flex: 1;
+  color: var(--color-text-secondary);
+}
+
+.severityBadge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.severityBadge.high {
+  background: #ef4444;
+  color: white;
+}
+
+.severityBadge.medium {
+  background: #f59e0b;
+  color: white;
+}
+
+.severityBadge.low {
+  background: #6b7280;
+  color: white;
+}
+
+/* Expandable details */
+.compatibilityDetails {
+  margin-top: 16px;
+  border-top: 1px solid var(--color-border-tertiary);
+  padding-top: 16px;
+}
+
+.detailsSummary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detailsSummary:hover {
+  background: var(--color-surface-tertiary);
+}
+
+.detailsSummary::-webkit-details-marker {
+  display: none;
+}
+
+.detailsSummary::before {
+  content: '▶';
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.compatibilityDetails[open] .detailsSummary::before {
+  transform: rotate(90deg);
+}
+
+.detailsContent {
+  padding: 16px 8px 8px 8px;
+  color: var(--color-text-secondary);
+}
+
+.detailsDescription {
+  margin: 0 0 16px 0;
+  line-height: 1.6;
+}
+
+.organizationsInvolved,
+.resourceTypesInvolved {
+  margin-bottom: 12px;
+}
+
+.organizationsInvolved h5,
+.resourceTypesInvolved h5 {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.organizationsInvolved ul,
+.resourceTypesInvolved ul {
+  margin: 0;
+  padding-left: 16px;
+  list-style-type: disc;
+}
+
+.organizationsInvolved li,
+.resourceTypesInvolved li {
+  margin-bottom: 2px;
+  font-size: 13px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .compatibilityWarnings {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .compatibilityHeader {
+    padding: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .compatibilityTitle {
+    font-size: 15px;
+  }
+  
+  .warningItem,
+  .recommendationItem {
+    padding: 6px 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .severityBadge {
+    align-self: flex-start;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .compatibilityHeader.high {
+    background: rgba(34, 197, 94, 0.15);
+  }
+  
+  .compatibilityHeader.medium {
+    background: rgba(249, 115, 22, 0.15);
+  }
+  
+  .compatibilityHeader.low {
+    background: rgba(239, 68, 68, 0.15);
+  }
+} 

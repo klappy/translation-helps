@@ -17,10 +17,13 @@ describe("App", () => {
         <App />
       </MemoryRouter>
     );
-    // Check for the navigation bar
-    expect(screen.getByText("Translation Helps Viewer")).toBeInTheDocument();
+    // Check for the navigation bar logo
+    expect(screen.getByAltText("ETEN Innovation Lab")).toBeInTheDocument();
 
     // Check for the main view
     expect(screen.getByTestId("main-view")).toBeInTheDocument();
+    
+    // Check for the scripture panel navigation
+    expect(screen.getByText("English")).toBeInTheDocument();
   });
 });

@@ -1,0 +1,214 @@
+.navigationContainer {
+  width: 100%;
+  background: transparent;
+  margin-bottom: var(--spacing-3);
+}
+
+/* Breadcrumb Navigation */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Breadcrumb buttons container */
+.breadcrumbsContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex: 1;
+}
+
+.breadcrumbButton {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+  border: none;
+  background: none;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+}
+
+.breadcrumbButton.completed {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.breadcrumbButton.incomplete {
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border: 1px dashed var(--color-border);
+}
+
+.breadcrumbButton.disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.breadcrumbButton:hover:not(.disabled) {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.breadcrumbButton:active:not(.disabled) {
+  transform: translateY(0);
+}
+
+.separator {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  user-select: none;
+  margin: 0 var(--spacing-1);
+  opacity: 0.6;
+}
+
+/* Control Buttons - styled like theme toggle */
+.controlButtons {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.controlButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+  position: relative;
+}
+
+.controlButton:hover {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+  color: var(--color-text);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.controlButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.controlButton.active {
+  background-color: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.controlButton.active:hover {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Selection Container */
+.selectionContainer {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Slide Animations */
+.selectionContainer.left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.selectionContainer.right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .breadcrumbs {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--spacing-2) var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+
+  .breadcrumbsContent {
+    justify-content: center;
+  }
+  
+  .breadcrumbButton {
+    padding: var(--spacing-1) var(--spacing-2);
+    font-size: var(--font-size-xs);
+  }
+  
+  .separator {
+    margin: 0 2px;
+  }
+
+  .controlButtons {
+    justify-content: center;
+  }
+
+  .controlButton {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .breadcrumbButton,
+  .controlButton,
+  .selectionContainer.left,
+  .selectionContainer.right {
+    transition: none;
+    animation: none;
+    transform: none;
+  }
+}

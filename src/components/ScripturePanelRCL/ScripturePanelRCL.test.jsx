@@ -26,7 +26,22 @@ describe("ScripturePanelRCL", () => {
     organization: "unfoldingWord",
     languageId: "en",
     resourceId: "ult",
+    reference: mockReference,
+    updateContext: vi.fn(),
     updateReference: vi.fn(),
+    // Add the missing helper functions
+    getResourceId: vi.fn((resourceType = 'scripture') => 'ult'),
+    getResourceOrganization: vi.fn((resourceType = 'scripture') => 'unfoldingWord'),
+    isUsingMixedOrganizations: vi.fn(() => false),
+    advancedMode: false,
+    resourceOrganization: null,
+    mixedResources: {
+      scripture: null,
+      tn: null,
+      tq: null,
+      tw: null,
+      twl: null
+    },
   };
 
   const mockManifest = {
@@ -90,13 +105,17 @@ describe("ScripturePanelRCL", () => {
       { timeout: 2000 }
     );
 
-    expect(scriptureService.fetchBook).toHaveBeenCalledWith({
-      languageId: "en",
-      resourceId: "ult",
-      bookId: "gen",
-      manifest: mockManifest,
-      organization: "unfoldingWord",
-    });
+    // The component now passes an AbortSignal, so we need to check for it
+    expect(scriptureService.fetchBook).toHaveBeenCalledWith(
+      expect.objectContaining({
+        languageId: "en",
+        resourceId: "ult",
+        bookId: "gen",
+        manifest: mockManifest,
+        organization: "unfoldingWord",
+        signal: expect.any(AbortSignal),
+      })
+    );
   });
 
   it("renders chapter title", async () => {
@@ -104,7 +123,16 @@ describe("ScripturePanelRCL", () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText("GEN 1")).toBeInTheDocument();
+        expect(screen.getByTestId("usfm-renderer")).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
+    
+    // Check for breadcrumb navigation showing the book and chapter
+    await waitFor(
+      () => {
+        expect(screen.getByText("Genesis")).toBeInTheDocument();
+        expect(screen.getByText("1:1")).toBeInTheDocument();
       },
       { timeout: 2000 }
     );
@@ -113,7 +141,7 @@ describe("ScripturePanelRCL", () => {
   it("shows guidance when no reference is selected", () => {
     renderWithContext({ reference: null });
     expect(
-      screen.getByText("Please select a book and chapter to view scripture.")
+      screen.getByText("Please complete the selections above to view scripture.")
     ).toBeInTheDocument();
   });
 
@@ -121,6 +149,7 @@ describe("ScripturePanelRCL", () => {
     const contextWithoutOrg = {
       ...mockReferenceContext,
       organization: null,
+      getResourceOrganization: vi.fn(() => null),
     };
 
     render(
@@ -198,18 +227,18 @@ describe("ScripturePanelRCL", () => {
       { timeout: 2000 }
     );
 
-    // Wait for the first .verse element to appear, then simulate clicking it
+    // Wait for the first v element to appear (semantic USFM uses <v> not .verse), then simulate clicking it
     await waitFor(
       () => {
-        const verseSpan = document.querySelector(".verse");
-        expect(verseSpan).toBeInTheDocument();
+        const verseElement = document.querySelector("v");
+        expect(verseElement).toBeInTheDocument();
       },
       { timeout: 2000 }
     );
 
     await act(async () => {
-      const verseSpan = document.querySelector(".verse");
-      verseSpan.click();
+      const verseElement = document.querySelector("v");
+      verseElement.click();
     });
 
     expect(mockOnVerseClick).toHaveBeenCalledWith(1, 1);

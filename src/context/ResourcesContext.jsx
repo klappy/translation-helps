@@ -1,6 +1,7 @@
 /**
  * ResourcesContext.jsx
  * Unified context for managing all translation resources with anti-hallucination measures
+ * Enhanced with cross-organization resource support for advanced mode
  * Serves as single source of truth for scripture, translation notes, questions, words, and TWL
  */
 
@@ -30,7 +31,17 @@ export const useResourcesContext = () => {
 };
 
 export function ResourcesProvider({ children }) {
-  const { reference, organization, languageId, resourceId } = useReferenceContext();
+  const { 
+    reference, 
+    organization, 
+    languageId, 
+    resourceId,
+    advancedMode,
+    mixedResources,
+    getResourceOrganization,
+    getResourceId
+  } = useReferenceContext();
+  
   const [resources, setResources] = useState({
     scripture: null,
     translationNotes: [],
@@ -43,28 +54,100 @@ export function ResourcesProvider({ children }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Track loading states for different resource types
+  const [resourceLoadingStates, setResourceLoadingStates] = useState({
+    scripture: false,
+    tn: false,
+    tq: false,
+    tw: false,
+    twl: false,
+  });
+
   // Extract current reference values
   const { bookId, chapter, verse } = reference || {};
 
-  // Use resourceId from ReferenceContext
-  const scriptureResourceId = resourceId;
+  // Get effective resource configuration based on mode
+  const getResourceConfig = useCallback((resourceType) => {
+    if (advancedMode && mixedResources[resourceType]) {
+      return {
+        organization: mixedResources[resourceType].organization,
+        resourceId: mixedResources[resourceType].resourceId,
+        isFromMixedResources: true
+      };
+    }
+    
+    // Fallback to basic mode configuration
+    const typeToResourceIdMap = {
+      scripture: resourceId,
+      tn: 'tn',
+      tq: 'tq',
+      tw: 'tw',
+      twl: 'twl'
+    };
+    
+    return {
+      organization: organization,
+      resourceId: typeToResourceIdMap[resourceType] || resourceId,
+      isFromMixedResources: false
+    };
+  }, [advancedMode, mixedResources, organization, resourceId]);
 
-  // Load manifests for all resource types
+  // Load manifests for all resource types (supporting cross-organization)
   const loadManifests = useCallback(async () => {
     try {
+      console.log('🔄 ResourcesContext: Loading manifests for', advancedMode ? 'advanced' : 'basic', 'mode');
+      
+      // Get configurations for each resource type
+      const scriptureConfig = getResourceConfig('scripture');
+      const tnConfig = getResourceConfig('tn');
+      const tqConfig = getResourceConfig('tq');
+      const twConfig = getResourceConfig('tw');
+      const twlConfig = getResourceConfig('twl');
+
+      console.log('📋 Resource configurations:', {
+        scripture: scriptureConfig,
+        tn: tnConfig,
+        tq: tqConfig,
+        tw: twConfig,
+        twl: twlConfig
+      });
+
       const manifestPromises = [
-        fetchManifest(languageId, scriptureResourceId, organization).catch(() => null),
-        fetchManifest(languageId, "tn", organization).catch(() => null),
-        fetchManifest(languageId, "tq", organization).catch(() => null),
-        fetchManifest(languageId, "tw", organization).catch(() => null),
-        fetchManifest(languageId, "twl", organization).catch(() => null),
+        fetchManifest(languageId, scriptureConfig.resourceId, scriptureConfig.organization).catch((err) => {
+          console.warn(`Failed to load scripture manifest (${scriptureConfig.organization}/${scriptureConfig.resourceId}):`, err);
+          return null;
+        }),
+        fetchManifest(languageId, tnConfig.resourceId, tnConfig.organization).catch((err) => {
+          console.warn(`Failed to load TN manifest (${tnConfig.organization}/${tnConfig.resourceId}):`, err);
+          return null;
+        }),
+        fetchManifest(languageId, tqConfig.resourceId, tqConfig.organization).catch((err) => {
+          console.warn(`Failed to load TQ manifest (${tqConfig.organization}/${tqConfig.resourceId}):`, err);
+          return null;
+        }),
+        fetchManifest(languageId, twConfig.resourceId, twConfig.organization).catch((err) => {
+          console.warn(`Failed to load TW manifest (${twConfig.organization}/${twConfig.resourceId}):`, err);
+          return null;
+        }),
+        fetchManifest(languageId, twlConfig.resourceId, twlConfig.organization).catch((err) => {
+          console.warn(`Failed to load TWL manifest (${twlConfig.organization}/${twlConfig.resourceId}):`, err);
+          return null;
+        }),
       ];
 
       const [scriptureManifest, tnManifest, tqManifest, twManifest, twlManifest] =
         await Promise.all(manifestPromises);
 
       const manifestsObj = {
-        [scriptureResourceId]: scriptureManifest,
+        // Use combined keys for cross-org tracking
+        [`${scriptureConfig.organization}/${scriptureConfig.resourceId}`]: scriptureManifest,
+        [`${tnConfig.organization}/${tnConfig.resourceId}`]: tnManifest,
+        [`${tqConfig.organization}/${tqConfig.resourceId}`]: tqManifest,
+        [`${twConfig.organization}/${twConfig.resourceId}`]: twManifest,
+        [`${twlConfig.organization}/${twlConfig.resourceId}`]: twlManifest,
+        
+        // Keep legacy keys for backward compatibility
+        [scriptureConfig.resourceId]: scriptureManifest,
         tn: tnManifest,
         tq: tqManifest,
         tw: twManifest,
@@ -72,95 +155,186 @@ export function ResourcesProvider({ children }) {
       };
 
       setManifests(manifestsObj);
+      console.log('✅ ResourcesContext: Loaded manifests:', Object.keys(manifestsObj).filter(key => manifestsObj[key]));
       return manifestsObj;
     } catch (err) {
       console.error("Error loading manifests:", err);
       return {};
     }
-  }, [languageId, organization, scriptureResourceId]);
+  }, [languageId, getResourceConfig, advancedMode]);
 
-  // Load all resources for the current reference
+  // Enhanced resource loading with cross-organization support
   const loadResources = useCallback(async () => {
     if (!bookId || !chapter || !verse) return;
 
     setIsLoading(true);
     setError(null);
+    
+    // Reset individual loading states
+    setResourceLoadingStates({
+      scripture: true,
+      tn: true,
+      tq: true,
+      tw: true,
+      twl: true,
+    });
 
     try {
       // Load manifests first
       const currentManifests = await loadManifests();
+      
+      // Get resource configurations
+      const scriptureConfig = getResourceConfig('scripture');
+      const tnConfig = getResourceConfig('tn');
+      const tqConfig = getResourceConfig('tq');
+      const twConfig = getResourceConfig('tw');
+      const twlConfig = getResourceConfig('twl');
 
-      // First, load resources that don't depend on other resources
-      const initialPromises = [
+      console.log('🔄 ResourcesContext: Loading resources with configurations:', {
+        scripture: scriptureConfig,
+        tn: tnConfig,
+        tq: tqConfig,
+        tw: twConfig,
+        twl: twlConfig
+      });
+
+      // Load resources in parallel with individual error handling
+      const resourcePromises = [
         // Scripture (USFM)
-        currentManifests[scriptureResourceId]
-          ? fetchBook({
-              languageId,
-              resourceId: scriptureResourceId,
-              bookId,
-              manifest: currentManifests[scriptureResourceId],
-              organization,
-            })
-          : Promise.resolve(null),
+        (async () => {
+          try {
+            const scriptureKey = `${scriptureConfig.organization}/${scriptureConfig.resourceId}`;
+            const manifest = currentManifests[scriptureKey];
+            if (manifest) {
+              const result = await fetchBook({
+                languageId,
+                resourceId: scriptureConfig.resourceId,
+                bookId,
+                manifest,
+                organization: scriptureConfig.organization,
+              });
+              setResourceLoadingStates(prev => ({ ...prev, scripture: false }));
+              return { type: 'scripture', data: result, config: scriptureConfig };
+            }
+            setResourceLoadingStates(prev => ({ ...prev, scripture: false }));
+            return { type: 'scripture', data: null, config: scriptureConfig };
+          } catch (err) {
+            console.error('Failed to load scripture:', err);
+            setResourceLoadingStates(prev => ({ ...prev, scripture: false }));
+            return { type: 'scripture', data: null, config: scriptureConfig, error: err };
+          }
+        })(),
 
         // Translation Notes
-        getNotesForVerse(bookId, chapter, verse, organization, languageId).catch(() => []),
+        (async () => {
+          try {
+            const result = await getNotesForVerse(
+              bookId, 
+              chapter, 
+              verse, 
+              tnConfig.organization, 
+              languageId
+            );
+            setResourceLoadingStates(prev => ({ ...prev, tn: false }));
+            return { type: 'tn', data: result, config: tnConfig };
+          } catch (err) {
+            console.error('Failed to load translation notes:', err);
+            setResourceLoadingStates(prev => ({ ...prev, tn: false }));
+            return { type: 'tn', data: [], config: tnConfig, error: err };
+          }
+        })(),
 
-        // Translation Questions (with custom file path from manifest)
-        currentManifests.tq
-          ? (async () => {
-              // Extract custom file path from manifest (same logic as TranslationQuestionsPanel)
-              let customFilePath = null;
-              const tqManifest = currentManifests.tq;
-
-              if (tqManifest) {
-                const project = tqManifest.projects?.find((p) => p.identifier === bookId);
-                if (project && project.path) {
-                  customFilePath = project.path.replace("./", "");
-                }
+        // Translation Questions
+        (async () => {
+          try {
+            const tqKey = `${tqConfig.organization}/${tqConfig.resourceId}`;
+            const manifest = currentManifests[tqKey];
+            
+            let customFilePath = null;
+            if (manifest) {
+              const project = manifest.projects?.find((p) => p.identifier === bookId);
+              if (project && project.path) {
+                customFilePath = project.path.replace("./", "");
               }
+            }
 
-              return getQuestionsForVerse(
-                bookId,
-                chapter,
-                verse,
-                organization,
-                languageId,
-                customFilePath
-              );
-            })().catch(() => [])
-          : Promise.resolve([]),
-
-        // Translation Word Links (get rc:// URIs)
-        currentManifests.twl
-          ? getLinksForVerse(
+            const result = await getQuestionsForVerse(
               bookId,
               chapter,
               verse,
-              currentManifests.twl,
-              organization,
-              languageId
-            ).catch(() => [])
-          : Promise.resolve([]),
+              tqConfig.organization,
+              languageId,
+              customFilePath
+            );
+            setResourceLoadingStates(prev => ({ ...prev, tq: false }));
+            return { type: 'tq', data: result, config: tqConfig };
+          } catch (err) {
+            console.error('Failed to load translation questions:', err);
+            setResourceLoadingStates(prev => ({ ...prev, tq: false }));
+            return { type: 'tq', data: [], config: tqConfig, error: err };
+          }
+        })(),
+
+        // Translation Word Links
+        (async () => {
+          try {
+            const twlKey = `${twlConfig.organization}/${twlConfig.resourceId}`;
+            const manifest = currentManifests[twlKey];
+            
+            const result = manifest 
+              ? await getLinksForVerse(
+                  bookId,
+                  chapter,
+                  verse,
+                  manifest,
+                  twlConfig.organization,
+                  languageId
+                )
+              : [];
+            setResourceLoadingStates(prev => ({ ...prev, twl: false }));
+            return { type: 'twl', data: result, config: twlConfig };
+          } catch (err) {
+            console.error('Failed to load translation word links:', err);
+            setResourceLoadingStates(prev => ({ ...prev, twl: false }));
+            return { type: 'twl', data: [], config: twlConfig, error: err };
+          }
+        })(),
       ];
 
-      const [usfmData, tnData, tqData, twlLinks] = await Promise.all(initialPromises);
+      const resourceResults = await Promise.all(resourcePromises);
+      
+      // Process results
+      const processedResults = {};
+      resourceResults.forEach(result => {
+        processedResults[result.type] = result;
+      });
 
-      // Then fetch Translation Words articles based on TWL links
-      const twArticles =
-        twlLinks.length > 0
-          ? await getArticlesForLinks(twlLinks, languageId, organization).catch(() => [])
+      // Load Translation Words based on TWL links
+      let twResult;
+      try {
+        const twlLinks = processedResults.twl?.data || [];
+        const twData = twlLinks.length > 0
+          ? await getArticlesForLinks(twlLinks, languageId, twConfig.organization)
           : [];
+        setResourceLoadingStates(prev => ({ ...prev, tw: false }));
+        twResult = { type: 'tw', data: twData, config: twConfig };
+      } catch (err) {
+        console.error('Failed to load translation words:', err);
+        setResourceLoadingStates(prev => ({ ...prev, tw: false }));
+        twResult = { type: 'tw', data: [], config: twConfig, error: err };
+      }
 
-      // Extract raw USFM for the current chapter using regex (no parser needed for LLM context)
+      // Process scripture data
+      const usfmData = processedResults.scripture?.data;
       let chapterUsfm = null;
+      let versesByChapter = {};
+      
       if (usfmData) {
-        // Only log the first 200 chars once for diagnostics, not every render
+        // Extract raw USFM for the current chapter
         if (process.env.NODE_ENV === "development") {
           console.log("[ResourcesContext] usfmData (first 200 chars):", usfmData.substring(0, 200));
         }
         const chapterKey = String(chapter);
-        // Global regex to find all chapters and their content
         const chapterRegex = /\\c\s+(\d+)([\s\S]*?)(?=(\r?\n)\\c\s+\d+|$)/g;
         let match;
         while ((match = chapterRegex.exec(usfmData)) !== null) {
@@ -169,10 +343,8 @@ export function ResourcesProvider({ children }) {
             break;
           }
         }
-      }
-      // (Parser/verse logic for rendering and notes can remain as before)
-      let versesByChapter = {};
-      if (usfmData) {
+
+        // Parse verses
         try {
           const parser = new USFMSemanticParser();
           parser.parse(usfmData);
@@ -185,48 +357,74 @@ export function ResourcesProvider({ children }) {
         }
       }
 
-      // Update resources state
+      // Build enhanced resource metadata with organization attribution
+      const buildResourceMetadata = (result, resourceType) => {
+        const baseMetadata = {
+          resourceId: result.config.resourceId,
+          organization: result.config.organization,
+          isFromMixedResources: result.config.isFromMixedResources,
+          languageId,
+          loadingError: result.error?.message || null,
+        };
+
+        // Get manifest for title
+        const manifestKey = `${result.config.organization}/${result.config.resourceId}`;
+        const manifest = currentManifests[manifestKey];
+        
+        if (manifest?.dublin_core?.title) {
+          baseMetadata.title = manifest.dublin_core.title;
+        } else {
+          // Fallback titles
+          const fallbackTitles = {
+            tn: "Translation Notes",
+            tq: "Translation Questions", 
+            tw: "Translation Words",
+            twl: "Translation Word Links"
+          };
+          baseMetadata.title = fallbackTitles[resourceType] || `${result.config.resourceId.toUpperCase()}`;
+        }
+
+        return baseMetadata;
+      };
+
+      // Update resources state with cross-organization attribution
       setResources({
-        scripture: usfmData
-          ? {
-              resourceId: scriptureResourceId,
-              title: currentManifests[scriptureResourceId]?.dublin_core?.title,
-              languageId,
-              usfm: usfmData,
-              verses: versesByChapter,
-              chapterUsfm: chapterUsfm, // Raw USFM for the current chapter (for LLM context)
-            }
-          : null,
-        translationNotes: tnData.map((note, index) => ({
+        scripture: usfmData ? {
+          ...buildResourceMetadata(processedResults.scripture, 'scripture'),
+          usfm: usfmData,
+          verses: versesByChapter,
+          chapterUsfm: chapterUsfm,
+        } : null,
+        
+        translationNotes: (processedResults.tn?.data || []).map((note, index) => ({
           ...note,
-          resourceId: "tn",
-          title: currentManifests.tn?.dublin_core?.title || "unfoldingWord® Translation Notes",
+          ...buildResourceMetadata(processedResults.tn, 'tn'),
           id: index + 1,
         })),
-        translationQuestions: tqData.map((question, index) => ({
+        
+        translationQuestions: (processedResults.tq?.data || []).map((question, index) => ({
           ...question,
-          resourceId: "tq",
-          title: currentManifests.tq?.dublin_core?.title || "unfoldingWord® Translation Questions",
+          ...buildResourceMetadata(processedResults.tq, 'tq'),
           id: index + 1,
         })),
-        translationWords: twArticles.map((article, index) => ({
+        
+        translationWords: (twResult?.data || []).map((article, index) => ({
           ...article,
-          resourceId: "tw",
-          title: currentManifests.tw?.dublin_core?.title || "unfoldingWord® Translation Words",
+          ...buildResourceMetadata(twResult, 'tw'),
           id: index + 1,
           term: article.title,
           content: article.content,
           rcLink: article.rcUri,
         })),
-        translationWordLinks: twlLinks.map((link, index) => ({
+        
+        translationWordLinks: (processedResults.twl?.data || []).map((link, index) => ({
           rcLink: link,
-          resourceId: "twl",
-          title: currentManifests.twl?.dublin_core?.title || "Translation Word Links",
+          ...buildResourceMetadata(processedResults.twl, 'twl'),
           id: index + 1,
         })),
       });
 
-      // Update metadata
+      // Update metadata with cross-organization information
       setMetadata({
         organization,
         languageId,
@@ -235,25 +433,52 @@ export function ResourcesProvider({ children }) {
         verse: parseInt(verse),
         manifestInfo: currentManifests,
         timestamp: new Date().toISOString(),
+        
+        // Enhanced metadata for cross-organization support
+        advancedMode,
+        resourceConfigurations: {
+          scripture: processedResults.scripture?.config,
+          tn: processedResults.tn?.config,
+          tq: processedResults.tq?.config,
+          tw: twResult?.config,
+          twl: processedResults.twl?.config,
+        },
+        crossOrganizationUsage: advancedMode && Object.values({
+          scripture: processedResults.scripture?.config,
+          tn: processedResults.tn?.config,
+          tq: processedResults.tq?.config,
+          tw: twResult?.config,
+          twl: processedResults.twl?.config,
+        }).some(config => config?.isFromMixedResources),
       });
+
+      console.log('✅ ResourcesContext: Successfully loaded all resources');
+      
     } catch (err) {
       console.error("Error loading resources:", err);
       setError(err.message);
     } finally {
       setIsLoading(false);
+      setResourceLoadingStates({
+        scripture: false,
+        tn: false,
+        tq: false,
+        tw: false,
+        twl: false,
+      });
     }
-  }, [bookId, chapter, verse, organization, languageId, scriptureResourceId, loadManifests]);
+  }, [bookId, chapter, verse, languageId, loadManifests, getResourceConfig, advancedMode, organization]);
 
-  // Load resources when reference changes
+  // Load resources when reference or resource configuration changes
   useEffect(() => {
     loadResources();
   }, [loadResources]);
 
-  // Format context for LLM chat (replaces packageContext from llmChatService)
+  // Enhanced context formatting with cross-organization attribution
   const getFormattedContext = useCallback(() => {
     if (!metadata) return null;
 
-    // Debug: log current reference and first 100 chars of chapter USFM, throttled to prevent spam
+    // Debug logging for development
     if (resources.scripture?.chapterUsfm) {
       const logKey = `${metadata.bookId}-${metadata.chapter}-${metadata.verse}`;
       if (!window._logCache) window._logCache = {};
@@ -270,53 +495,29 @@ export function ResourcesProvider({ children }) {
       }
     }
 
-    // Debug: log scriptureText and alignmentData for the current verse, throttled to prevent spam
-    if (typeof window !== "undefined") {
-      setTimeout(() => {
-        const logKey = `verse-${metadata.verse}`;
-        if (!window._logCacheVerse) window._logCacheVerse = {};
-        if (!window._logCacheVerse[logKey] || Date.now() - window._logCacheVerse[logKey] > 1000) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`[ResourcesContext] Verse ${metadata.bookId} ${metadata.chapter}:${metadata.verse}`);
-            console.log('Scripture Text:', scriptureText);
-            console.log('Alignment Data:', alignmentDataFormatted);
-          }
-          window._logCacheVerse[logKey] = Date.now();
-        }
-      }, 0);
-    }
-
-    // Function to extract plain text for a specific verse using the robust semantic rendering system
+    // Enhanced scripture text preprocessing
     const preprocessUSFMToPlainText = (usfmText, chapter, verse) => {
       if (!usfmText) return "";
 
       try {
-        // Find the verse marker and extract text between it and the next verse marker
         const verseMarker = `\\v ${verse}`;
         const verseIndex = usfmText.indexOf(verseMarker);
         
         if (verseIndex === -1) return "";
 
-        // Extract text from verse marker to next verse marker or end
         let verseText = usfmText.substring(verseIndex + verseMarker.length);
         const nextVerseIndex = verseText.indexOf("\\v ");
         if (nextVerseIndex !== -1) {
           verseText = verseText.substring(0, nextVerseIndex);
         }
 
-        // Clean up the text
         verseText = verseText
-          // Remove alignment markers
           .replace(/\\zaln-s[^\\]*?\\?\*/g, "")
           .replace(/\\zaln-e\\?\*/g, "")
-          // Extract text from word markers
           .replace(/\\w\s+([^|]+)\|[^\\]*?\\w\*/g, "$1")
-          // Remove any remaining USFM markers
           .replace(/\\[a-z]+[-\w]*\s*[^\\]*?\*/g, "")
           .replace(/\\[a-z]+[-\w]*\s*/g, "")
-          // Remove pipe-separated attributes
           .replace(/\|[^|]*?\*/g, "")
-          // Normalize whitespace and punctuation
           .replace(/\s*,\s*/g, ", ")
           .replace(/\s+/g, " ")
           .trim();
@@ -328,9 +529,9 @@ export function ResourcesProvider({ children }) {
       }
     };
 
-    // Extract scriptureText and alignmentData for the current verse
     let scriptureText = "";
     let alignmentDataFormatted = [];
+    
     if (resources.scripture?.chapterUsfm && metadata) {
       try {
         scriptureText = preprocessUSFMToPlainText(
@@ -340,7 +541,12 @@ export function ResourcesProvider({ children }) {
         );
         scriptureText = `${metadata.bookId} ${metadata.chapter}:${metadata.verse}: ${scriptureText}`;
 
-        // Parse chapter USFM to semantic HTML for alignment data
+        // Enhanced scripture text with organization attribution
+        if (resources.scripture.organization !== organization) {
+          scriptureText += ` (from ${resources.scripture.organization})`;
+        }
+
+        // Parse for alignment data
         const html = parseUSFMToHTML(resources.scripture.chapterUsfm, "preview");
         if (typeof window !== "undefined" && typeof document !== "undefined") {
           const tempDiv = document.createElement("div");
@@ -356,7 +562,6 @@ export function ResourcesProvider({ children }) {
             }
           }
           if (verseElem) {
-            // Format alignment data in a simplified, readable way
             alignmentDataFormatted = Array.from(verseElem.querySelectorAll("word, zaln")).map(
               (el) => {
                 const attrs = el.getAttributeNames().reduce((acc, name) => {
@@ -393,7 +598,7 @@ export function ResourcesProvider({ children }) {
       resources: {
         scriptureText,
         alignmentData: alignmentDataFormatted,
-        scripture: scriptureText, // Set scripture to the preprocessed plain text
+        scripture: scriptureText,
         translationNotes: resources.translationNotes,
         translationQuestions: resources.translationQuestions,
         translationWords: resources.translationWords,
@@ -401,7 +606,19 @@ export function ResourcesProvider({ children }) {
       },
       metadata: {
         timestamp: metadata.timestamp,
-        contextSize: 0, // Will be calculated when stringified
+        contextSize: 0,
+        
+        // Enhanced metadata with cross-organization information
+        advancedMode: metadata.advancedMode,
+        crossOrganizationUsage: metadata.crossOrganizationUsage,
+        resourceOrganizations: {
+          scripture: resources.scripture?.organization,
+          translationNotes: resources.translationNotes[0]?.organization,
+          translationQuestions: resources.translationQuestions[0]?.organization,
+          translationWords: resources.translationWords[0]?.organization,
+          translationWordLinks: resources.translationWordLinks[0]?.organization,
+        },
+        
         manifestTitles: {
           scripture: resources.scripture?.title,
           translationNotes: resources.translationNotes[0]?.title,
@@ -418,9 +635,9 @@ export function ResourcesProvider({ children }) {
         },
       },
     };
-  }, [resources, metadata, isLoading, verse]);
+  }, [resources, metadata, isLoading, verse, organization]);
 
-  // Expose getFormattedContext to window for debugging
+  // Enhanced debugging exposure
   useEffect(() => {
     if (typeof window !== "undefined") {
       window._resourcesContext = {
@@ -430,9 +647,12 @@ export function ResourcesProvider({ children }) {
         manifests,
         isLoading,
         error,
+        resourceLoadingStates,
+        advancedMode,
+        mixedResources,
       };
     }
-  }, [getFormattedContext, resources, metadata, manifests, isLoading, error]);
+  }, [getFormattedContext, resources, metadata, manifests, isLoading, error, resourceLoadingStates, advancedMode, mixedResources]);
 
   const value = {
     resources,
@@ -441,19 +661,21 @@ export function ResourcesProvider({ children }) {
     isLoading,
     error,
     getFormattedContext,
-    // Expose loading states with more detailed information
+    
+    // Enhanced loading states with per-resource granularity
     loadingStates: {
       manifests: Object.keys(manifests).length === 0 && isLoading,
-      scripture: !resources.scripture && isLoading,
-      translationNotes: resources.translationNotes.length === 0 && isLoading,
-      translationQuestions: resources.translationQuestions.length === 0 && isLoading,
-      translationWords: resources.translationWords.length === 0 && isLoading,
-      translationWordLinks: resources.translationWordLinks.length === 0 && isLoading,
+      scripture: resourceLoadingStates.scripture,
+      translationNotes: resourceLoadingStates.tn,
+      translationQuestions: resourceLoadingStates.tq,
+      translationWords: resourceLoadingStates.tw,
+      translationWordLinks: resourceLoadingStates.twl,
     },
-    // Add diagnostic information for debugging
+    
+    // Enhanced diagnostics with cross-organization information
     diagnostics: {
       manifestsAvailable: {
-        [reference?.resourceId]: !!manifests[reference?.resourceId],
+        [resourceId]: !!manifests[resourceId],
         tn: !!manifests.tn,
         tq: !!manifests.tq,
         tw: !!manifests.tw,
@@ -469,7 +691,19 @@ export function ResourcesProvider({ children }) {
       currentReference: metadata
         ? `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`
         : null,
-      currentResourceId: reference?.resourceId,
+      currentResourceId: resourceId,
+      
+      // New cross-organization diagnostics
+      advancedMode,
+      crossOrganizationUsage: metadata?.crossOrganizationUsage || false,
+      resourceConfigurations: metadata?.resourceConfigurations || {},
+      organizationBreakdown: {
+        scripture: resources.scripture?.organization,
+        translationNotes: resources.translationNotes[0]?.organization,
+        translationQuestions: resources.translationQuestions[0]?.organization,
+        translationWords: resources.translationWords[0]?.organization,
+        translationWordLinks: resources.translationWordLinks[0]?.organization,
+      },
     },
   };
 

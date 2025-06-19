@@ -9,6 +9,7 @@ import { fetchBook } from "../../services/scriptureService";
 
 import USFMSemanticRenderer from "./USFMSemanticRenderer";
 import SearchPanel from "./SearchPanel";
+import { ScripturePanelNavigation } from "./ScripturePanelNavigation";
 import styles from "./ScripturePanelRCL.module.css";
 
 /**
@@ -21,9 +22,11 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
+  const [showDebugMode, setShowDebugMode] = useState(false);
   const [importingBooks, setImportingBooks] = useState(new Set());
   const [fetchTimeout, setFetchTimeout] = useState(null);
-  const { organization, languageId, resourceId, updateReference } = useContext(ReferenceContext);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const { organization, languageId, resourceId, reference: currentReference, updateContext, getResourceOrganization } = useContext(ReferenceContext);
   const { manifests, isLoading: manifestsLoading } = useContext(ManifestsContext);
 
   // Timeout constants
@@ -110,8 +113,9 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
         if (!resourceId) {
           setError("Please select a Bible resource from the dropdown above to view scripture.");
         } else {
+          const effectiveOrganization = getResourceOrganization ? getResourceOrganization('scripture') : organization;
           setError(
-            `The selected Bible resource (${selectedResourceId.toUpperCase()}) is not available for ${organization}/${languageId}. Please try selecting a different resource from the dropdown above.`
+            `The selected Bible resource (${selectedResourceId.toUpperCase()}) is not available for ${effectiveOrganization}/${languageId}. Please try selecting a different resource from the dropdown above.`
           );
         }
         return;
@@ -140,12 +144,13 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
         );
 
         // Fetch raw USFM content with timeout protection
+        const effectiveOrganization = getResourceOrganization ? getResourceOrganization('scripture') : organization;
         const fetchPromise = fetchBook({
           languageId,
           resourceId: selectedResourceId,
           bookId,
           manifest: selectedManifest,
-          organization,
+          organization: effectiveOrganization,
           signal: abortController.signal, // Pass abort signal if supported
         });
 
@@ -207,17 +212,34 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
   const handleVerseClick = (verseNum, chapterNum) => {
     // If chapterNum is not provided, use the current reference
     const newChapter = chapterNum || reference?.chapter;
-    updateReference({ chapter: newChapter, verse: verseNum });
+    const newReference = {
+      ...currentReference,
+      chapter: newChapter,
+      verse: verseNum
+    };
+    updateContext({ reference: newReference });
     if (onVerseClick) {
       onVerseClick(verseNum, newChapter);
     }
   };
 
+  const handleNavigationChange = (navigating) => {
+    setIsNavigating(navigating);
+  };
+
+  // Get manifest for resource info display
+  let manifestKey = resourceId;
+  if (resourceId && languageId && resourceId.startsWith(`${languageId}_`)) {
+    manifestKey = resourceId.substring(languageId.length + 1);
+  }
+  const selectedManifest = manifests[manifestKey];
+
   // Show loading state if manifests are loading or content is loading
   if (manifestsLoading || loading) {
     return (
       <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
-        <h2 className={styles.title}>Scripture</h2>
+        {/* Integrated Navigation - Always show breadcrumbs */}
+        <ScripturePanelNavigation onNavigationChange={handleNavigationChange} />
         <div className={styles["loading-state"]}>Loading scripture...</div>
       </section>
     );
@@ -225,32 +247,28 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
 
   // Show message if no reference is selected
   if (!reference?.bookId) {
-    return (
-      <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
-        <h2 className={styles.title}>Scripture</h2>
-        <div className={styles["empty-state"]}>
-          Please select a book and chapter to view scripture.
-        </div>
-      </section>
-    );
+      return (
+    <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
+      {/* Integrated Navigation - Always show breadcrumbs */}
+      <ScripturePanelNavigation onNavigationChange={handleNavigationChange} />
+      
+      <div className={styles["empty-state"]}>
+        Please complete the selections above to view scripture.
+      </div>
+    </section>
+  );
   }
 
   // Show error state
   if (error) {
     return (
       <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
-        <h2 className={styles.title}>{`${reference.bookId.toUpperCase()} ${reference.chapter}`}</h2>
+        {/* Integrated Navigation - Always show breadcrumbs */}
+        <ScripturePanelNavigation onNavigationChange={handleNavigationChange} />
         <div className={styles["error-state"]}>{error}</div>
       </section>
     );
   }
-
-  // Strip language prefix from resourceId for manifest lookup
-  let manifestKey = resourceId;
-  if (resourceId && languageId && resourceId.startsWith(`${languageId}_`)) {
-    manifestKey = resourceId.substring(languageId.length + 1);
-  }
-  const selectedManifest = manifests[manifestKey];
 
   // Debug: Log before rendering provider
   console.log("[ScripturePanelRCL] About to render provider with:", {
@@ -263,37 +281,50 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
 
   return (
     <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>{`${reference.bookId.toUpperCase()} ${reference.chapter}`}</h2>
-        <button
-          onClick={() => setShowSearch(!showSearch)}
-          className={`${styles["search-toggle"]} ${showSearch ? styles.active : ""}`}
-        >
-          {showSearch ? "Hide Search" : "Search Scripture"}
-        </button>
-      </div>
-
-      {showSearch && (
-        <div className={styles["search-panel"]}>
-          <SearchPanel
-            org={organization}
-            lang={languageId}
-            abbr={reference.bookId ? reference.bookId.toUpperCase() : ""}
-            usfm={usfmContent}
-            manifest={selectedManifest}
-            onResultClick={handleVerseClick}
-          />
-        </div>
-      )}
-
-      <USFMSemanticRenderer
-        usfm={extractChapterUSFM(usfmContent, reference.chapter)}
-        chapter={reference.chapter}
-        selectedVerse={reference.verse}
-        onVerseClick={handleVerseClick}
-        mode='preview'
-        showModeToggle={true}
+      {/* Integrated Navigation */}
+      <ScripturePanelNavigation 
+        onNavigationChange={handleNavigationChange}
+        showSearch={showSearch}
+        onToggleSearch={() => setShowSearch(!showSearch)}
+        showDebugMode={showDebugMode}
+        onToggleDebugMode={() => setShowDebugMode(!showDebugMode)}
       />
+
+      {/* Content Area - Show navigation UI or scripture content */}
+      {!isNavigating ? (
+        <>
+          {/* Search Panel */}
+          {showSearch && (
+            <div className={styles["search-panel"]}>
+              <SearchPanel
+                org={getResourceOrganization ? getResourceOrganization('scripture') : organization}
+                lang={languageId}
+                abbr={reference.bookId ? reference.bookId.toUpperCase() : ""}
+                usfm={usfmContent}
+                manifest={selectedManifest}
+                onResultClick={handleVerseClick}
+                hideResourceInfo={true}
+              />
+            </div>
+          )}
+
+          {/* Scripture Content with integrated resource details */}
+          <USFMSemanticRenderer
+            usfm={extractChapterUSFM(usfmContent, reference.chapter)}
+            chapter={reference.chapter}
+            selectedVerse={reference.verse}
+            onVerseClick={handleVerseClick}
+            mode={showDebugMode ? 'debug' : 'preview'}
+            showModeToggle={false}
+            resourceDetails={{
+              organization: (getResourceOrganization ? getResourceOrganization('scripture') : organization) || "Door43-Catalog",
+              title: selectedManifest?.dublin_core?.title || selectedManifest?.title || resourceId?.toUpperCase() || "",
+              version: selectedManifest?.version,
+              rights: selectedManifest?.dublin_core?.rights || selectedManifest?.rights || "CC BY-SA 4.0"
+            }}
+          />
+        </>
+      ) : null}
     </section>
   );
 });

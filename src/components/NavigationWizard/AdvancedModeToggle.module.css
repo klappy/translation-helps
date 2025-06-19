@@ -1,0 +1,196 @@
+/**
+ * AdvancedModeToggle.module.css
+ * Styles for the advanced mode toggle component
+ */
+
+.toggleContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--background-secondary, #f8f9fa);
+  border: 1px solid var(--border-color, #e9ecef);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.toggleWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.modeLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary, #6c757d);
+  transition: color 0.2s ease;
+  min-width: 80px;
+  text-align: center;
+}
+
+.modeLabel.active {
+  color: var(--text-primary, #212529);
+  font-weight: 600;
+}
+
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+
+.toggleInput {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggleSlider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--toggle-bg-off, #ccc);
+  border-radius: 28px;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggleSlider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggleInput:checked + .toggleSlider {
+  background: var(--primary-color, #007bff);
+}
+
+.toggleInput:checked + .toggleSlider:before {
+  transform: translateX(24px);
+}
+
+.toggleInput:focus + .toggleSlider {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 2px var(--focus-color, rgba(0, 123, 255, 0.25));
+}
+
+.modeDescription {
+  text-align: center;
+  margin-top: 0.25rem;
+}
+
+.description {
+  font-size: 0.75rem;
+  color: var(--text-muted, #6c757d);
+  line-height: 1.4;
+}
+
+.mixedIndicator {
+  color: var(--warning-color, #fd7e14);
+  font-weight: 500;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .toggleContainer {
+    background: var(--background-secondary-dark, #2d3748);
+    border-color: var(--border-color-dark, #4a5568);
+  }
+
+  .modeLabel {
+    color: var(--text-secondary-dark, #a0aec0);
+  }
+
+  .modeLabel.active {
+    color: var(--text-primary-dark, #f7fafc);
+  }
+
+  .toggleSlider {
+    background: var(--toggle-bg-off-dark, #4a5568);
+  }
+
+  .description {
+    color: var(--text-muted-dark, #a0aec0);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .toggleContainer {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .toggleLabel {
+    gap: 0.75rem;
+  }
+
+  .modeLabel {
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+
+  .toggleSwitch {
+    width: 46px;
+    height: 24px;
+  }
+
+  .toggleSlider:before {
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+  }
+
+  .toggleInput:checked + .toggleSlider:before {
+    transform: translateX(22px);
+  }
+
+  .description {
+    font-size: 0.7rem;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .toggleContainer {
+    border-width: 2px;
+  }
+
+  .toggleSlider {
+    border: 2px solid var(--border-color, #000);
+  }
+
+  .modeLabel.active {
+    text-decoration: underline;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .toggleSlider,
+  .toggleSlider:before,
+  .modeLabel {
+    transition: none;
+  }
+} 

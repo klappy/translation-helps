@@ -1,35 +1,45 @@
 /**
  * ReferenceContext.jsx
- * Context to track current organization, language, resource, and book/chapter/verse reference.
+ * Context for managing current reference state and organization/language selection
+ * Enhanced with cross-organization resource support
  */
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { DEFAULT_REFERENCE } from "../utils/defaultReference";
 import { updateQueryFromContext, contextFromQuery } from "../utils/contextHelpers";
 
-export const ReferenceContext = createContext({
-  organization: "unfoldingWord",
-  languageId: "en",
-  resourceId: "ult",
-  reference: DEFAULT_REFERENCE,
-  setOrganization: () => {},
-  setLanguageId: () => {},
-  setResourceId: () => {},
-  setReference: () => {},
-  updateReference: () => {},
-  updateContext: () => {},
-});
+const ReferenceContext = createContext();
 
-/**
- * Provider for ReferenceContext.
- * @param {{children: React.ReactNode}} props
- */
+export const useReferenceContext = () => {
+  const context = useContext(ReferenceContext);
+  if (!context) {
+    throw new Error("useReferenceContext must be used within a ReferenceProvider");
+  }
+  return context;
+};
+
 export function ReferenceProvider({ children }) {
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [organization, setOrganization] = useState(null);
-  const [languageId, setLanguageId] = useState(null);
-  const [resourceId, setResourceId] = useState(null);
+  // Basic reference state
   const [reference, setReference] = useState(DEFAULT_REFERENCE);
+  const [organization, setOrganization] = useState("Door43-Catalog");
+  const [languageId, setLanguageId] = useState("en");
+  const [resourceId, setResourceId] = useState("ult");
+
+  // Advanced mode state for cross-organization support
+  const [advancedMode, setAdvancedMode] = useState(false);
+  const [resourceOrganization, setResourceOrganization] = useState(null);
+  
+  // Mixed resources state for advanced mode
+  const [mixedResources, setMixedResources] = useState({
+    scripture: null,
+    tn: null,
+    tq: null,
+    tw: null,
+    twl: null
+  });
+
+  // Initialization state
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Initialize context from URL on mount - URL is source of truth
   useEffect(() => {
@@ -47,7 +57,7 @@ export function ReferenceProvider({ children }) {
           }
         } else {
           // Case 1: Fresh open with no URI parameters - use defaults ONLY
-          setOrganization("unfoldingWord");
+          setOrganization("Door43-Catalog");
           setLanguageId("en");
           setResourceId("ult");
           setReference(DEFAULT_REFERENCE);
@@ -77,8 +87,11 @@ export function ReferenceProvider({ children }) {
   useEffect(() => {
     if (!isInitialized) return; // Don't update URL during initialization
 
+    // Use the effective organization for URL (resource-specific if available, otherwise global)
+    const effectiveOrganization = resourceOrganization || organization;
+    
     const context = {
-      organization,
+      organization: effectiveOrganization,
       languageId,
       resourceId,
       reference,
@@ -89,80 +102,152 @@ export function ReferenceProvider({ children }) {
     } catch (e) {
       console.error("Failed to update URL from context:", e);
     }
-  }, [isInitialized, organization, languageId, resourceId, reference]);
+  }, [isInitialized, organization, languageId, resourceId, reference, resourceOrganization]);
 
-  // Helper function to update specific parts of reference
-  const updateReference = (updates) => {
-    setReference((prev) => ({ ...prev, ...updates }));
-  };
-
-  // Helper function to update entire context with cascading reset logic
+  // Update context with backward compatibility
   const updateContext = (updates) => {
-    // Handle cascading resets when higher-level items change
-    if (updates.organization !== undefined && updates.organization !== organization) {
-      // Organization changed - reset everything below (no defaults!)
-      setOrganization(updates.organization);
-      setLanguageId(updates.languageId || null); // Clear language unless explicitly provided
-      setResourceId(null);
-      setReference(DEFAULT_REFERENCE);
-    } else if (updates.languageId !== undefined && updates.languageId !== languageId) {
-      // Language changed - reset resource and reference
-      setLanguageId(updates.languageId);
-      setResourceId(null);
-      setReference(DEFAULT_REFERENCE);
-    } else if (updates.resourceId !== undefined && updates.resourceId !== resourceId) {
-      // Resource changed - reset reference
-      setResourceId(updates.resourceId);
-      setReference(DEFAULT_REFERENCE);
-    } else if (updates.reference) {
-      // Only reference updated
-      updateReference(updates.reference);
-    }
+    console.log("🔄 ReferenceContext.updateContext called with:", updates);
 
-    // Apply any other updates that don't trigger cascading
-    if (
-      updates.organization === organization &&
-      updates.languageId === languageId &&
-      updates.resourceId === resourceId
-    ) {
-      if (updates.reference) {
-        updateReference(updates.reference);
+    if (updates.reference !== undefined) {
+      setReference(updates.reference);
+    }
+    if (updates.organization !== undefined) {
+      setOrganization(updates.organization);
+      // In basic mode, clear resource-specific organization when global org changes
+      if (!advancedMode) {
+        setResourceOrganization(null);
       }
     }
+    if (updates.languageId !== undefined) {
+      setLanguageId(updates.languageId);
+      // Clear resource organization when language changes since resources may not be available
+      if (updates.languageId !== languageId) {
+        setResourceOrganization(null);
+      }
+    }
+    if (updates.resourceId !== undefined) {
+      setResourceId(updates.resourceId);
+    }
+    
+    // Advanced mode specific updates
+    if (updates.advancedMode !== undefined) {
+      setAdvancedMode(updates.advancedMode);
+      
+      // When switching to basic mode, clear advanced mode state
+      if (!updates.advancedMode) {
+        setResourceOrganization(null);
+        setMixedResources({
+          scripture: null,
+          tn: null,
+          tq: null,
+          tw: null,
+          twl: null
+        });
+      }
+    }
+    
+    if (updates.resourceOrganization !== undefined) {
+      setResourceOrganization(updates.resourceOrganization);
+    }
+    
+    if (updates.mixedResources !== undefined) {
+      setMixedResources(prev => ({
+        ...prev,
+        ...updates.mixedResources
+      }));
+    }
   };
 
-  if (!isInitialized) {
-    // Prevent children from rendering until context is initialized from URL
-    return null;
-  }
+  // Helper function to get the effective organization for a resource type
+  const getResourceOrganization = (resourceType = 'scripture') => {
+    // Always check for resource-specific organization first (not just in advanced mode)
+    if (resourceType === 'scripture' && resourceOrganization) {
+      return resourceOrganization;
+    }
+    
+    // In advanced mode, also check mixed resources configuration
+    if (advancedMode && mixedResources[resourceType]?.organization) {
+      return mixedResources[resourceType].organization;
+    }
+    
+    // Fall back to global organization
+    return organization;
+  };
 
-  return (
-    <ReferenceContext.Provider
-      value={{
+  // Helper function to get the effective resource ID for a resource type
+  const getResourceId = (resourceType = 'scripture') => {
+    if (advancedMode && mixedResources[resourceType]?.resourceId) {
+      return mixedResources[resourceType].resourceId;
+    }
+    
+    // Default resource IDs for different types
+    const defaultResourceIds = {
+      scripture: resourceId,
+      tn: 'tn',
+      tq: 'tq', 
+      tw: 'tw',
+      twl: 'twl'
+    };
+    
+    return defaultResourceIds[resourceType] || resourceId;
+  };
+
+  // Helper function to check if we're using mixed organizations
+  const isUsingMixedOrganizations = () => {
+    if (!advancedMode) return false;
+    
+    const orgs = new Set();
+    orgs.add(getResourceOrganization('scripture'));
+    orgs.add(getResourceOrganization('tn'));
+    orgs.add(getResourceOrganization('tq'));
+    orgs.add(getResourceOrganization('tw'));
+    orgs.add(getResourceOrganization('twl'));
+    
+    return orgs.size > 1;
+  };
+
+  // Debug logging for development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📍 ReferenceContext state:', {
+        reference,
         organization,
         languageId,
         resourceId,
-        reference,
-        setOrganization,
-        setLanguageId,
-        setResourceId,
-        setReference,
-        updateReference,
-        updateContext,
-      }}
-    >
-      {children}
-    </ReferenceContext.Provider>
-  );
+        advancedMode,
+        resourceOrganization,
+        mixedResources,
+        isUsingMixedOrgs: isUsingMixedOrganizations()
+      });
+    }
+  }, [reference, organization, languageId, resourceId, advancedMode, resourceOrganization, mixedResources]);
+
+  const value = {
+    // Basic state
+    reference,
+    organization,
+    languageId,
+    resourceId,
+    updateContext,
+    
+    // Advanced mode state
+    advancedMode,
+    resourceOrganization,
+    mixedResources,
+    
+    // Helper functions
+    getResourceOrganization,
+    getResourceId,
+    isUsingMixedOrganizations,
+    
+    // Backward compatibility - these maintain the existing API
+    setReference,
+    setOrganization,
+    setLanguageId,
+    setResourceId,
+  };
+
+  return <ReferenceContext.Provider value={value}>{children}</ReferenceContext.Provider>;
 }
 
-/**
- * Custom hook to use ReferenceContext
- */
-export function useReferenceContext() {
-  const context = useContext(ReferenceContext);
-  if (!context) {
-    throw new Error("useReferenceContext must be used within a ReferenceProvider");
-  }
-  return context;
-}
+export { ReferenceContext };

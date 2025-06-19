@@ -1,9 +1,63 @@
 # Changelog
 
-## [2.11.0] - 2025-01-27
+## [2.12.1] - 2025-12-19
 
-### Added
+### 🐛 Critical Bug Fixes
+- **API Endpoint Update**: Fixed 422 errors by updating catalog search API from v5 to v1 endpoint with correct parameters
+- **Resource Listing Restored**: Fixed language selection showing no resources due to API parameter incompatibility
+- **Multi-Subject Search**: Updated to handle Bible and Aligned Bible resources with separate API calls due to v1 API limitations
+- **Resource Selection Fix**: Fixed ResourceSelector not receiving languageId prop, which caused "No resources available" error
+- **Cross-Organization Resource Loading**: Fixed issue where selecting resources from non-unfoldingWord organizations would fail to load
+- **Organization Context Passing**: Updated resource selection to properly pass organization information to ReferenceContext
+- **Scripture Loading**: Fixed ScripturePanelRCL to use correct organization when fetching scripture content
+- **API Response Parsing**: Updated catalogService to handle new API response format where owner can be string or object
+- **Organization Extraction**: Improved organization name extraction from catalog API responses
+- **Organization Avatar Display**: Fixed organization logos not displaying by adding proper error handling and fallback system for avatar loading
+- **Cross-Organization Resource Loading**: Fixed critical bug where resources from non-unfoldingWord organizations (MVHS, Door43-Catalog) would attempt to load from unfoldingWord instead of correct organization
+- **URL Organization Context**: Fixed URL generation to use resource-specific organization instead of always defaulting to global organization
+- **Default Organization**: Changed default organization from unfoldingWord to Door43-Catalog to better reflect the multi-organization nature of the catalog
 
+### ✨ Visual Enhancements
+- **Organization Logos**: Added organization logos/avatars to resource group headers with fallback to initials
+- **Resource Avatars**: Resources now show repository avatars when available, with emoji fallback
+- **Language Flags**: Added country flag emojis to language selection and breadcrumb navigation
+- **Enhanced Language Display**: Languages now show with appropriate flag icons (🇺🇸 English, 🇪🇸 Spanish, 🇫🇷 French, etc.)
+- **Professional Resource Display**: Resource selection now shows organization branding and visual hierarchy
+- **Fallback Icon**: Unknown languages display with 🌐 globe icon for consistent visual presentation
+
+---
+
+## [2.12.0] - 2025-01-27
+
+### Changed
+
+- **Navigation System Simplification - Single Navigation Paradigm**
+  - ✅ **Removed NavigationWizard**: Eliminated modal-based navigation wizard to reduce complexity and user confusion
+  - ✅ **Simplified NavigationBar**: Streamlined navigation bar to show only logo and theme toggle, removing competing breadcrumbs
+  - ✅ **Single Navigation System**: Made ScripturePanelNavigation the only navigation interface for consistent user experience
+  - ✅ **Enhanced Language Selection**: Updated language selector to only show languages with available scripture resources
+  - ✅ **Fixed Language Synchronization**: Resolved issue where language breadcrumb would get stuck on previous selection
+  - ✅ **Improved Resource Filtering**: Languages now properly filter to show only those with Bible resources available
+
+### Fixed
+
+- **Navigation State Synchronization Issues**
+  - ✅ **Language Breadcrumb Stuck**: Fixed language breadcrumb not updating when selecting new language
+  - ✅ **Resource Discovery**: Fixed language selection showing languages without scripture resources
+  - ✅ **URL Context Synchronization**: Resolved competing navigation logic that broke URL parameter handling
+  - ✅ **Test Environment Compatibility**: Fixed theme detection to handle test environments where `window.matchMedia` is unavailable
+
+### Removed
+
+- **Competing Navigation Systems**
+  - ✅ **NavigationWizard Modal**: Removed modal-based navigation wizard from App.jsx
+  - ✅ **NavigationBreadcrumbs**: Removed breadcrumbs from NavigationBar to eliminate duplication
+  - ✅ **Wizard State Management**: Cleaned up wizard-related state and handlers from App component
+
+### Technical Implementation
+
+- **Service Layer Enhancements**:
+  - `src/services/catalogService.js` - Enhanced `fetchAllLanguages()` to filter for languages with scripture resources using cross-organization search
 - **Broader Context Notes Enhancement for LLM Chat - Intelligent Resource Utilization**
   - ✅ **Book Introduction Notes Integration**: LLM now has access to book introduction notes (`front:intro`) containing overall themes, historical background, author information, and literary structure
   - ✅ **Chapter Introduction Notes Integration**: LLM can utilize chapter introduction notes (e.g., `1:intro`) for chapter-specific context, flow of thought, and connections to surrounding chapters

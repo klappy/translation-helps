@@ -147,7 +147,7 @@ export function mergeContext(currentContext, updates) {
  */
 export function getDefaultContext() {
   return {
-    organization: "door43-catalog",
+    organization: "Door43-Catalog",
     languageId: "en",
     resourceId: null,
     reference: {

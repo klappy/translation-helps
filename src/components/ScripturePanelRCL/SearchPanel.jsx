@@ -14,13 +14,14 @@ import styles from "./SearchPanel.module.css";
  * @param {string} props.usfm - USFM content
  * @param {object} [props.manifest] - Bible resource manifest for display info
  * @param {function} props.onResultClick - Callback when a search result is clicked
+ * @param {boolean} [props.hideResourceInfo] - Whether to hide the resource info section
  */
-export default function SearchPanel({ org, lang, abbr, usfm, manifest, onResultClick }) {
+export default function SearchPanel({ org, lang, abbr, usfm, manifest, onResultClick, hideResourceInfo = false }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const debounceTimeoutRef = useRef(null);
-  const { updateReference } = useContext(ReferenceContext);
+  const { reference, updateContext } = useContext(ReferenceContext);
 
   // Debounce search term to prevent search on every keystroke
   useEffect(() => {
@@ -169,42 +170,51 @@ export default function SearchPanel({ org, lang, abbr, usfm, manifest, onResultC
 
       if (chapter && verse) {
         const verseNum = parseInt(String(verse).split("-")[0]);
-        updateReference({ chapter, verse: verseNum });
+        // Update the reference using the new context API
+        const newReference = {
+          ...reference,
+          chapter,
+          verse: verseNum
+        };
+        updateContext({ reference: newReference });
+        
         if (onResultClick) {
           onResultClick(verseNum, chapter, result);
         }
       }
     },
-    [updateReference, onResultClick]
+    [reference, updateContext, onResultClick]
   );
 
   return (
     <div className={styles.searchPanel}>
-      {/* Search Context - show current book and resource info */}
-      <div className={styles.searchContext}>
-        <div>
-          <h4 className={styles.searchCurrentBook}>
-            {abbr ? `${abbr.toUpperCase()} Search` : "Scripture Search"}
-          </h4>
+      {/* Search Context - conditionally show resource info */}
+      {!hideResourceInfo && (
+        <div className={styles.searchContext}>
+          <div>
+            <h4 className={styles.searchCurrentBook}>
+              {abbr ? `${abbr.toUpperCase()} Search` : "Scripture Search"}
+            </h4>
+          </div>
+          <div className={styles.searchResourceInfo}>
+            <div className={styles.searchResourceDetail}>
+              <span className={styles.resourceIcon}>🏢</span>
+              <span>{org || "unfoldingWord"}</span>
+            </div>
+            <div className={styles.searchResourceDetail}>
+              <span className={styles.resourceIcon}>📖</span>
+              <span>
+                {manifest?.dublin_core?.title || manifest?.title || ""}
+                {manifest?.version ? ` v${manifest.version}` : ""}
+              </span>
+            </div>
+            <div className={styles.searchResourceDetail}>
+              <span className={styles.resourceIcon}>⚖️</span>
+              <span>{manifest?.dublin_core?.rights || manifest?.rights || ""}</span>
+            </div>
+          </div>
         </div>
-        <div className={styles.searchResourceInfo}>
-          <div className={styles.searchResourceDetail}>
-            <span className={styles.resourceIcon}>🏢</span>
-            <span>{org || "unfoldingWord"}</span>
-          </div>
-          <div className={styles.searchResourceDetail}>
-            <span className={styles.resourceIcon}>📖</span>
-            <span>
-              {manifest?.dublin_core?.title || manifest?.title || ""}
-              {manifest?.version ? ` v${manifest.version}` : ""}
-            </span>
-          </div>
-          <div className={styles.searchResourceDetail}>
-            <span className={styles.resourceIcon}>⚖️</span>
-            <span>{manifest?.dublin_core?.rights || manifest?.rights || ""}</span>
-          </div>
-        </div>
-      </div>
+      )}
 
       <form onSubmit={handleSearch} className={styles.searchForm}>
         <div className={styles.searchInputGroup}>

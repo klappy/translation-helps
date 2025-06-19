@@ -18,6 +18,7 @@ import styles from "./USFMSemanticRenderer.module.css";
  * @param {number} props.selectedVerse - Currently selected verse number
  * @param {boolean} props.showModeToggle - Whether to show mode toggle buttons
  * @param {Object} props.options - Additional rendering options
+ * @param {Object} props.resourceDetails - Resource information to display
  */
 export default function USFMSemanticRenderer({
   usfm = "",
@@ -27,11 +28,17 @@ export default function USFMSemanticRenderer({
   selectedVerse = null,
   showModeToggle = true,
   options = {},
+  resourceDetails = null,
   ...props
 }) {
   const [currentMode, setCurrentMode] = useState(mode);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Update internal mode when prop changes
+  useEffect(() => {
+    setCurrentMode(mode);
+  }, [mode]);
 
   // Parse USFM and render to HTML
   const renderedHTML = useMemo(() => {
@@ -109,7 +116,7 @@ export default function USFMSemanticRenderer({
   // Render loading state
   if (isLoading) {
     return (
-      <div className={styles["usfm-semantic-renderer"]}>
+      <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer">
         <div className={styles["loading-state"]}>Parsing USFM content...</div>
       </div>
     );
@@ -118,7 +125,7 @@ export default function USFMSemanticRenderer({
   // Render error state
   if (error) {
     return (
-      <div className={styles["usfm-semantic-renderer"]}>
+      <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer">
         <div className={styles["error-state"]}>
           <strong>USFM Parsing Error:</strong>
           <br />
@@ -131,7 +138,7 @@ export default function USFMSemanticRenderer({
   // Render empty state - MUST preserve empty textContent for specification compliance
   if (!usfm.trim()) {
     return (
-      <div className={styles["usfm-semantic-renderer"]}>
+      <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer">
         {showModeToggle && (
           <div className={styles["mode-toggle"]}>
             <button
@@ -237,7 +244,7 @@ export default function USFMSemanticRenderer({
   }, [renderedHTML]);
 
   return (
-    <div className={styles["usfm-semantic-renderer"]} {...props}>
+    <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer" {...props}>
       {showModeToggle && (
         <div className={styles["mode-toggle"]}>
           <button
@@ -264,11 +271,34 @@ export default function USFMSemanticRenderer({
         </div>
       )}
 
-      <div
-        className={styles["usfm-content"]}
-        onClick={handleVerseClick}
-        dangerouslySetInnerHTML={{ __html: renderedHTML }}
-      />
+      <div className={styles["usfm-content"]}>
+        {/* Resource Details */}
+        {resourceDetails && (
+          <div className={styles["resource-details"]}>
+            <div className={styles["resource-detail-item"]}>
+              <span className={styles["resource-icon"]}>🏢</span>
+              <span>{resourceDetails.organization}</span>
+            </div>
+            <div className={styles["resource-detail-item"]}>
+              <span className={styles["resource-icon"]}>📖</span>
+              <span>
+                {resourceDetails.title}
+                {resourceDetails.version ? ` v${resourceDetails.version}` : ""}
+              </span>
+            </div>
+            <div className={styles["resource-detail-item"]}>
+              <span className={styles["resource-icon"]}>⚖️</span>
+              <span>{resourceDetails.rights}</span>
+            </div>
+          </div>
+        )}
+
+        {/* USFM Content */}
+        <div
+          onClick={handleVerseClick}
+          dangerouslySetInnerHTML={{ __html: renderedHTML }}
+        />
+      </div>
     </div>
   );
 }

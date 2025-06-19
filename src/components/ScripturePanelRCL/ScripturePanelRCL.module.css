@@ -33,6 +33,18 @@
   gap: var(--spacing-2);
 }
 
+
+
+/* Legacy controls (keeping for backward compatibility) */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
 .title {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
@@ -82,6 +94,10 @@
 
 .search-panel {
   margin-bottom: var(--spacing-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Mobile responsive adjustments */
@@ -100,7 +116,11 @@
   .search-toggle {
     width: 100%;
   }
+
+
 }
+
+
 
 /* Loading and error states */
 .loading-state {
