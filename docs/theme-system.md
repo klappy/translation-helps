@@ -284,15 +284,19 @@ h1, h2, h3 {
 
 ## Font Loading and Performance
 
-### Google Fonts Integration
-The Figtree font is loaded from Google Fonts for optimal performance:
+### Local Font Hosting
+Fonts are hosted locally for maximum reliability and performance:
 
 ```html
 <!-- In public/index.html -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="%PUBLIC_URL%/fonts/local-fonts.css" rel="stylesheet">
 ```
+
+### Font Files Location
+All font files are stored in `/public/fonts/`:
+- `figtree-300.ttf` through `figtree-900.ttf` (7 weights)
+- `jura-300.ttf` through `jura-700.ttf` (5 weights)
+- `local-fonts.css` (font-face declarations)
 
 ### Font Fallback Strategy
 Each font family includes comprehensive fallbacks:
@@ -303,9 +307,16 @@ Each font family includes comprehensive fallbacks:
 
 ### Performance Optimizations
 - `font-display: swap` ensures text remains visible during font load
-- Preconnect directives reduce font loading latency
+- Local hosting eliminates external network dependencies
 - System font fallbacks provide instant text rendering
 - Progressive enhancement approach maintains usability
+
+### Testing Font Loading
+To verify fonts are working correctly, you can:
+1. Import and use the `FontTest` component: `import FontTest from './components/FontTest'`
+2. Add `<FontTest />` to any page to see all font weights and families
+3. Check browser DevTools Network tab for font file loading (should show local .ttf files)
+4. Inspect elements to verify computed font-family values
 
 ## Future Enhancements
 

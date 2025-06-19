@@ -1,5 +1,86 @@
 # Changelog
 
+## [2.7.0] - 2025-06-19
+
+### Added
+
+- **Local Font Hosting System - Complete ETEN Lab Font Implementation**
+  - ✅ **Self-Hosted Font Files**: Downloaded and hosted 12 font files locally (Figtree 300-900, Jura 300-700) for maximum reliability
+  - ✅ **Local Font CSS**: Created `public/fonts/local-fonts.css` with proper @font-face declarations and font-display: swap optimization
+  - ✅ **FontTest Component**: New `src/components/FontTest.jsx` for visual verification of all font weights and families
+  - ✅ **Complete Font Documentation**: Created `docs/eten-lab-font-system.md` with comprehensive ETEN Lab font analysis and implementation guide
+  - ✅ **Troubleshooting Guide**: Created `docs/jura-font-troubleshooting.md` with debugging steps for font loading issues
+  - ✅ **Privacy & Performance**: Eliminated external Google Fonts dependencies for GDPR compliance and faster loading
+  - ✅ **Corporate Friendly**: No firewall/proxy issues with external font CDNs, works in all network environments
+
+### Fixed
+
+- **Font System Compliance - 37 Non-Compliant Font Issues Resolved**
+  - ✅ **Scripture Panel Headers**: Fixed 6 instances of hardcoded Georgia serif fonts in USFM headers, replaced with `var(--font-family-heading)` (Jura)
+  - ✅ **Monospace Font Standardization**: Fixed 8 instances of hardcoded Monaco/Menlo fonts, replaced with `var(--font-family-mono)` 
+  - ✅ **Navigation Components**: Fixed ResourceCard and SearchableGrid monospace usage to use CSS variables
+  - ✅ **Chat Panel Code Blocks**: Fixed LLM chat code elements to use `var(--font-family-mono)` instead of generic monospace
+  - ✅ **Markdown Utils**: Fixed inline code styling to use theme-aware CSS variables and proper contrast colors
+  - ✅ **Complete CSS Variable Migration**: All 37 hardcoded font declarations now use semantic CSS variables for theme consistency
+
+### Changed
+
+- **Font Loading Architecture - Google Fonts to Local Hosting Migration**
+  - ✅ **HTML Font Loading**: Updated `public/index.html` to use local fonts instead of Google Fonts CDN
+  - ✅ **Font Fallback Strategy**: Enhanced CSS variables with comprehensive fallback chains for reliability
+  - ✅ **Theme System Integration**: Updated `docs/theme-system.md` with local font hosting documentation and testing instructions
+  - ✅ **Performance Optimization**: Faster font loading from same domain, no DNS lookups for external CDNs
+  - ✅ **Reliability Enhancement**: Eliminated external dependencies that could fail in corporate/restricted networks
+
+### Technical Implementation
+
+- **Font File Structure**:
+  ```
+  public/fonts/
+  ├── local-fonts.css         # Font-face declarations
+  ├── figtree-300.ttf        # Figtree Light through Black (7 weights)
+  ├── jura-300.ttf           # Jura Light through Bold (5 weights)
+  ```
+
+- **CSS Variable System**:
+  - `--font-family-primary`: Figtree (UI elements, buttons, navigation)
+  - `--font-family-heading`: Jura (section headers, technical emphasis)  
+  - `--font-family-body`: Madefor Text fallback to Figtree (scripture content)
+  - `--font-family-meta`: DIN Next fallback to Figtree (timestamps, metadata)
+  - `--font-family-mono`: Monaco/Menlo/Ubuntu Mono (code, references)
+
+- **Files Modified (15+ files)**:
+  - Font hosting: `public/index.html`, `public/fonts/local-fonts.css`
+  - Scripture rendering: `USFMSemanticRenderer.module.css` (8 font fixes)
+  - Chat system: `LLMChatPanel.module.css` (3 font fixes)
+  - Navigation: `ResourceCard.module.css`, `SearchableGrid.module.css`
+  - Utilities: `markdownUtils.jsx` (theming and monospace fixes)
+  - Documentation: `theme-system.md`, `eten-lab-font-system.md`
+
+- **Files Created**:
+  - `src/components/FontTest.jsx` - Font verification component
+  - `docs/eten-lab-font-system.md` - Complete font system documentation
+  - `docs/jura-font-troubleshooting.md` - Font debugging guide
+  - `public/fonts/local-fonts.css` - Local font declarations
+  - 12 font files: `figtree-*.ttf`, `jura-*.ttf`
+
+### User Experience Benefits
+
+- **Reliable Font Loading**: No dependency on external CDNs, works in all network environments
+- **ETEN Lab Brand Consistency**: Proper Jura font rendering for technical headings and emphasis
+- **Improved Performance**: Faster font loading from same domain, reduced latency
+- **Visual Verification**: FontTest component allows easy verification of font loading
+- **Theme Compliance**: All fonts now properly adapt to light/dark theme changes
+- **Professional Typography**: Complete ETEN Lab font hierarchy implemented correctly
+
+### Development Benefits
+
+- **Font Audit System**: Comprehensive audit identified and fixed all 37 non-compliant font usages
+- **CSS Variable Compliance**: 100% migration to semantic font variables for maintainability
+- **Testing Tools**: FontTest component provides visual verification during development
+- **Documentation**: Complete implementation guides for future font system maintenance
+- **Troubleshooting**: Detailed debugging guides for font loading issues
+
 ## [2.6.0] - 2025-01-26
 
 ### Added

@@ -13,6 +13,7 @@ This document lists and describes the major components in the viewer and their r
 | `NavigationBar`         | `src-new/components/NavigationBar.jsx`         | Application header with title and navigation breadcrumbs |
 | `NavigationBreadcrumbs` | `src-new/components/NavigationBreadcrumbs.jsx` | Visual breadcrumb navigation with context display        |
 | `ThemeToggle`           | `src/components/ThemeToggle.jsx`               | Light/dark theme toggle with system preference detection |
+| `FontTest`              | `src/components/FontTest.jsx`                  | Font verification component for testing ETEN Lab fonts   |
 | `ErrorBoundary`         | `src-new/components/ErrorBoundary.jsx`         | Error boundary for graceful error handling               |
 
 ---

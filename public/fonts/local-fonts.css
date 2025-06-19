@@ -1,0 +1,99 @@
+/* Local ETEN Lab Fonts */
+
+/* Figtree Font Family */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('./figtree-300.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./figtree-400.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./figtree-500.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./figtree-600.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./figtree-700.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('./figtree-800.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('./figtree-900.ttf') format('truetype');
+}
+
+/* Jura Font Family */
+@font-face {
+  font-family: 'Jura';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('./jura-300.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Jura';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./jura-400.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Jura';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./jura-500.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Jura';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./jura-600.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Jura';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./jura-700.ttf') format('truetype');
+}
