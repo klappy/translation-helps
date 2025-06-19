@@ -227,6 +227,47 @@ document.documentElement.setAttribute('data-theme', 'dark')
 - **Primary Dark**: #a1c70e (Active states and pressed buttons)
 - **Primary Hover**: #b8d025 (Interactive feedback)
 
+### ETEN Lab Font System
+The theme system now includes ETEN Lab's complete font hierarchy:
+
+#### Font Families
+- **Primary**: Figtree (UI elements, buttons, navigation)
+- **Heading**: Jura (section headers, technical emphasis)
+- **Body**: Madefor Text (scripture text, help content)
+- **Meta**: DIN Next (timestamps, version info, small text)
+- **Mono**: Monaco/Menlo (code, references)
+
+#### Font Weights
+- Light (300), Regular (400), Medium (500)
+- SemiBold (600), Bold (700), ExtraBold (800), Black (900)
+
+#### Usage Guidelines
+```css
+/* Headers and titles */
+h1, h2, h3 {
+  font-family: var(--font-family-heading); /* Jura */
+  font-weight: var(--font-weight-bold);
+}
+
+/* Scripture and help content */
+.scripture-text {
+  font-family: var(--font-family-body); /* Madefor Text */
+  line-height: var(--line-height-relaxed);
+}
+
+/* UI elements */
+.btn, .nav-item {
+  font-family: var(--font-family-primary); /* Figtree */
+  font-weight: var(--font-weight-medium);
+}
+
+/* Metadata */
+.timestamp, .version {
+  font-family: var(--font-family-meta); /* DIN Next */
+  font-weight: var(--font-weight-light);
+}
+```
+
 ### Application Areas
 - All RC (Resource Container) links throughout the app
 - Primary buttons and call-to-action elements
@@ -239,15 +280,42 @@ document.documentElement.setAttribute('data-theme', 'dark')
 - White text on green backgrounds for optimal readability
 - Proper focus indicators for keyboard navigation users
 - System preference detection for user comfort and accessibility
+- Font size minimums: 14px body text, 12px small text
+
+## Font Loading and Performance
+
+### Google Fonts Integration
+The Figtree font is loaded from Google Fonts for optimal performance:
+
+```html
+<!-- In public/index.html -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+```
+
+### Font Fallback Strategy
+Each font family includes comprehensive fallbacks:
+- **Primary**: Figtree → System fonts (maintains readability during load)
+- **Heading**: Jura → Figtree → System fonts (graceful degradation)
+- **Body**: Madefor Text → Figtree → System fonts (optimal reading experience)
+- **Meta**: DIN Next → Figtree → System fonts (clean technical look)
+
+### Performance Optimizations
+- `font-display: swap` ensures text remains visible during font load
+- Preconnect directives reduce font loading latency
+- System font fallbacks provide instant text rendering
+- Progressive enhancement approach maintains usability
 
 ## Future Enhancements
 
 ### Planned Improvements
-1. **High Contrast Theme** - Enhanced accessibility for visually impaired users
-2. **Colorblind-Friendly Variants** - Alternative color schemes for accessibility
-3. **Organization Branding** - Customizable brand colors for different organizations
-4. **Font Size Preferences** - User-selectable text scaling options
-5. **Animation Controls** - Respect `prefers-reduced-motion` for accessibility
+1. **Complete ETEN Lab Font Suite** - Add Jura, DIN Next, and Madefor Text fonts
+2. **High Contrast Theme** - Enhanced accessibility for visually impaired users
+3. **Colorblind-Friendly Variants** - Alternative color schemes for accessibility
+4. **Organization Branding** - Customizable brand colors for different organizations
+5. **Font Size Preferences** - User-selectable text scaling options
+6. **Animation Controls** - Respect `prefers-reduced-motion` for accessibility
 
 ### Implementation Roadmap
 ```css
@@ -295,3 +363,6 @@ This theme system implementation represents a complete modernization of the tran
 - **Future-Proof Architecture** ready for additional themes and customization
 
 The system successfully addresses all critical theming issues that were causing user experience problems while establishing a solid foundation for future enhancements and organizational branding requirements.
+## Font Performance Considerations
+
+### Current Implementation: Figtree + Jura

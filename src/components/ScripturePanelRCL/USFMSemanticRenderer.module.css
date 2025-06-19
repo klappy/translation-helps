@@ -12,9 +12,9 @@
 .usfm-semantic-renderer {
   width: 100%;
   max-width: 100%;
-  font-family: var(--font-family);
+  font-family: var(--font-family-body); /* Madefor Text for scripture content */
   font-size: var(--font-size-base);
-  line-height: var(--line-height-normal);
+  line-height: var(--line-height-relaxed);
   color: var(--color-text);
 }
 
@@ -104,9 +104,9 @@
 :global(header) {
   display: block;
   margin-bottom: var(--spacing-2);
-  font-family: var(--font-family);
+  font-family: var(--font-family-heading); /* Jura for technical headings */
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   text-align: center;
   letter-spacing: 0.02em;
   line-height: var(--line-height-tight);
@@ -207,7 +207,7 @@
 /* Attributes */
 :global(attributes) {
   display: none; /* Hidden by default, shown in debug mode */
-  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-family: var(--font-family-mono);
   font-size: 0.75em;
   color: var(--color-primary);
   background-color: var(--color-surface-hover);
@@ -219,7 +219,7 @@
 /* Markers */
 :global(marker) {
   display: none; /* Hidden by default, shown based on mode */
-  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-family: var(--font-family-mono);
   font-size: 0.75em;
   color: var(--color-error);
   background-color: var(--color-error-light);
@@ -252,7 +252,7 @@
   font-size: 1.5em;
   margin: 32px 0 16px 0;
   color: var(--color-text);
-  font-family: Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-family-heading);
   text-align: center;
   line-height: 1.2;
   letter-spacing: 0.01em;
@@ -289,7 +289,7 @@
   font-weight: 700;
   text-align: center;
   margin: 16px 0 8px 0;
-  font-family: Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-family-heading);
   letter-spacing: 0.01em;
   color: var(--color-text);
 }
@@ -300,7 +300,7 @@
   font-weight: 600;
   text-align: center;
   margin: 8px 0 4px 0;
-  font-family: Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-family-heading);
   color: var(--color-text);
 }
 
@@ -310,7 +310,7 @@
   font-weight: 500;
   text-align: center;
   margin: 4px 0 2px 0;
-  font-family: Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-family-heading);
   color: var(--color-text);
 }
 
@@ -320,7 +320,7 @@
   font-weight: 500;
   text-align: center;
   margin: 2px 0 2px 0;
-  font-family: Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-family-heading);
   color: var(--color-text);
 }
 
@@ -330,7 +330,7 @@
   font-weight: 500;
   text-align: center;
   margin: 2px 0 2px 0;
-  font-family: Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-family-heading);
   color: var(--color-text);
 }
 

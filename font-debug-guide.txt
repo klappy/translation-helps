@@ -1,0 +1,6 @@
+To debug font loading issues:
+1. Open browser DevTools (F12)
+2. Go to Network tab
+3. Filter by "Font"
+4. Reload the page
+5. Check if Jura font files are loading (should see .woff2 or .ttf files)

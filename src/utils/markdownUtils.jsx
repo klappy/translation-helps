@@ -96,7 +96,7 @@ export function MarkdownWithRcLinks({ content, onRcLinkClick, additionalComponen
     p: ({ children }) => <p style={{ margin: "0 0 8px 0", lineHeight: "1.5" }}>{children}</p>,
     // Override other text-containing elements
     strong: ({ children }) => (
-      <strong style={{ fontWeight: "600", color: "#2c3e50" }}>{children}</strong>
+      <strong style={{ fontWeight: "var(--font-weight-semibold)", color: "var(--color-text)" }}>{children}</strong>
     ),
     em: ({ children }) => <em style={{ fontStyle: "italic", color: "#34495e" }}>{children}</em>,
     li: ({ children }) => <li style={{ margin: "4px 0", lineHeight: "1.4" }}>{children}</li>,
@@ -117,13 +117,14 @@ export function MarkdownWithRcLinks({ content, onRcLinkClick, additionalComponen
     code: ({ children, inline }) => (
       <code
         style={{
-          backgroundColor: inline ? "#f5f5f5" : "#f8f8f8",
+          backgroundColor: inline ? "var(--color-surface-hover)" : "var(--color-surface)",
           padding: inline ? "2px 4px" : "8px 12px",
-          borderRadius: "4px",
-          fontFamily: "monospace",
-          fontSize: "0.9em",
+          borderRadius: "var(--radius-sm)",
+          fontFamily: "var(--font-family-mono)",
+          fontSize: "var(--font-size-sm)",
           display: inline ? "inline" : "block",
-          border: "1px solid #e0e0e0",
+          border: "1px solid var(--color-border)",
+          color: "var(--color-text)",
           ...(inline ? {} : { margin: "8px 0", whiteSpace: "pre-wrap" }),
         }}
       >

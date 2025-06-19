@@ -256,7 +256,7 @@
 .resourceId {
   font-size: var(--font-size-xs);
   color: var(--color-muted);
-  font-family: monospace;
+  font-family: var(--font-family-mono);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;

@@ -19,7 +19,7 @@
   transition: border-color var(--transition-fast);
   background-color: var(--color-surface);
   color: var(--color-text);
-  font-family: var(--font-family);
+  font-family: var(--font-family-primary); /* Figtree for UI input */
 }
 
 .searchInput:focus {
