@@ -1,5 +1,84 @@
 # Changelog
 
+## [2.11.0] - 2025-01-27
+
+### Added
+
+- **Broader Context Notes Enhancement for LLM Chat - Intelligent Resource Utilization**
+  - ✅ **Book Introduction Notes Integration**: LLM now has access to book introduction notes (`front:intro`) containing overall themes, historical background, author information, and literary structure
+  - ✅ **Chapter Introduction Notes Integration**: LLM can utilize chapter introduction notes (e.g., `1:intro`) for chapter-specific context, flow of thought, and connections to surrounding chapters
+  - ✅ **Enhanced Translation Questions Service**: Updated `getQuestionsForVerse()` to include book and chapter introduction questions alongside verse-specific questions
+  - ✅ **Intelligent Context Hierarchy**: Resources returned in priority order: book intro → chapter intro → verse-specific for optimal context layering
+  - ✅ **Smart Resource Utilization**: LLM now provides comprehensive answers by drawing from appropriate context levels when verse-specific information is insufficient
+
+### Changed
+
+- **LLM Prompt System - Organized Context Presentation**
+  - ✅ **Clear Resource Categorization**: Notes and questions organized into distinct, labeled sections:
+    - 📚 **BOOK INTRODUCTION NOTES/QUESTIONS** (broader context for the entire book)
+    - 📖 **CHAPTER INTRODUCTION NOTES/QUESTIONS** (broader context for the chapter)  
+    - 📝 **VERSE-SPECIFIC NOTES/QUESTIONS** (for the specific verse)
+  - ✅ **Explicit Usage Permissions**: Added comprehensive instructions telling the LLM when and how to use broader context for cultural background, historical context, and thematic information
+  - ✅ **Enhanced Citation System**: Updated citation format to clearly indicate context scope:
+    - `[TN-1] [BOOK INTRO]` for book introduction notes
+    - `[TN-2] [CHAPTER INTRO]` for chapter introduction notes
+    - Standard `[TN-3]` for verse-specific notes
+  - ✅ **Transparent Source Attribution**: LLM responses now clearly indicate whether information comes from verse-specific, chapter, or book-level sources
+
+### Fixed
+
+- **Missing Cultural Context Information Issue**
+  - ✅ **Resolved "Information Not Available" Responses**: Fixed issue where LLM would respond with "information not available" for cultural context questions when relevant information existed in book or chapter introduction notes
+  - ✅ **Comprehensive Answer Coverage**: LLM now provides helpful background information by checking broader context when verse-specific notes are insufficient
+  - ✅ **Improved Resource Discovery**: Users now receive relevant cultural, historical, and thematic information that was previously inaccessible to the AI
+
+### Technical Implementation
+
+- **Service Layer Enhancements**:
+  - `src/services/tqService.js` - Enhanced `getQuestionsForVerse()` to include book (`front:intro`) and chapter introduction questions with support for multiple reference formats
+  - Added comprehensive test coverage verifying book/chapter intro questions are properly included in correct priority order
+
+- **LLM Prompt Engineering**:
+  - `netlify/functions/chat.js` - Restructured prompt to categorize and label different context levels with clear visual organization
+  - Added explicit guidance on when to use broader notes (cultural context, historical background, literary structure, themes)
+  - Enhanced citation examples showing proper attribution for different context levels
+
+- **Response Strategy Guidelines**:
+  - Clear instructions for transparent sourcing: "While there are no verse-specific notes on this topic, the book introduction provides relevant background..."
+  - Guidance on combining resources appropriately for comprehensive answers
+  - Requirements to always indicate context scope level in responses
+
+### User Experience Benefits
+
+- **Before Enhancement**:
+  - User: "What is the cultural context of Acts 1:1?"
+  - LLM: "This information is not available in the provided translation resources"
+  - Reality: Cultural context was available in Acts book introduction notes
+
+- **After Enhancement**:
+  - User: "What is the cultural context of Acts 1:1?"  
+  - LLM: "While there are no verse-specific notes on cultural context, the book introduction provides relevant background. According to the Acts introduction, this book was written to provide an orderly account of early Christian history... [TN-1] [BOOK INTRO]"
+
+### Key Improvements
+
+1. **Comprehensive Answers**: LLM provides helpful context even when verse-specific notes are limited
+2. **Transparent Sourcing**: Users understand whether information comes from verse, chapter, or book level
+3. **Better Resource Utilization**: All available translation helps content is accessible to the AI assistant
+4. **Educational Value**: Users learn about different levels of context available in translation resources
+5. **Backward Compatible**: No breaking changes - existing functionality works exactly as before
+
+### Testing
+
+- ✅ All translation notes service tests pass
+- ✅ All translation questions service tests pass  
+- ✅ New functionality properly includes book/chapter introduction content
+- ✅ Resources returned in correct priority order (book → chapter → verse)
+- ✅ Proper reference field preservation and citation system
+
+### Documentation
+
+- **Comprehensive Implementation Guide**: Created `docs/broader-context-notes-enhancement.md` with detailed technical implementation, user experience benefits, and future enhancement possibilities
+
 ## [2.10.0] - 2025-01-27
 
 ### Added

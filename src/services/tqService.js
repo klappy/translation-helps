@@ -10,6 +10,7 @@ const RESOURCE_ID = "tq";
 
 /**
  * Retrieves tQ entries for a given verse reference.
+ * Includes book introduction, chapter introduction, and verse-specific questions.
  * Handles both Reference format ("gen/1/1") and Chapter/Verse format.
  * @param {string} bookId
  * @param {string|number} chapter
@@ -53,23 +54,23 @@ export async function getQuestionsForVerse(
       return [];
     }
 
-    // Try multiple filtering approaches for compatibility
-    let filteredEntries = [];
+    // Collect verse-specific questions
+    let verseQuestions = [];
 
     // Approach 1: Reference field format "bookId/chapter/verse" (e.g., "gen/1/1")
     const fullRef = `${bookId}/${chapter}/${verse}`;
-    filteredEntries = entries.filter((entry) => entry.Reference === fullRef);
+    verseQuestions = entries.filter((entry) => entry.Reference === fullRef);
 
     // Approach 2: Reference field format "chapter:verse" (e.g., "1:1")
-    if (filteredEntries.length === 0) {
+    if (verseQuestions.length === 0) {
       const shortRef = `${chapter}:${verse}`;
-      filteredEntries = entries.filter((entry) => entry.Reference === shortRef);
+      verseQuestions = entries.filter((entry) => entry.Reference === shortRef);
       console.log(`Trying short reference format: ${shortRef}`);
     }
 
     // Approach 3: Separate Chapter/Verse fields
-    if (filteredEntries.length === 0) {
-      filteredEntries = entries.filter((entry) => {
+    if (verseQuestions.length === 0) {
+      verseQuestions = entries.filter((entry) => {
         const entryChapter = String(entry.Chapter).trim();
         const entryVerse = String(entry.Verse).trim();
         const targetChapter = String(chapter).trim();
@@ -79,14 +80,38 @@ export async function getQuestionsForVerse(
       console.log(`Trying Chapter/Verse fields: ${chapter}/${verse}`);
     }
 
-    console.log(`Found ${filteredEntries.length} tQ entries for ${bookId} ${chapter}:${verse}`);
+    // Collect book and chapter introduction questions
+    const bookIntroQuestions = [];
+    const chapterIntroQuestions = [];
+
+    // Look for introduction questions following the same pattern as translation notes
+    entries.forEach((entry) => {
+      // Check for book introduction (front:intro)
+      if (entry.Reference === "front:intro" || 
+          entry.Reference === `${bookId}/front/intro` ||
+          (entry.Chapter === "front" && entry.Verse === "intro")) {
+        bookIntroQuestions.push(entry);
+      }
+      // Check for chapter introduction (e.g., "1:intro")
+      else if (entry.Reference === `${chapter}:intro` || 
+               entry.Reference === `${bookId}/${chapter}/intro` ||
+               (String(entry.Chapter).trim() === String(chapter).trim() && entry.Verse === "intro")) {
+        chapterIntroQuestions.push(entry);
+      }
+    });
+
+    // Combine all questions: book intro, chapter intro, then verse-specific
+    const allQuestions = [...bookIntroQuestions, ...chapterIntroQuestions, ...verseQuestions];
+
+    console.log(`Found ${allQuestions.length} tQ entries for ${bookId} ${chapter}:${verse} (including ${bookIntroQuestions.length} book intros and ${chapterIntroQuestions.length} chapter intros)`);
 
     // Normalize the output format
-    return filteredEntries
+    return allQuestions
       .map((entry, index) => ({
         id: index,
         question: entry.Question || "",
         answer: entry.Response || entry.Answer || "",
+        reference: entry.Reference || "",
         // Keep original fields for debugging
         _original: entry,
       }))

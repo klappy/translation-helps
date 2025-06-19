@@ -121,26 +121,121 @@ AVAILABLE RESOURCES WITH CITATION IDs:`;
   // Add Translation Notes with individual citation IDs
   if (resources.translationNotes?.length > 0) {
     prompt += `\n\nTRANSLATION NOTES (${resources.translationNotes.length} entries):`;
+    
+    // Separate notes by type for clarity
+    const bookIntroNotes = [];
+    const chapterIntroNotes = [];
+    const verseNotes = [];
+    
     resources.translationNotes.forEach((note, index) => {
       const noteId = `TN-${index + 1}`;
-      prompt += `\n[${noteId}] Quote: "${note.quote || "N/A"}"`;
-      prompt += `\n      Text: "${note.text || "N/A"}"`;
-      if (note.occurrence) prompt += `\n      Occurrence: ${note.occurrence}`;
-      if (note.tags) prompt += `\n      Tags: ${note.tags}`;
-      if (note.supportReference) prompt += `\n      See also: ${note.supportReference}`;
+      const noteEntry = {
+        id: noteId,
+        quote: note.quote || "N/A",
+        text: note.text || "N/A",
+        occurrence: note.occurrence,
+        tags: note.tags,
+        supportReference: note.supportReference,
+        reference: note.reference
+      };
+      
+      // Categorize notes based on reference
+      if (note.reference && note.reference.includes("front:intro")) {
+        bookIntroNotes.push(noteEntry);
+      } else if (note.reference && note.reference.includes(":intro")) {
+        chapterIntroNotes.push(noteEntry);
+      } else {
+        verseNotes.push(noteEntry);
+      }
     });
+    
+    // Add book introduction notes
+    if (bookIntroNotes.length > 0) {
+      prompt += `\n\n📚 BOOK INTRODUCTION NOTES (broader context for the entire book):`;
+      bookIntroNotes.forEach(note => {
+        prompt += `\n[${note.id}] [BOOK INTRO]`;
+        prompt += `\n      Text: "${note.text}"`;
+        if (note.tags) prompt += `\n      Tags: ${note.tags}`;
+      });
+    }
+    
+    // Add chapter introduction notes
+    if (chapterIntroNotes.length > 0) {
+      prompt += `\n\n📖 CHAPTER INTRODUCTION NOTES (broader context for chapter ${reference.chapter}):`;
+      chapterIntroNotes.forEach(note => {
+        prompt += `\n[${note.id}] [CHAPTER INTRO]`;
+        prompt += `\n      Text: "${note.text}"`;
+        if (note.tags) prompt += `\n      Tags: ${note.tags}`;
+      });
+    }
+    
+    // Add verse-specific notes
+    if (verseNotes.length > 0) {
+      prompt += `\n\n📝 VERSE-SPECIFIC NOTES (for ${reference.citation}):`;
+      verseNotes.forEach(note => {
+        prompt += `\n[${note.id}] Quote: "${note.quote}"`;
+        prompt += `\n      Text: "${note.text}"`;
+        if (note.occurrence) prompt += `\n      Occurrence: ${note.occurrence}`;
+        if (note.tags) prompt += `\n      Tags: ${note.tags}`;
+        if (note.supportReference) prompt += `\n      See also: ${note.supportReference}`;
+      });
+    }
   }
 
   // Add Translation Questions with individual citation IDs
   if (resources.translationQuestions?.length > 0) {
     prompt += `\n\nTRANSLATION QUESTIONS (${resources.translationQuestions.length} entries):`;
+    
+    // Separate questions by type for clarity
+    const bookIntroQuestions = [];
+    const chapterIntroQuestions = [];
+    const verseQuestions = [];
+    
     resources.translationQuestions.forEach((question, index) => {
       const questionId = `TQ-${index + 1}`;
-      prompt += `\n[${questionId}] Question: "${question.question || "N/A"}"`;
-      if (question.answer) {
-        prompt += `\n      Answer: "${question.answer}"`;
+      const questionEntry = {
+        id: questionId,
+        question: question.question || "N/A",
+        answer: question.answer || "",
+        reference: question.reference
+      };
+      
+      // Categorize questions based on reference
+      if (question.reference && question.reference.includes("front:intro")) {
+        bookIntroQuestions.push(questionEntry);
+      } else if (question.reference && question.reference.includes(":intro")) {
+        chapterIntroQuestions.push(questionEntry);
+      } else {
+        verseQuestions.push(questionEntry);
       }
     });
+    
+    // Add book introduction questions
+    if (bookIntroQuestions.length > 0) {
+      prompt += `\n\n📚 BOOK INTRODUCTION QUESTIONS (broader context for the entire book):`;
+      bookIntroQuestions.forEach(q => {
+        prompt += `\n[${q.id}] [BOOK INTRO] Question: "${q.question}"`;
+        if (q.answer) prompt += `\n      Answer: "${q.answer}"`;
+      });
+    }
+    
+    // Add chapter introduction questions
+    if (chapterIntroQuestions.length > 0) {
+      prompt += `\n\n📖 CHAPTER INTRODUCTION QUESTIONS (broader context for chapter ${reference.chapter}):`;
+      chapterIntroQuestions.forEach(q => {
+        prompt += `\n[${q.id}] [CHAPTER INTRO] Question: "${q.question}"`;
+        if (q.answer) prompt += `\n      Answer: "${q.answer}"`;
+      });
+    }
+    
+    // Add verse-specific questions
+    if (verseQuestions.length > 0) {
+      prompt += `\n\n📝 VERSE-SPECIFIC QUESTIONS (for ${reference.citation}):`;
+      verseQuestions.forEach(q => {
+        prompt += `\n[${q.id}] Question: "${q.question}"`;
+        if (q.answer) prompt += `\n      Answer: "${q.answer}"`;
+      });
+    }
   }
 
   // Add Translation Words with individual citation IDs
@@ -225,7 +320,10 @@ The **unfoldingWord® Translation Questions** highlight important considerations
 
 ## Sources:
 - **[TN-1]**: unfoldingWord® Translation Notes - Quote: "*actual quoted text*" - Text: "actual explanation text"
-- **[TQ-1]**: unfoldingWord® Translation Questions - Question: "*actual question text*" - Answer: "actual answer text"  
+- **[TN-2]**: unfoldingWord® Translation Notes [BOOK INTRO] - Text: "book introduction content"
+- **[TN-3]**: unfoldingWord® Translation Notes [CHAPTER INTRO] - Text: "chapter introduction content"
+- **[TQ-1]**: unfoldingWord® Translation Questions - Question: "*actual question text*" - Answer: "actual answer text"
+- **[TQ-2]**: unfoldingWord® Translation Questions [BOOK INTRO] - Question: "book introduction question" - Answer: "answer"
 - **[TW-1]**: unfoldingWord® Translation Words - Term: "*actual term name*" - Content: "key facts and definition from article"
 - **[TWL-1]**: unfoldingWord® Translation Word Links - Word: "*actual word*" - Link reference
 - **[SCRIPTURE]**: *actual scripture resource title* - "*actual scripture text quoted*"
@@ -248,7 +346,46 @@ STRICT PROHIBITIONS:
 - NO theological interpretations not found in the resources
 - NO historical or cultural context not explicitly provided
 - NO assumptions about word meanings beyond provided definitions
-- NO references to other Bible verses unless provided in resources`;
+- NO references to other Bible verses unless provided in resources
+
+## USING BROADER CONTEXT NOTES - IMPORTANT:
+
+When answering questions about topics like cultural context, historical background, literary structure, or themes that may not be covered in verse-specific notes, you SHOULD:
+
+1. **Check Book Introduction Notes** (marked as [BOOK INTRO]) for:
+   - Overall book themes and purpose
+   - Historical and cultural background
+   - Author and audience information
+   - Literary structure and genre
+   - Key theological themes
+
+2. **Check Chapter Introduction Notes** (marked as [CHAPTER INTRO]) for:
+   - Chapter-specific context
+   - Flow of thought within the chapter
+   - Connections to surrounding chapters
+   - Key themes in this section
+
+3. **Combine Resources Appropriately**:
+   - Use verse-specific notes for detailed word/phrase explanations
+   - Use chapter intros for immediate context
+   - Use book intros for broader themes and background
+   - ALWAYS cite which level of note you're using
+
+4. **Citation Examples for Broader Context**:
+   - "The book introduction explains the cultural context... [TN-1] [BOOK INTRO]"
+   - "According to the chapter introduction... [TN-5] [CHAPTER INTRO]"
+   - "While this specific verse doesn't address cultural context, the book introduction provides relevant background... [TN-1] [BOOK INTRO]"
+
+5. **When to Use Broader Notes**:
+   - When asked about themes, context, or background not in verse notes
+   - When verse-specific information would benefit from broader context
+   - When explaining connections between verses or passages
+   - ALWAYS indicate when using broader context vs verse-specific information
+
+6. **Response Strategy for Missing Verse-Specific Information**:
+   - If a question cannot be answered from verse-specific notes, check broader context
+   - State clearly: "While there are no verse-specific notes on this topic, the [book/chapter] introduction provides relevant information..."
+   - Use broader context to provide helpful background while being transparent about the source level`;
 
   // Add alignment data at the very end with strong warnings
   if (resources.alignmentData && resources.alignmentData.length > 0) {
@@ -381,8 +518,8 @@ exports.handler = async (event, context) => {
       model: "gpt-4o-mini", // Updated to GPT-4o-mini for improved output consistency
       messages: messages,
       max_tokens: 500,
-      temperature: 0.2, // Reduced to 0.2 for more literal responses
-      top_p: 0.2, // Reduced to 0.2 to minimize creativity
+      temperature: 0.2, // Reduced to 0.2 for more literal responses but have some flexibility
+      top_p: 0.2, // 0.2 to minimize creativity but not too much
       frequency_penalty: 0.4,
       presence_penalty: 0.4,
     };
