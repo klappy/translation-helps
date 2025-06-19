@@ -381,8 +381,8 @@ exports.handler = async (event, context) => {
       model: "gpt-4o-mini", // Updated to GPT-4o-mini for improved output consistency
       messages: messages,
       max_tokens: 500,
-      temperature: 0.1, // Reduced from 0.2 for even more literal responses
-      top_p: 0.1, // Reduced from 0.2 to minimize creativity
+      temperature: 0.2, // Reduced to 0.2 for more literal responses
+      top_p: 0.2, // Reduced to 0.2 to minimize creativity
       frequency_penalty: 0.4,
       presence_penalty: 0.4,
     };
