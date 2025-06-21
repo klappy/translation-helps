@@ -88,22 +88,22 @@ export function TranslationQuestionsPanel({ reference }) {
       <div className={styles.questionsList}>
         {questions.map((qa) => (
           <div key={qa.id} className={styles.questionCard}>
-            <p className={styles.questionText}>
-              Q:{" "}
+            <div className={styles.questionText}>
+              <strong>Q:</strong>{" "}
               {processMarkdownWithRcLinks(qa.question, (rcUri) => {
                 if (handleRcLinkClick) {
                   handleRcLinkClick(rcUri, languageId, organization);
                 }
               })}
-            </p>
-            <p className={styles.answerText}>
-              A:{" "}
+            </div>
+            <div className={styles.answerText}>
+              <strong>A:</strong>{" "}
               {processMarkdownWithRcLinks(qa.answer, (rcUri) => {
                 if (handleRcLinkClick) {
                   handleRcLinkClick(rcUri, languageId, organization);
                 }
               })}
-            </p>
+            </div>
           </div>
         ))}
       </div>

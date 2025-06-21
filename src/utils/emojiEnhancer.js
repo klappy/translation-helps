@@ -134,8 +134,8 @@ const EMOJI_MAPPINGS = {
 export function enhanceWithEmojis(text, options = {}) {
   const { enabled = true, maxEmojisPerResponse = 8, excludeCategories = [] } = options;
 
-  if (!enabled || !text) {
-    return text;
+  if (!enabled || !text || typeof text !== 'string') {
+    return text || '';
   }
 
   let enhancedText = text;
@@ -186,7 +186,7 @@ export function enhanceWithEmojis(text, options = {}) {
  * @returns {string} Text with section emojis
  */
 export function addSectionEmojis(text) {
-  if (!text) return text;
+  if (!text || typeof text !== 'string') return text || '';
 
   let enhancedText = text;
 
@@ -203,7 +203,9 @@ export function addSectionEmojis(text) {
   ];
 
   headingPatterns.forEach(({ regex, emoji }) => {
-    enhancedText = enhancedText.replace(regex, `$1${emoji} $2`);
+    if (enhancedText && typeof enhancedText === 'string') {
+      enhancedText = enhancedText.replace(regex, `$1${emoji} $2`);
+    }
   });
 
   // Add emojis to list items based on content
@@ -217,10 +219,12 @@ export function addSectionEmojis(text) {
   ];
 
   listPatterns.forEach(({ regex, emoji }) => {
-    enhancedText = enhancedText.replace(regex, `$1${emoji} $2`);
+    if (enhancedText && typeof enhancedText === 'string') {
+      enhancedText = enhancedText.replace(regex, `$1${emoji} $2`);
+    }
   });
 
-  return enhancedText;
+  return enhancedText || '';
 }
 
 /**
@@ -230,7 +234,7 @@ export function addSectionEmojis(text) {
  * @returns {string} Enhanced response with emojis
  */
 export function enhanceLLMResponse(response, options = {}) {
-  if (!response) return response;
+  if (!response || typeof response !== 'string') return response || '';
 
   // First add section emojis to structure
   let enhanced = addSectionEmojis(response);
@@ -241,7 +245,7 @@ export function enhanceLLMResponse(response, options = {}) {
     excludeCategories: [...(options.excludeCategories || []), "discourse"], // Skip general discourse patterns that overlap with section emojis
   });
 
-  return enhanced;
+  return enhanced || '';
 }
 
 // Default export

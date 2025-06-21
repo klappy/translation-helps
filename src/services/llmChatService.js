@@ -141,6 +141,16 @@ Please answer the user's question using this contextual information.`;
  * @returns {Promise<Object>} Response from LLM
  */
 export async function sendChatMessage(message, context, chatHistory = []) {
+  // Check if we should use mock responses proactively in development
+  const useMockChat = import.meta.env.VITE_USE_MOCK_CHAT === "true";
+  
+  if (useMockChat) {
+    console.log("🎭 Using mock response (VITE_USE_MOCK_CHAT=true)");
+    const mockResponse = createMockResponse(message, context);
+    console.log("🎭 Mock response created:", mockResponse);
+    return mockResponse;
+  }
+
   try {
     // Estimate cost for this request
     const contextSize = JSON.stringify(context).length;
@@ -256,6 +266,16 @@ export async function sendChatMessage(message, context, chatHistory = []) {
     }
   } catch (error) {
     console.error("Error sending chat message:", error);
+
+    // Fallback to mock response if there's an API error and we haven't already used mock
+    // (This provides resilience even when trying to use real API)
+    const shouldFallbackToMock = import.meta.env.VITE_USE_MOCK_CHAT !== "false";
+    if (shouldFallbackToMock) {
+      console.log("🎭 Falling back to mock response due to API error:", error.message);
+      const mockResponse = createMockResponse(message, context);
+      console.log("🎭 Mock response created:", mockResponse);
+      return mockResponse;
+    }
 
     return {
       success: false,

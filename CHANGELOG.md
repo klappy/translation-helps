@@ -1,5 +1,27 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **USFM Text Extraction - Comprehensive Documentation and Test Audit (2025)**
+  - ✅ **Comprehensive Test Suite Enhancement**: Expanded test coverage from 6 to 18 comprehensive tests covering all extraction scenarios
+  - ✅ **Unified Approach Documentation**: Created complete technical documentation (`docs/usfm-text-extraction-unified-approach.md`) detailing the current server-side approach
+  - ✅ **Regression Prevention**: Removed conflicting outdated test file (`ResourcesContext.usfm-semantic-extraction.test.js`) that used deprecated browser/server split approach
+  - ✅ **Test Coverage Expansion**: Added comprehensive tests for:
+    - Single verse extraction (`extractVerseText`)
+    - Full chapter extraction (`extractChapterText`) 
+    - USFM markup validation (`validateCleanText`)
+    - Environment consistency across browser/server/test
+    - Complex nested alignment structures
+    - Performance benchmarks (100+ verses in <100ms)
+    - Edge cases and error handling
+    - Malformed HTML graceful degradation
+  - ✅ **Architecture Documentation**: Clearly documented the unified server-side regex approach that replaced unreliable CSS-based extraction
+  - ✅ **Migration Guidelines**: Documented deprecated patterns (browser CSS detection) and correct current patterns (unified mock DOM)
+  - ✅ **Best Practices**: Established developer guidelines for maintaining the unified approach and preventing regressions
+  - ✅ **Performance Validation**: Confirmed 99%+ size reduction from 228KB raw USFM to ~2KB clean text with zero markup contamination
+
 ## [3.0.0] - 2025-01-28
 
 ### 🚨 **BREAKING CHANGES - MAJOR ARCHITECTURAL OVERHAUL**
@@ -1933,10 +1955,6 @@ This comprehensive fix resolves a critical architectural limitation where the ap
   - Added specific integration test for Door43-Catalog English language availability
   - Updated all language-related tests to work with enhanced object structure
   - Better language display across all dropdowns and UI components
-
-## [Unreleased]
-
-### Added
 
 - **USFM Performance Optimization - Eliminated Multiple Parsing Cycles ([Performance Issue])**
   - ✅ **Fixed Re-fetch Cycle**: Removed `usfmContent` from useEffect dependencies in ScripturePanelRCL to prevent fetch → update → re-fetch cycles

@@ -53,26 +53,45 @@ export async function loadResourceForType(resourceType, reference, resourceConfi
     switch (resourceType) {
       case 'scripture':
         try {
-          // Try primary organization first
-          return await fetchBookWithFallback({
+          // Try primary organization first - KEEP RAW USFM AS SINGLE SOURCE OF TRUTH
+          const rawUsfm = await fetchBookWithFallback({
             bookId,
             organization,
             languageId,
             resourceId,
             ...(resourceData && { resourceData })
           });
+          
+          if (rawUsfm) {
+            console.log(`🔍 Scripture: Loaded raw USFM (${rawUsfm.length} chars) - keeping as single source of truth`);
+            console.log(`🔍 Scripture: Raw USFM preview: "${rawUsfm.substring(0, 200)}${rawUsfm.length > 200 ? '...' : ''}"`);
+            
+            // Return raw USFM as the single source of truth
+            // UI components will render it directly
+            // LLM context will extract clean text at runtime
+            return rawUsfm;
+          }
+          
+          return null;
         } catch (primaryError) {
           // If primary organization fails and it's not unfoldingWord, try unfoldingWord as fallback
           if (organization !== 'unfoldingWord') {
             console.warn(`⚠️ Scripture loading failed for ${organization}, trying unfoldingWord fallback`);
             try {
-              return await fetchBookWithFallback({
+              const fallbackUsfm = await fetchBookWithFallback({
                 bookId,
                 organization: 'unfoldingWord',
                 languageId,
                 resourceId,
                 resourceData: null // Don't use resourceData for fallback org
               });
+              
+              if (fallbackUsfm) {
+                console.log(`🔍 Scripture (Fallback): Loaded raw USFM (${fallbackUsfm.length} chars) from unfoldingWord`);
+                return fallbackUsfm;
+              }
+              
+              return null;
             } catch (fallbackError) {
               console.error(`❌ Both ${organization} and unfoldingWord failed for scripture:`, fallbackError);
               throw primaryError; // Throw original error

@@ -101,7 +101,7 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
             <p>Found {links.length} TWL link(s) for this verse:</p>
             <ul className={styles.debugList}>
               {links.map((link, index) => (
-                <li key={index} className={styles.debugItem}>
+                <li key={`debug-link-${index}-${typeof link === 'string' ? link : link.rcLink || 'unknown'}`} className={styles.debugItem}>
                   {typeof link === 'string' ? link : link.rcLink || 'Unknown link'}
                 </li>
               ))}
@@ -156,6 +156,13 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
         <details className={styles.debugInfo}>
           <summary className={styles.debugSummary}>Debug Info</summary>
           <p>Found {links.length} TWL link(s) but no articles loaded.</p>
+          <ul className={styles.debugList}>
+            {links.map((link, index) => (
+              <li key={`empty-debug-link-${index}-${typeof link === 'string' ? link : link.rcLink || 'unknown'}`} className={styles.debugItem}>
+                {typeof link === 'string' ? link : link.rcLink || 'Unknown link'}
+              </li>
+            ))}
+          </ul>
         </details>
       )}
 
