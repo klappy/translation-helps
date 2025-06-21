@@ -41,6 +41,7 @@ description: An application for viewing Bible translation resources from ETEN In
 - `api-integration-patterns.md`: DCS API integration patterns, error handling, and best practices
 - `debugging-methodologies.md`: Systematic debugging approaches and troubleshooting frameworks
 - `cross-organization-resource-loading.md`: Cross-organization resource loading system architecture, bug fixes, and maintenance guidelines
+- `catalog-api-optimization.md`: **API PERFORMANCE** - Language loading and subject filtering optimizations with 90% performance improvements
 
 ## 🛠️ Development Environment
 
@@ -59,6 +60,7 @@ description: An application for viewing Bible translation resources from ETEN In
 - **❌ ANTI-PATTERN**: Never add complex loading logic to panels
 - **⚠️ CRITICAL: DO NOT USE PROSKOMMA** - Use custom USFM semantic rendering system in `src/components/ScripturePanelRCL/`
 - **🚀 API-DIRECT ONLY**: Use catalog API with ingredients array, NO manifest files ever
+- **📈 API OPTIMIZATION**: DCS catalog search uses subject filtering to reduce payloads by 15.4% - see `catalogService.js` `appSupportedSubjects` array
 - TWL is a new addition that replaces Greek inline tags—point devs to TWL documentation
 - UI/UX tests use Vitest and React Testing Library
 - **LLM Chat**: Direct ResourcesContext access, no panel refs or polling

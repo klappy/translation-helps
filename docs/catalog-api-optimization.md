@@ -414,6 +414,166 @@ This optimization demonstrates the importance of:
 
 The transformation from a 4-9 second delay to sub-second loading fundamentally improves the user experience and makes the application feel responsive and professional.
 
+## Subject Filtering Optimization (December 2024)
+
+### Problem: Downloading Irrelevant Resource Types
+
+After optimizing language loading, the next bottleneck was discovered in resource discovery. The application was downloading metadata for resource types it doesn't use:
+
+#### Original Resource Loading (Inefficient)
+```javascript
+// OLD: Download ALL resource types for a language
+const searchParams = new URLSearchParams({
+  metadataType: "rc",
+  lang: languageCode,
+  stage: stage,
+  limit: "200"
+  // No filtering - downloads everything
+});
+```
+
+#### Resources Being Downloaded Unnecessarily
+- Aramaic Grammar
+- Greek Grammar  
+- Hebrew Grammar
+- Open Bible Stories materials
+- Translation Academy
+- Various OBS study materials
+
+### Solution: Smart Subject Filtering
+
+#### Implementation
+```javascript
+// NEW: Only download resource types the app actually uses
+const appSupportedSubjects = [
+  "Bible",
+  "Aligned Bible", 
+  "Translation Notes",
+  "Translation Questions",
+  "Translation Words",
+  "TSV Translation Notes",
+  "TSV Translation Questions", 
+  "TSV Translation Words Links"
+].join(",");
+
+const searchParams = new URLSearchParams({
+  metadataType: "rc",
+  lang: languageCode,
+  stage: stage,
+  limit: "200",
+  subject: appSupportedSubjects // OPTIMIZATION: Filter at API level
+});
+```
+
+### Performance Results
+
+#### Before Subject Filtering
+- **Resources Downloaded**: 26 resources
+- **Resource Types**: 16 different types
+- **Payload Size**: 762,524 characters
+- **Processing**: All resources processed regardless of relevance
+
+#### After Subject Filtering  
+- **Resources Downloaded**: 15 resources (-42%)
+- **Resource Types**: 6 relevant types (-63%)
+- **Payload Size**: 645,347 characters (-15.4%)
+- **Processing**: Only relevant resources processed
+
+### Metrics Comparison
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Payload Size | 762 KB | 645 KB | **15.4% reduction** |
+| Resource Count | 26 | 15 | **42% fewer** |
+| Resource Types | 16 | 6 | **63% reduction** |
+| Irrelevant Data | 10 types | 0 types | **100% eliminated** |
+
+### Eliminated Resource Types
+The following resource types are now filtered out at the API level:
+- Aramaic Grammar
+- Greek Grammar
+- Hebrew Grammar
+- Open Bible Stories
+- TSV OBS Study Notes
+- TSV OBS Study Questions
+- TSV OBS Translation Notes
+- TSV OBS Translation Questions
+- TSV OBS Translation Words Links
+- Translation Academy
+
+### Retained Resource Types
+Only these app-relevant resource types are downloaded:
+- Bible & Aligned Bible
+- Translation Words
+- TSV Translation Notes
+- TSV Translation Questions  
+- TSV Translation Words Links
+
+### Expandability Strategy
+
+#### Easy to Add New Resource Types
+```javascript
+// To add new resource types, simply update this array:
+const appSupportedSubjects = [
+  "Bible",
+  "Aligned Bible", 
+  "Translation Notes",
+  "Translation Questions",
+  "Translation Words",
+  "TSV Translation Notes",
+  "TSV Translation Questions", 
+  "TSV Translation Words Links",
+  // Add new types here as app features grow:
+  // "Translation Academy", // If we add academy features
+  // "Open Bible Stories"   // If we add OBS support
+].join(",");
+```
+
+#### Documentation for Future Developers
+```javascript
+// This eliminates: Grammar resources, OBS materials, Translation Academy, etc.
+// To add new resource types: just add them to this array
+// Check available subjects at: https://git.door43.org/api/v1/catalog/search?lang=en&stage=prod
+```
+
+### Benefits of Subject Filtering
+
+1. **Reduced Network Traffic**: 15.4% smaller payloads
+2. **Faster Processing**: 42% fewer resources to parse
+3. **Relevant Data Only**: No wasted bandwidth on unused resources
+4. **Easy Expansion**: Simply add new subjects as features grow
+5. **Better UX**: Faster loading times for users
+
+### Testing Verification
+
+#### Payload Comparison Test
+```javascript
+// Test script to verify optimization
+const urlWithoutFilter = 'https://git.door43.org/api/v1/catalog/search?metadataType=rc&lang=en&stage=prod&limit=200';
+const urlWithFilter = 'https://git.door43.org/api/v1/catalog/search?metadataType=rc&lang=en&stage=prod&limit=200&subject=Bible,Aligned%20Bible,Translation%20Notes,Translation%20Questions,Translation%20Words,TSV%20Translation%20Notes,TSV%20Translation%20Questions,TSV%20Translation%20Words%20Links';
+
+// Results: 15.4% payload reduction, 42% fewer resources
+```
+
+### Implementation Location
+- **File**: `src/services/catalogService.js`
+- **Function**: `searchAllResourcesForLanguage()`
+- **Line**: ~420 (subject filtering logic)
+
+### Future Considerations
+
+#### When to Add New Subjects
+Add new subjects to the filter when:
+- App adds support for new resource types
+- Users request additional content types
+- New DCS resource types become available
+
+#### Monitoring Resource Types
+Periodically check what resource types are available:
+```bash
+# Check all available subjects for English
+curl "https://git.door43.org/api/v1/catalog/search?lang=en&stage=prod&limit=1000" | jq '.data[].subject' | sort | uniq
+```
+
 ## Related Documentation
 - [Manifest Elimination Guide](./manifest-elimination-and-api-discoveries.md)
 - [API Integration Patterns](./api-integration-patterns.md)

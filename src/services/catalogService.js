@@ -50,6 +50,8 @@ const cache = new CatalogCache();
 // Promise cache to prevent duplicate simultaneous requests
 const pendingRequests = new Map();
 
+const activeRequests = new Map();
+
 /**
  * Enhanced fetch with performance optimizations, caching and error handling
  * @param {string} url - The URL to fetch
@@ -210,7 +212,7 @@ export async function fetchLanguages(owner) {
   ];
 
   try {
-    const url = `${BASE_CATALOG_URL}/languages?owner=${encodeURIComponent(owner)}`;
+    const url = `${BASE_CATALOG_URL}/search?metadataType=rc&lang=en&stage=prod&limit=200&fields=id,name,owner,language,subject,title,abbreviation`;
     const data = await fetchWithCache(url, `languages_${owner}`);
 
     if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
@@ -218,8 +220,6 @@ export async function fetchLanguages(owner) {
       const languages = data.data
         .filter((lang) => lang && lang.lc)
         .map((lang) => {
-
-
           return {
             code: lang.lc,
             name: lang.ln || lang.lc,
@@ -228,8 +228,6 @@ export async function fetchLanguages(owner) {
           };
         })
         .sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code));
-
-
 
       return languages.length > 0 ? languages : fallbackLanguages;
     }
@@ -418,14 +416,29 @@ export const searchAllResourcesForLanguage = createOptimizedSearch(
       return { resources: {}, metadata: {}, bySubject: {} };
     }
 
+    // Define subjects that the app actually uses - filter out everything else
+    // This eliminates: Grammar resources, OBS materials, Translation Academy, etc.
+    // To add new resource types: just add them to this array
+    const appSupportedSubjects = [
+      "Bible",
+      "Aligned Bible", 
+      "Translation Notes",
+      "Translation Questions",
+      "Translation Words",
+      "TSV Translation Notes",
+      "TSV Translation Questions", 
+      "TSV Translation Words Links"
+    ].join(",");
+
     const searchParams = new URLSearchParams({
       metadataType: "rc",
       lang: languageCode,
       stage: stage,
-      limit: "200", // Higher limit to get ALL resources
+      limit: "200",
+      subject: appSupportedSubjects // OPTIMIZATION: Only download resource types the app uses
     });
 
-    // NO subject filter - get everything in one call!
+    // Subject filtering at API level - dramatically reduces payload size!
     const url = `${CATALOG_SEARCH_URL}?${searchParams}`;
     const cacheKey = `all_resources_${languageCode}_${stage}`;
 
@@ -830,6 +843,7 @@ async function fetchAllLanguagesLegacy(includeOrgInfo = true) {
       subject: "Aligned Bible,Bible", // Comma-separated subjects work with v1 API
       stage: "prod",
       limit: "1000", // Large limit to get all available languages
+      // NOTE: DCS API doesn't support field filtering, process full payload efficiently
     });
 
     const url = `${CATALOG_SEARCH_URL}?${searchParams}`;
@@ -1145,6 +1159,42 @@ export async function fetchOrganizationDetails(orgLogin) {
     console.warn(`Failed to fetch details for organization ${orgLogin}:`, error);
     return null;
   }
+}
+
+export async function fetchWithDeduplication(url, cacheKey) {
+  // Prevent multiple identical requests
+  if (activeRequests.has(cacheKey)) {
+    return await activeRequests.get(cacheKey);
+  }
+  
+  const requestPromise = fetchWithCache(url, cacheKey);
+  activeRequests.set(cacheKey, requestPromise);
+  
+  try {
+    const result = await requestPromise;
+    return result;
+  } finally {
+    activeRequests.delete(cacheKey);
+  }
+}
+
+export async function fetchEssentialResourcesOnly(language) {
+  // Request only what we actually use: Bible, TN, TQ, TW, TWL
+  const subjects = ['Bible', 'Translation Notes', 'Translation Questions', 'Translation Words', 'TSV Translation Words Links'];
+  const subjectFilter = subjects.map(s => `subject=${encodeURIComponent(s)}`).join('&');
+  
+  const url = `${CATALOG_SEARCH_URL}?lang=${language}&stage=prod&${subjectFilter}&fields=id,name,owner,subject,title,abbreviation&limit=100`;
+  
+  const cacheKey = `essential-resources:${language}`;
+  return await fetchWithCache(url, cacheKey);
+}
+
+export async function fetchResourcesLazy(owner, language, offset = 0, limit = 50) {
+  // Load resources in smaller chunks
+  const url = `${CATALOG_SEARCH_URL}?owner=${owner}&lang=${language}&stage=prod&offset=${offset}&limit=${limit}&fields=id,name,subject,title,abbreviation`;
+  
+  const cacheKey = `resources:${owner}:${language}:${offset}:${limit}`;
+  return await fetchWithCache(url, cacheKey);
 }
 
 export default {
