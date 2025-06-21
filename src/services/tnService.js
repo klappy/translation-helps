@@ -1,9 +1,10 @@
 /**
  * tnService.js
  * Service module for loading Translation Notes (tN) data.
+ * UPDATED: No longer uses manifests - uses standard file naming convention
  */
 
-import { fetchResourceFile, fetchManifest } from "./dcsClient";
+import { fetchResourceFile } from "./dcsClient";
 import { parseTsv } from "../utils/parseTsv";
 
 const RESOURCE_ID = "tn";
@@ -52,20 +53,8 @@ export async function getNotesForVerse(
   languageId = "en"
 ) {
   try {
-    // Get the manifest to find the correct TSV file path
-    const manifest = await fetchManifest(languageId, RESOURCE_ID, organization);
-
-    // Find the project for this book in the manifest
-    const project = manifest.projects?.find((p) => p.identifier === bookId);
-    if (!project) {
-      throw new Error(`Book ${bookId} not found in tN manifest`);
-    }
-
-    // Get the TSV file path from the manifest
-    const filePath = project.path?.replace("./", "");
-    if (!filePath) {
-      throw new Error(`No file path found for ${bookId} in manifest`);
-    }
+    // Use standard TN file naming convention: tn_{BOOK_ID}.tsv
+    const filePath = `tn_${bookId.toUpperCase()}.tsv`;
 
     // Fetch and parse the TSV content
     const tsvContent = await fetchResourceFile(languageId, RESOURCE_ID, filePath, organization);
@@ -126,20 +115,8 @@ export async function getNotesForVerse(
  */
 export async function getNotesForBook(bookId, organization = "unfoldingWord", languageId = "en") {
   try {
-    // Get the manifest to find the correct TSV file path
-    const manifest = await fetchManifest(languageId, RESOURCE_ID, organization);
-
-    // Find the project for this book in the manifest
-    const project = manifest.projects?.find((p) => p.identifier === bookId);
-    if (!project) {
-      throw new Error(`Book ${bookId} not found in tN manifest`);
-    }
-
-    // Get the TSV file path from the manifest
-    const filePath = project.path?.replace("./", "");
-    if (!filePath) {
-      throw new Error(`No file path found for ${bookId} in manifest`);
-    }
+    // Use standard TN file naming convention: tn_{BOOK_ID}.tsv
+    const filePath = `tn_${bookId.toUpperCase()}.tsv`;
 
     // Fetch and parse the TSV content
     const tsvContent = await fetchResourceFile(languageId, RESOURCE_ID, filePath, organization);
@@ -165,4 +142,99 @@ export async function getNotesForBook(bookId, organization = "unfoldingWord", la
   }
 }
 
-export default { getNotesForVerse, getNotesForBook };
+/**
+ * Enhanced version that uses resource data with ingredients for correct file paths
+ * @param {string} bookId Bible book identifier (e.g., 'gen')
+ * @param {string|number} chapter Chapter number
+ * @param {string|number} verse Verse number
+ * @param {Object} resourceData Resource data object with ingredients array
+ * @param {string} [languageId="en"] Language code
+ * @returns {Promise<Array<Object>>} Array of parsed tN entries
+ */
+export async function getNotesForVerseWithResourceData(
+  bookId,
+  chapter,
+  verse,
+  resourceData,
+  languageId = "en"
+) {
+  try {
+    if (!resourceData) {
+      throw new Error(`No resource data provided for Translation Notes`);
+    }
+
+    console.log(`🔄 TN Service: Loading with resource data for ${bookId} ${chapter}:${verse}`);
+
+    let filePath;
+    
+    // Try to get file path from ingredients array
+    if (resourceData.ingredients && Array.isArray(resourceData.ingredients)) {
+      const ingredient = resourceData.ingredients.find(ing => ing.identifier === bookId);
+      if (ingredient && ingredient.path) {
+        filePath = ingredient.path;
+        console.log(`✅ TN Service: Found file path in ingredients: ${filePath}`);
+      } else {
+        console.warn(`TN Service: Book ${bookId} not found in ingredients, falling back to naming convention`);
+        filePath = `tn_${bookId.toUpperCase()}.tsv`;
+      }
+    } else {
+      console.warn(`TN Service: No ingredients array, using naming convention`);
+      filePath = `tn_${bookId.toUpperCase()}.tsv`;
+    }
+
+    // Extract organization from resource data
+    const organization = resourceData.owner?.login || resourceData.organization || "unfoldingWord";
+
+    // Fetch and parse the TSV content using the correct file path
+    const tsvContent = await fetchResourceFile(languageId, RESOURCE_ID, filePath, organization);
+    const allNotes = parseTsv(tsvContent);
+
+    // Filter notes for the specific chapter and verse along with chapter
+    // introduction and book introduction notes. Chapter intro notes have a
+    // reference like "1:intro" and book intro notes use "front:intro".
+    const expectedRef = `${chapter}:${verse}`;
+    const verseNotes = [];
+    const chapterIntroNotes = [];
+    const bookIntroNotes = [];
+
+    allNotes.forEach((note) => {
+      const parsed = parseReference(note.Reference);
+      if (!parsed) return;
+      const refString = `${parsed.chapter}:${parsed.verse}`;
+      if (refString === expectedRef) {
+        verseNotes.push(note);
+      } else if (
+        parsed.verse === "intro" &&
+        parsed.chapter.toString() === chapter.toString()
+      ) {
+        chapterIntroNotes.push(note);
+      } else if (parsed.verse === "intro" && parsed.chapter === "front") {
+        bookIntroNotes.push(note);
+      }
+    });
+
+    // Combine intros first then verse notes
+    const combinedNotes = [...bookIntroNotes, ...chapterIntroNotes, ...verseNotes];
+
+    console.log(`✅ TN Service: Loaded ${combinedNotes.length} notes using ${filePath}`);
+
+    // Transform to consistent format
+    return combinedNotes.map((note, index) => ({
+      id: index,
+      text: note.Note || "",
+      quote: note.Quote || "",
+      occurrence: note.Occurrence || "1",
+      tags: note.Tags || "",
+      supportReference: note.SupportReference || "",
+      reference: note.Reference || "",
+    }));
+  } catch (error) {
+    console.error(
+      `Error fetching translation notes with resource data for ${bookId} ${chapter}:${verse}:`,
+      error
+    );
+    throw error;
+  }
+}
+
+export default { getNotesForVerse, getNotesForBook, getNotesForVerseWithResourceData };

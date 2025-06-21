@@ -16,7 +16,9 @@ export default defineConfig({
     maxThreads: 1,
 
     include: [
-      "src/utils/**/*.{test,spec}.{ts,tsx}",
+      "src/utils/**/*.{test,spec}.{ts,tsx,js,jsx}",
+      "src/context/**/*.{test,spec}.{js,jsx,ts,tsx}",
+      "src/integration.test.js",
       "src/modules/**/tests/**/*.{test,spec}.ts",
       "src/components/**/*.{test,spec}.{js,jsx,ts,tsx}",
       "src/services/**/*.{test,spec}.{js,jsx}",

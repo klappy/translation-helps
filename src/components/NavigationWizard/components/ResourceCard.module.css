@@ -1,14 +1,14 @@
 /* ResourceCard.module.css */
-/* Unified resource card component styles for narrow and wide layouts */
+/* Unified resource card component styles - decluttered design */
 
 .resourceCard {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--spacing-3);
-  padding: var(--spacing-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
-  background-color: var(--color-white);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-primary);
   transition: all var(--transition-fast);
   position: relative;
   overflow: hidden;
@@ -16,7 +16,7 @@
 
 .resourceCard.desktop {
   gap: var(--spacing-4);
-  padding: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-5);
 }
 
 /* Clickable cards */
@@ -25,8 +25,8 @@
 }
 
 .resourceCard.clickable:hover {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--color-surface-secondary);
+  border-color: var(--color-border-primary);
   transform: translateY(-1px);
 }
 
@@ -36,14 +36,8 @@
 
 /* Selected state */
 .resourceCard.selected {
+  background-color: var(--color-surface-secondary);
   border-color: var(--color-primary);
-  background-color: var(--color-primary-light);
-  box-shadow: var(--shadow-md);
-}
-
-.resourceCard.selected .selectionIndicator {
-  opacity: 1;
-  transform: scale(1);
 }
 
 /* Disabled state */
@@ -62,31 +56,29 @@
 /* Layout variants */
 .resourceCard.narrow {
   flex-direction: row;
-  align-items: flex-start;
-  min-height: 80px; /* Increased to accommodate metadata */
-  padding: var(--spacing-3);
+  align-items: center;
+  min-height: 72px;
 }
 
 .resourceCard.narrow.desktop {
-  min-height: 96px; /* Increased for desktop */
-  padding: var(--spacing-4);
+  min-height: 80px;
 }
 
 .resourceCard.wide {
   flex-direction: column;
   align-items: stretch;
-  padding: var(--spacing-3);
-  background-color: var(--color-light);
-  border: 1px solid var(--color-border);
-  margin-bottom: var(--spacing-2);
-}
-
-.resourceCard.wide.desktop {
   padding: var(--spacing-4);
+  background-color: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-primary);
   margin-bottom: var(--spacing-3);
 }
 
-/* Icon container */
+.resourceCard.wide.desktop {
+  padding: var(--spacing-5);
+  margin-bottom: var(--spacing-4);
+}
+
+/* Icon container - optimized for avatars */
 .iconContainer {
   flex-shrink: 0;
   display: flex;
@@ -94,15 +86,15 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: var(--border-radius);
-  background-color: var(--color-lighter);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-tertiary);
   position: relative;
   overflow: hidden;
 }
 
 .iconContainer.desktop {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
 }
 
 .wide .iconContainer {
@@ -116,12 +108,12 @@
   height: 64px;
 }
 
-/* Icon image */
+/* Icon image - better avatar handling */
 .iconImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--radius-md);
 }
 
 /* Fallback icon */
@@ -132,7 +124,7 @@
   width: 100%;
   height: 100%;
   font-size: var(--font-size-lg);
-  color: var(--color-muted);
+  color: var(--color-text-tertiary);
 }
 
 .fallbackIcon.desktop {
@@ -151,9 +143,9 @@
 .loadingSpinner {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--color-lighter);
+  border: 2px solid var(--color-border-secondary);
   border-top: 2px solid var(--color-primary);
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   animation: spin 1s linear infinite;
 }
 
@@ -176,21 +168,21 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
-  min-width: 0; /* Allow content to shrink */
+  gap: var(--spacing-1);
+  min-width: 0;
 }
 
 .wide .content {
   flex-direction: row;
   align-items: flex-start;
-  gap: var(--spacing-2);
+  gap: var(--spacing-4);
 }
 
 .wide.desktop .content {
-  gap: var(--spacing-3);
+  gap: var(--spacing-5);
 }
 
-/* Main content (title, description, etc.) */
+/* Main content */
 .mainContent {
   display: flex;
   flex-direction: column;
@@ -201,49 +193,69 @@
 .wide .mainContent {
   flex: 1;
   gap: var(--spacing-2);
-  max-width: 50%;
 }
 
 /* Title */
 .title {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--color-darker);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
   margin: 0;
-  line-height: 1.3;
+  line-height: var(--line-height-tight);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .title.desktop {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
 }
 
 .wide .title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
   white-space: normal;
   overflow: visible;
   text-overflow: initial;
 }
 
 .wide.desktop .title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl);
+}
+
+/* Type badge - subtle and clean */
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-1) var(--spacing-2);
+  background-color: var(--color-surface-tertiary);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  width: fit-content;
+  margin-top: var(--spacing-1);
+}
+
+.typeBadge.desktop {
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-1) var(--spacing-3);
 }
 
 /* Description */
 .description {
-  font-size: var(--font-size-xs);
-  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
   margin: 0;
-  line-height: 1.4;
+  line-height: var(--line-height-normal);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-top: var(--spacing-1);
 }
 
 .description.desktop {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
 }
 
 .wide .description {
@@ -252,77 +264,37 @@
   text-overflow: initial;
 }
 
-/* Resource ID */
-.resourceId {
-  font-size: var(--font-size-xs);
-  color: var(--color-muted);
-  font-family: var(--font-family-mono);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.resourceId.desktop {
-  font-size: var(--font-size-sm);
-}
-
-/* Badge */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-1) var(--spacing-2);
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-  border-radius: var(--border-radius-sm);
-  white-space: nowrap;
-  max-width: fit-content;
-}
-
-.badge.desktop {
-  padding: var(--spacing-1) var(--spacing-3);
-}
-
-/* Metadata section */
+/* Metadata section - progressive disclosure */
 .metadata {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-2);
+  padding-top: var(--spacing-2);
+  border-top: 1px solid var(--color-border-tertiary);
   flex-shrink: 0;
 }
 
 .metadata.desktop {
-  gap: var(--spacing-3);
-}
-
-/* Metadata layout variants */
-.metadataNarrow {
-  margin-top: var(--spacing-2);
-  gap: var(--spacing-1);
-}
-
-.metadataNarrow.desktop {
-  margin-top: var(--spacing-3);
   gap: var(--spacing-2);
+  margin-top: var(--spacing-3);
+  padding-top: var(--spacing-3);
 }
 
-.metadataWide {
+.wide .metadata {
   flex: 1;
   max-width: 50%;
-}
-
-.metadataWide.desktop {
-  flex: 1;
-  max-width: 50%;
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .metadataItem {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--spacing-1);
   font-size: var(--font-size-xs);
-  line-height: 1.3;
+  line-height: var(--line-height-tight);
 }
 
 .metadataItem.desktop {
@@ -336,60 +308,59 @@
   flex-shrink: 0;
 }
 
-.metadataIcon.desktop {
-  font-size: var(--font-size-base);
-}
-
 .metadataLabel {
-  font-weight: 500;
-  color: var(--color-muted);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
   flex-shrink: 0;
 }
 
 .metadataValue {
-  font-weight: 500;
-  color: var(--color-dark);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Selection indicator */
+/* Selection indicator - minimal and clean */
 .selectionIndicator {
   position: absolute;
   top: var(--spacing-2);
   right: var(--spacing-2);
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   background-color: var(--color-primary);
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transform: scale(0.8);
-  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
 }
 
 .selectionIndicator.desktop {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   top: var(--spacing-3);
   right: var(--spacing-3);
 }
 
 .checkIcon {
-  color: var(--color-white);
-  font-size: var(--font-size-sm);
-  font-weight: bold;
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
 }
 
 .checkIcon.desktop {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .resourceCard {
+    padding: var(--spacing-3);
+    gap: var(--spacing-3);
+  }
+
   .resourceCard.wide {
     padding: var(--spacing-3);
   }
@@ -399,8 +370,8 @@
     gap: var(--spacing-3);
   }
 
-  .metadata {
-    min-width: auto;
+  .wide .metadata {
+    max-width: 100%;
   }
 
   .metadataItem {
@@ -408,7 +379,12 @@
   }
 
   .wide .title {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-lg);
+  }
+
+  .iconContainer {
+    width: 36px;
+    height: 36px;
   }
 }
 
@@ -416,7 +392,6 @@
 .resourceCard.clickable:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  box-shadow: var(--shadow-md);
 }
 
 /* High contrast mode support */

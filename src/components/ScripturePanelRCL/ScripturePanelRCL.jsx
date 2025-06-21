@@ -1,15 +1,20 @@
 /**
- * ScripturePanelRCL.jsx
+ * ScripturePanelRCL.jsx - Simple Verse-Loading Pattern
  * Enhanced scripture panel using simple-text-editor-rcl for rich USFM rendering
+ * 
+ * TRANSFORMATION: Converted to use ResourcesContext for scripture loading
+ * PATTERN: Self-activating display component (scripture from ResourcesContext)
  */
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, { useState, useEffect, useContext, useMemo, useRef, useImperativeHandle, forwardRef } from "react";
 import { ReferenceContext } from "../../context/ReferenceContext";
-import { ManifestsContext } from "../../context/MultiManifestsContext";
-import { fetchBook } from "../../services/scriptureService";
+import { useResourcesContext } from "../../context/ResourcesContext";
+import { fetchBook, isBookAvailable } from "../../services/scriptureService";
+// Simple Verse-Loading Pattern: Get scripture from ResourcesContext
 
 import USFMSemanticRenderer from "./USFMSemanticRenderer";
 import SearchPanel from "./SearchPanel";
 import { ScripturePanelNavigation } from "./ScripturePanelNavigation";
+import { TranslationHelpsSummary } from "../TranslationHelpsSummary";
 import styles from "./ScripturePanelRCL.module.css";
 
 /**
@@ -17,20 +22,45 @@ import styles from "./ScripturePanelRCL.module.css";
  * @param {object} props.reference - Reference object { bookId, chapter, verse }
  * @param {function} props.onVerseClick - Callback when a verse is clicked
  */
-const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onVerseClick }) {
-  const [usfmContent, setUsfmContent] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ reference, onVerseClick }, ref) {
+  const { resources, activateResource } = useResourcesContext();
   const [showSearch, setShowSearch] = useState(false);
   const [showDebugMode, setShowDebugMode] = useState(false);
-  const [importingBooks, setImportingBooks] = useState(new Set());
-  const [fetchTimeout, setFetchTimeout] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
-  const { organization, languageId, resourceId, reference: currentReference, updateContext, getResourceOrganization } = useContext(ReferenceContext);
-  const { manifests, isLoading: manifestsLoading } = useContext(ManifestsContext);
+  const [showHelpsSummary, setShowHelpsSummary] = useState(false);
+  const { 
+    organization, 
+    languageId, 
+    resourceId, 
+    reference: currentReference, 
+    updateContext, 
+    getResourceOrganization,
+    currentResourceData,
+    resourceAvailability,
+    mixedResources
+  } = useContext(ReferenceContext);
 
-  // Timeout constants
-  const FETCH_TIMEOUT = 10000; // 10 seconds for fetching book content
+  // Self-activate scripture resource
+  useEffect(() => {
+    console.log('🎯 ScripturePanelRCL: Self-activating scripture resource');
+    activateResource('scripture');
+  }, [activateResource]);
+
+  // Get scripture from ResourcesContext (Simple Verse-Loading Pattern)
+  const usfmContent = resources.scripture || "";
+  const loading = !resources.scripture && !!reference?.bookId;
+  const error = resources.scripture === null ? "Failed to load scripture" : null;
+
+  // Expose data to parent components via ref
+  useImperativeHandle(ref, () => ({
+    getData: () => ({
+      usfmContent,
+      loading,
+      error,
+      reference,
+      resourceType: 'scripture'
+    })
+  }));
 
   // Debug: Log render
   console.log("[ScripturePanelRCL] Rendering with:", {
@@ -38,175 +68,14 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
     organization,
     languageId,
     resourceId,
-    manifestsLoading,
-    hasManifests: !!manifests,
+    resourceOrganization: getResourceOrganization ? getResourceOrganization('scripture') : 'NO_FUNC',
+    hasResourceData: !!currentResourceData,
+    availableBooks: currentResourceData?.books?.length || 0,
     usfmContentLength: usfmContent?.length,
+    resourcesScriptureLength: resources.scripture?.length || 0,
   });
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (fetchTimeout) {
-        clearTimeout(fetchTimeout);
-      }
-    };
-  }, [fetchTimeout]);
-
-  useEffect(() => {
-    async function loadUSFMChapter() {
-      // Clear any existing timeout
-      if (fetchTimeout) {
-        clearTimeout(fetchTimeout);
-        setFetchTimeout(null);
-      }
-      // Don't attempt to load if we don't have required context
-      if (!reference?.bookId || !reference.chapter || !organization || !languageId) {
-        console.log("📋 ScripturePanelRCL: Missing required context", {
-          bookId: reference?.bookId,
-          chapter: reference?.chapter,
-          organization,
-          languageId,
-        });
-        // Clear content and set helpful guidance message
-        setUsfmContent("");
-        setError(null);
-        if (!organization) {
-          setError("Please select an organization from the dropdown above to view scripture.");
-        } else if (!languageId) {
-          setError("Please select a language from the dropdown above to view scripture.");
-        } else if (!reference?.bookId || !reference.chapter) {
-          setError("Please select a book and chapter from the dropdowns above to view scripture.");
-        }
-        return;
-      }
-
-      // Don't attempt to load if manifests are still loading
-      if (manifestsLoading) {
-        console.log("⏳ ScripturePanelRCL: Waiting for manifests to load");
-        setLoading(true);
-        return;
-      }
-
-      // Clear previous content and errors when we need to load new content
-      setUsfmContent("");
-      setError(null);
-
-      // Use the selected resource from context (no fallback needed)
-      const selectedResourceId = resourceId;
-
-      // Strip language prefix from resourceId for manifest lookup
-      // e.g., "en_ult" -> "ult" to match MultiManifestsContext keys
-      let manifestKey = selectedResourceId;
-      if (selectedResourceId && languageId && selectedResourceId.startsWith(`${languageId}_`)) {
-        manifestKey = selectedResourceId.substring(languageId.length + 1);
-      }
-
-      const selectedManifest = manifests[manifestKey];
-
-      if (!selectedManifest) {
-        console.log(
-          `📋 ScripturePanelRCL: ${
-            selectedResourceId?.toUpperCase() || "Unknown"
-          } manifest not available`
-        );
-        // Show helpful guidance instead of technical error
-        if (!resourceId) {
-          setError("Please select a Bible resource from the dropdown above to view scripture.");
-        } else {
-          const effectiveOrganization = getResourceOrganization ? getResourceOrganization('scripture') : organization;
-          setError(
-            `The selected Bible resource (${selectedResourceId.toUpperCase()}) is not available for ${effectiveOrganization}/${languageId}. Please try selecting a different resource from the dropdown above.`
-          );
-        }
-        return;
-      }
-
-      setLoading(true);
-      const { bookId, chapter } = reference;
-
-      // Create an AbortController for the fetch operation
-      const abortController = new AbortController();
-
-      // Set up timeout for fetch operation with proper cleanup
-      const timeoutId = setTimeout(() => {
-        abortController.abort();
-        setError(
-          `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
-        );
-        setLoading(false);
-      }, FETCH_TIMEOUT);
-
-      setFetchTimeout(timeoutId);
-
-      try {
-        console.log(
-          `📖 ScripturePanelRCL: Loading ${bookId} chapter ${chapter} from ${selectedResourceId}`
-        );
-
-        // Fetch raw USFM content with timeout protection
-        const effectiveOrganization = getResourceOrganization ? getResourceOrganization('scripture') : organization;
-        const fetchPromise = fetchBook({
-          languageId,
-          resourceId: selectedResourceId,
-          bookId,
-          manifest: selectedManifest,
-          organization: effectiveOrganization,
-          signal: abortController.signal, // Pass abort signal if supported
-        });
-
-        // Race between fetch and timeout
-        const rawUSFM = await Promise.race([
-          fetchPromise,
-          new Promise((_, reject) => {
-            abortController.signal.addEventListener("abort", () => {
-              reject(new Error("Fetch aborted due to timeout"));
-            });
-          }),
-        ]);
-
-        if (!rawUSFM) {
-          throw new Error(`Failed to fetch USFM for ${bookId}`);
-        }
-
-        // Clear timeout immediately on successful fetch
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          setFetchTimeout(null);
-        }
-
-        // Debug: log the full USFM content
-        console.log("📄 Full USFM content length:", rawUSFM.length);
-        console.log("📄 First 1000 chars:", rawUSFM.substring(0, 1000));
-
-        // Pass the full USFM to simple-text-editor-rcl for complete book navigation
-        console.log(
-          `✅ ScripturePanelRCL: Loaded full USFM for ${bookId} (${rawUSFM.length} characters)`
-        );
-
-        setUsfmContent(rawUSFM);
-        setError(null);
-      } catch (e) {
-        console.error("❌ ScripturePanelRCL: Failed to load chapter:", e);
-        if (e.message.includes("aborted") || e.message.includes("timeout")) {
-          setError(
-            `Loading scripture timed out after ${FETCH_TIMEOUT / 1000} seconds. Please try again.`
-          );
-        } else {
-          setError(`Failed to load chapter: ${e.message}`);
-        }
-        setUsfmContent("");
-      } finally {
-        // Always clear timeout on completion
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          setFetchTimeout(null);
-        }
-        setLoading(false);
-      }
-    }
-
-    loadUSFMChapter();
-  }, [reference?.bookId, resourceId, languageId, organization, manifests, manifestsLoading]);
+  // Simple Verse-Loading Pattern: Scripture loading now handled by ResourcesContext
 
   // Accept both chapter and verse for context update
   const handleVerseClick = (verseNum, chapterNum) => {
@@ -227,15 +96,43 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
     setIsNavigating(navigating);
   };
 
-  // Get manifest for resource info display
-  let manifestKey = resourceId;
-  if (resourceId && languageId && resourceId.startsWith(`${languageId}_`)) {
-    manifestKey = resourceId.substring(languageId.length + 1);
-  }
-  const selectedManifest = manifests[manifestKey];
+  const handleOrganizationChange = async (resourceType, organization) => {
+    console.log(`🔄 Changing ${resourceType} organization to:`, organization);
+    
+    // Update the mixed resources with the new organization selection
+    const newMixedResources = {
+      ...mixedResources,
+      [resourceType]: {
+        ...mixedResources[resourceType],
+        organization
+      }
+    };
+    
+    updateContext({ mixedResources: newMixedResources });
+  };
 
-  // Show loading state if manifests are loading or content is loading
-  if (manifestsLoading || loading) {
+  // Show helps summary when we have discovery data and are not navigating
+  const shouldShowHelpsSummary = !isNavigating && 
+    resourceAvailability && 
+    Object.keys(resourceAvailability).some(type => Object.keys(resourceAvailability[type]).length > 0);
+
+  // Auto-show summary if there are multiple organizations available
+  useEffect(() => {
+    if (shouldShowHelpsSummary && !showHelpsSummary) {
+      const totalOrganizations = new Set();
+      Object.values(resourceAvailability).forEach(typeAvailability => {
+        Object.keys(typeAvailability).forEach(org => totalOrganizations.add(org));
+      });
+      
+      // Auto-show if we have resources from multiple organizations
+      if (totalOrganizations.size > 1) {
+        setShowHelpsSummary(true);
+      }
+    }
+  }, [shouldShowHelpsSummary, resourceAvailability, showHelpsSummary]);
+
+  // Show loading state if content is loading
+  if (loading) {
     return (
       <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
         {/* Integrated Navigation - Always show breadcrumbs */}
@@ -274,9 +171,9 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
   console.log("[ScripturePanelRCL] About to render provider with:", {
     usfmContentLength: usfmContent?.length,
     usfmFirst100: usfmContent?.substring(0, 100),
-    hasSelectedManifest: !!selectedManifest,
-    manifestKey,
-    selectedManifest,
+    hasResourceData: !!currentResourceData,
+    resourceTitle: currentResourceData?.title || 'Unknown',
+    fromResourcesContext: true
   });
 
   return (
@@ -293,6 +190,17 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
       {/* Content Area - Show navigation UI or scripture content */}
       {!isNavigating ? (
         <>
+          {/* Translation Helps Summary */}
+          {shouldShowHelpsSummary && (
+            <TranslationHelpsSummary
+              availability={resourceAvailability}
+              optimal={mixedResources}
+              onOrganizationChange={handleOrganizationChange}
+              isCollapsed={!showHelpsSummary}
+              onToggleCollapsed={() => setShowHelpsSummary(!showHelpsSummary)}
+            />
+          )}
+
           {/* Search Panel */}
           {showSearch && (
             <div className={styles["search-panel"]}>
@@ -301,7 +209,7 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
                 lang={languageId}
                 abbr={reference.bookId ? reference.bookId.toUpperCase() : ""}
                 usfm={usfmContent}
-                manifest={selectedManifest}
+                resourceData={currentResourceData}
                 onResultClick={handleVerseClick}
                 hideResourceInfo={true}
               />
@@ -318,16 +226,16 @@ const ScripturePanelRCL = React.memo(function ScripturePanelRCL({ reference, onV
             showModeToggle={false}
             resourceDetails={{
               organization: (getResourceOrganization ? getResourceOrganization('scripture') : organization) || "Door43-Catalog",
-              title: selectedManifest?.dublin_core?.title || selectedManifest?.title || resourceId?.toUpperCase() || "",
-              version: selectedManifest?.version,
-              rights: selectedManifest?.dublin_core?.rights || selectedManifest?.rights || "CC BY-SA 4.0"
+              title: currentResourceData?.title || currentResourceData?.description || resourceId?.toUpperCase() || "",
+              version: currentResourceData?.version,
+              rights: "CC BY-SA 4.0" // Default rights, could be enhanced with API data
             }}
           />
         </>
       ) : null}
     </section>
   );
-});
+}));
 
 /**
  * Extracts the USFM for a specific chapter from the full book USFM.

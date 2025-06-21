@@ -26,6 +26,7 @@
 .breadcrumbButton {
   display: flex;
   align-items: center;
+  gap: 3px;
   padding: var(--spacing-2) var(--spacing-3);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);

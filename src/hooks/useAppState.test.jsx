@@ -7,7 +7,6 @@ import { renderHook, act } from "@testing-library/react";
 import { vi } from "vitest";
 import { useAppState } from "./useAppState";
 import { ReferenceContext } from "../context/ReferenceContext";
-import { ManifestsContext } from "../context/ManifestsContext";
 import { ResourcesContext } from "../context/ResourcesContext";
 
 // Mock the contexts
@@ -18,7 +17,6 @@ const mockLoadResource = vi.fn();
 const createWrapper = (contextValues = {}) => {
   const {
     reference: initialReference = { bookId: null, chapter: null, verse: null },
-    manifests = {},
     resources = {},
     isLoading = false,
   } = contextValues;
@@ -39,17 +37,15 @@ const createWrapper = (contextValues = {}) => {
           updateReference: mockUpdateReference,
         }}
       >
-        <ManifestsContext.Provider value={{ manifests }}>
-          <ResourcesContext.Provider
-            value={{
-              resources,
-              loadResource: mockLoadResource,
-              isLoading,
-            }}
-          >
-            {children}
-          </ResourcesContext.Provider>
-        </ManifestsContext.Provider>
+        <ResourcesContext.Provider
+          value={{
+            resources,
+            loadResource: mockLoadResource,
+            isLoading,
+          }}
+        >
+          {children}
+        </ResourcesContext.Provider>
       </ReferenceContext.Provider>
     );
   };

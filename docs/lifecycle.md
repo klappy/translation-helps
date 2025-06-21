@@ -1,6 +1,14 @@
 # 🔄 App Lifecycle & Context Flow
 
-This document describes the runtime behavior and application lifecycle of the translationHelps Viewer, including context initialization, resource loading, and async flows.
+⚠️ **DEPRECATED DOCUMENT** - This document contains outdated complex loading patterns.
+
+**👉 USE THE NEW ARCHITECTURE**: See `SIMPLE-VERSE-LOADING-PATTERN.md` for the current official architecture.
+
+The new architecture is much simpler:
+1. User navigates to verse
+2. ResourcesContext loads verse-specific data
+3. All panels display data from context
+4. That's it!
 
 ---
 
@@ -9,7 +17,7 @@ This document describes the runtime behavior and application lifecycle of the tr
 1. **App loads** (`src-new/main.jsx`)
 
    - Initializes React application with StrictMode
-   - Loads global context providers (ReferenceContext, ManifestsContext, ResourcesContext)
+   - Loads global context providers (ReferenceContext, ResourcesContext) - ManifestsContext REMOVED
 
 2. **Initial Context Setup**
 
@@ -26,7 +34,7 @@ This document describes the runtime behavior and application lifecycle of the tr
 
 1. **Context Update**
 
-   - Triggers manifest refresh via `ManifestsContext` if bookId or language has changed
+   - Uses catalog API for resource discovery (manifest system eliminated)
    - Triggers `useLoadResources()` hook which:
      - Loads content for ULT, UST, tN, tQ, tW, TWL, tA, etc.
      - Resolves source text (ULT/UGNT) and supporting resources via individual services

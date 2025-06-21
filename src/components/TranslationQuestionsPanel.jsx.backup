@@ -1,0 +1,183 @@
+/**
+ * TranslationQuestionsPanel.jsx
+ * tQ entries for comprehension.
+ */
+
+import React, { useContext, useEffect, useState, useRef, useImperativeHandle, forwardRef } from "react";
+import { RcLinkContext } from "./MainView";
+import { ReferenceContext } from "../context/ReferenceContext";
+import { getQuestionsForVerseWithResourceData } from "../services/tqService";
+import { searchResourcesAcrossOrgs } from "../services/catalogService";
+import { processMarkdownWithRcLinks } from "../utils/markdownUtils.jsx";
+import { InlineHelpsNavigation } from "./InlineHelpsNavigation";
+import { ResourceMetadataCard, HelpsBreadcrumbs } from "./shared";
+// Event bus removed - using direct ref access in ResourcesContext
+import styles from "./TranslationQuestionsPanel.module.css";
+
+export const TranslationQuestionsPanel = forwardRef(function TranslationQuestionsPanel({ reference }, ref) {
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [forceNavigation, setForceNavigation] = useState(null);
+  
+  const { handleRcLinkClick } = useContext(RcLinkContext) || {};
+  const { organization, languageId, getResourceOrganization, getResourceLanguage } = useContext(ReferenceContext);
+
+  // Expose data to parent components via ref
+  useImperativeHandle(ref, () => ({
+    getData: () => ({
+      questions: questions || [],
+      loading,
+      error,
+      reference,
+      resourceType: 'tq'
+    })
+  }));
+
+  useEffect(() => {
+    async function loadQuestions() {
+      if (!reference?.bookId || !reference?.chapter || !reference?.verse) {
+        setQuestions([]);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      const tqOrganization = getResourceOrganization ? getResourceOrganization('tq') : organization;
+      const tqLanguageId = getResourceLanguage ? getResourceLanguage('tq') : languageId;
+
+      if (!tqOrganization || !tqLanguageId) {
+        setError("Missing organization or language");
+        setQuestions([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const catalogResult = await searchResourcesAcrossOrgs(tqLanguageId, 'TSV Translation Questions');
+        const tqResource = catalogResult.resources[tqOrganization]?.find(r => r.id === 'tq');
+        
+        let questionsData = [];
+        if (tqResource) {
+          questionsData = await getQuestionsForVerseWithResourceData(
+            reference.bookId,
+            reference.chapter,
+            reference.verse,
+            tqResource,
+            tqLanguageId
+          );
+        }
+        
+        setQuestions(questionsData);
+        
+      } catch (err) {
+        console.error("Error loading translation questions:", err);
+        setError(err.message);
+        setQuestions([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadQuestions();
+  }, [reference?.bookId, reference?.chapter, reference?.verse, organization, languageId]);
+
+
+
+  // Determine if resource is available for navigation
+  const isResourceAvailable = !loading && !error && questions && questions.length > 0 && !forceNavigation;
+
+  // Handle breadcrumb navigation
+  const handleStartNavigation = (step = 'language') => {
+    console.log(`Starting tQ navigation at step: ${step}`);
+    setForceNavigation(step);
+  };
+
+  if (loading) {
+    return (
+      <section
+        data-testid='translation-questions-panel'
+        className={styles.translationQuestionsPanel}
+      >
+        <p className={styles.loadingState}>Loading translation questions...</p>
+      </section>
+    );
+  }
+
+  if (!reference?.verse || error || !questions || questions.length === 0) {
+    return (
+      <section
+        data-testid='translation-questions-panel'
+        className={styles.translationQuestionsPanel}
+      >
+        <InlineHelpsNavigation
+          resourceType="tq"
+          currentReference={reference}
+          onResourceSelect={handleRcLinkClick}
+          isResourceAvailable={isResourceAvailable}
+          forceNavigation={forceNavigation}
+          onNavigationComplete={() => setForceNavigation(null)}
+        />
+      </section>
+    );
+  }
+
+  // Get organization and language info for display
+  const tqOrganization = getResourceOrganization ? getResourceOrganization('tq') : organization;
+  const tqLanguageId = getResourceLanguage ? getResourceLanguage('tq') : languageId;
+  const showOrgBadge = tqOrganization && tqOrganization !== organization;
+
+  return (
+    <section data-testid='translation-questions-panel' className={styles.translationQuestionsPanel}>
+      {/* Breadcrumbs */}
+      <HelpsBreadcrumbs
+        resourceType="tq"
+        languageId={tqLanguageId}
+        organization={tqOrganization}
+        onStartNavigation={handleStartNavigation}
+      />
+
+      {/* Resource Metadata Card */}
+      <ResourceMetadataCard
+        organization={tqOrganization}
+        title="Translation Questions"
+        languageId={tqLanguageId}
+        resourceType="tq"
+      />
+
+      <h3 className={styles.panelHeader}>
+        Translation Questions
+        {showOrgBadge && (
+          <span className={styles.orgBadge}>from {tqOrganization}</span>
+        )}
+      </h3>
+      {questions.length > 0 && (
+        <div className={styles.questionsList}>
+          {questions.map((qa) => (
+            <div key={qa.id} className={styles.questionCard}>
+              <p className={styles.questionText}>
+                Q:{" "}
+                {processMarkdownWithRcLinks(qa.question, (rcUri) => {
+                  if (handleRcLinkClick) {
+                    handleRcLinkClick(rcUri, languageId, organization);
+                  }
+                })}
+              </p>
+              <p className={styles.answerText}>
+                A:{" "}
+                {processMarkdownWithRcLinks(qa.answer, (rcUri) => {
+                  if (handleRcLinkClick) {
+                    handleRcLinkClick(rcUri, languageId, organization);
+                  }
+                })}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+});

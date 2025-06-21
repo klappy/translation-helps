@@ -6,11 +6,27 @@
 import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ReferenceProvider } from "../context/ReferenceContext";
-import { MultiManifestsProvider } from "../context/MultiManifestsContext";
 import { ResourcesProvider } from "../context/ResourcesContext";
 import { ChatProvider } from "../context/ChatContext";
 import { NavigationBar } from "./NavigationBar";
 import { MainView } from "./MainView";
+
+// Main app component with ResourcesProvider managing all translation resources
+function AppContent() {
+  return (
+    <div style={{ 
+      backgroundColor: "var(--color-background)", 
+      minHeight: "100vh",
+      color: "var(--color-text)"
+    }}>
+      <NavigationBar />
+      <Routes>
+        <Route path='/' element={<MainView />} />
+        <Route path='*' element={<div style={{ padding: "20px" }}>Page Not Found</div>} />
+      </Routes>
+    </div>
+  );
+}
 
 export function App() {
   // Initialize theme on app load
@@ -27,23 +43,11 @@ export function App() {
 
   return (
     <ReferenceProvider>
-      <MultiManifestsProvider>
-        <ResourcesProvider>
-          <ChatProvider>
-            <div style={{ 
-              backgroundColor: "var(--color-background)", 
-              minHeight: "100vh",
-              color: "var(--color-text)"
-            }}>
-              <NavigationBar />
-              <Routes>
-                <Route path='/' element={<MainView />} />
-                <Route path='*' element={<div style={{ padding: "20px" }}>Page Not Found</div>} />
-              </Routes>
-            </div>
-          </ChatProvider>
-        </ResourcesProvider>
-      </MultiManifestsProvider>
+      <ResourcesProvider>
+        <ChatProvider>
+          <AppContent />
+        </ChatProvider>
+      </ResourcesProvider>
     </ReferenceProvider>
   );
 }

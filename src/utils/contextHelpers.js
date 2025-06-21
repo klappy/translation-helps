@@ -1,17 +1,57 @@
 /**
  * Context coordination utilities for URL handling and context persistence.
- * Based on the original helpers.js updateQueryFromContext and contextFromQuery functions.
+ * Updated to support new scriptures/resources array format for infinite scalability.
  */
 
 /**
  * Updates the browser URL to reflect the current context state.
+ * New format: ?scriptures=[/org/lang/type/book/chapter/verse]&resources=[/org/lang/type/]
  * @param {Object} context - The context to serialize to URL
- * @param {string} context.organization - The organization (owner)
- * @param {string} context.languageId - The language ID
- * @param {string} context.resourceId - The resource ID
  * @param {Object} context.reference - The reference object
+ * @param {Array} context.scriptures - Array of scripture resources
+ * @param {Array} context.resources - Array of translation help resources
  */
 export function updateQueryFromContext(context) {
+  const reference = context.reference || {};
+  const { bookId, chapter, verse } = reference;
+
+  // Handle legacy format for backward compatibility
+  if (context.organization && context.languageId && context.resourceId && 
+      (!context.scriptures || context.scriptures.length === 0) &&
+      (!context.resources || context.resources.length === 0)) {
+    return updateQueryFromContextLegacy(context);
+  }
+
+  // New format: scriptures and resources arrays
+  const scriptures = context.scriptures || [];
+  const resources = context.resources || [];
+
+  // Build URL parameters using literal array format [item1,item2]
+  const urlParts = [];
+  
+  if (scriptures.length > 0) {
+    // Use literal array format with brackets - no encoding of [,/,]
+    const scripturesStr = `[${scriptures.join(',')}]`;
+    urlParts.push(`scriptures=${scripturesStr}`);
+  }
+  
+  if (resources.length > 0) {
+    // Use literal array format with brackets - no encoding of [,/,]
+    const resourcesStr = `[${resources.join(',')}]`;
+    urlParts.push(`resources=${resourcesStr}`);
+  }
+
+  const path = window.location.pathname;
+  const query = urlParts.length > 0 ? `${path}?${urlParts.join('&')}` : path;
+
+  window.history.pushState(context, null, query);
+}
+
+/**
+ * Legacy URL format support for backward compatibility
+ * Format: ?owner=org&rc=/lang/type/book/chapter/verse
+ */
+function updateQueryFromContextLegacy(context) {
   const reference = context.reference || {};
   const _context = { ...context, reference };
 
@@ -24,21 +64,11 @@ export function updateQueryFromContext(context) {
 
   const _organization = organization ? `owner=${organization}` : "";
   const _languageId = languageId ? `/${languageId}` : "";
-
-  // Strip language prefix from resourceId for RC URI construction
-  // e.g., "en_ult" -> "ult" when languageId is "en"
-  // Handle null/undefined resourceId gracefully
-  let cleanResourceId = resourceId;
-  if (resourceId && languageId && resourceId.startsWith(`${languageId}_`)) {
-    cleanResourceId = resourceId.substring(languageId.length + 1);
-  }
-  const _resourceId = cleanResourceId ? `/${cleanResourceId}` : "";
-
+  const _resourceId = resourceId ? `/${resourceId}` : "";
   const _bookId = bookId ? `/${bookId}` : "";
   const _chapter = chapter ? `/${chapter}` : "";
   const _verse = verse ? `/${verse}` : "";
 
-  // Only include rc parameter if we have meaningful content
   const rcContent = `${_languageId}${_resourceId}${_bookId}${_chapter}${_verse}`;
   const rc = rcContent && rcContent !== "/" ? `&rc=${rcContent}` : "";
 
@@ -50,14 +80,91 @@ export function updateQueryFromContext(context) {
 
 /**
  * Parses the current URL to extract context information.
- * @returns {Object} The context parsed from URL parameters with hasUrlParams flag
+ * Supports both new and legacy formats.
+ * @returns {Object} The context parsed from URL parameters
  */
 export function contextFromQuery() {
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // Check for new format first
+  const scripturesParam = urlParams.get("scriptures");
+  const resourcesParam = urlParams.get("resources");
+  
+  if (scripturesParam || resourcesParam) {
+    return contextFromQueryNew(scripturesParam, resourcesParam);
+  }
+  
+  // Fall back to legacy format
+  return contextFromQueryLegacy();
+}
+
+/**
+ * Parse new URL format
+ * Format: ?scriptures=[/org/lang/type/book/chapter/verse]&resources=[/org/lang/type/]
+ */
+function contextFromQueryNew(scripturesParam, resourcesParam) {
+  let scriptures = [];
+  let resources = [];
+  
+  // Parse array format [item1,item2] - remove brackets and split
+  if (scripturesParam) {
+    const cleaned = scripturesParam.replace(/^\[|\]$/g, ''); // Remove [ and ]
+    scriptures = cleaned ? cleaned.split(',').filter(Boolean) : [];
+  }
+  
+  // Parse array format [item1,item2] - remove brackets and split
+  if (resourcesParam) {
+    const cleaned = resourcesParam.replace(/^\[|\]$/g, ''); // Remove [ and ]
+    resources = cleaned ? cleaned.split(',').filter(Boolean) : [];
+  }
+
+  // Parse primary scripture for reference (first scripture in array)
+  let reference = { bookId: null, chapter: null, verse: null };
+  let primaryScripture = null;
+  
+  if (scriptures.length > 0) {
+    const primaryPath = scriptures[0];
+    const parsed = parseResourcePath(primaryPath);
+    
+    if (parsed) {
+      reference = {
+        bookId: parsed.bookId || null,
+        chapter: parsed.chapter || null,
+        verse: parsed.verse || null
+      };
+      primaryScripture = {
+        organization: parsed.organization,
+        languageId: parsed.languageId,
+        resourceId: parsed.resourceId
+      };
+    }
+  }
+
+  // Parse resources array
+  const parsedResources = resources.map(parseResourcePath).filter(Boolean);
+
+  return {
+    hasUrlParams: !!(scripturesParam || resourcesParam),
+    isNewFormat: true,
+    reference,
+    scriptures: scriptures, // Keep as strings, don't parse to objects
+    resources: resources,   // Keep as strings, don't parse to objects
+    // Legacy compatibility
+    organization: primaryScripture?.organization || null,
+    languageId: primaryScripture?.languageId || null,
+    resourceId: primaryScripture?.resourceId || null,
+  };
+}
+
+/**
+ * Parse legacy URL format for backward compatibility
+ * Format: ?owner=org&rc=/lang/type/book/chapter/verse
+ */
+function contextFromQueryLegacy() {
   const urlParams = new URLSearchParams(window.location.search);
   const ownerParam = urlParams.get("owner");
   const rcParam = urlParams.get("rc");
 
-  // Check if URL actually has parameters
   const hasUrlParams = ownerParam || rcParam;
 
   const rc = rcParam || "";
@@ -67,28 +174,71 @@ export function contextFromQuery() {
     .filter((string) => string);
   const [languageId, resourceIdFromUrl, bookId, chapter, verse] = rcArray;
 
-  // Reconstruct full resourceId with language prefix to match catalog API
-  // e.g., languageId="en" + resourceIdFromUrl="ult" -> resourceId="en_ult"
-  // Handle cases where resourceIdFromUrl might be missing
-  let resourceId = null;
-  if (resourceIdFromUrl && languageId) {
-    resourceId = `${languageId}_${resourceIdFromUrl}`;
-  } else if (resourceIdFromUrl) {
-    // If we have resourceIdFromUrl but no languageId, use it as-is
-    resourceId = resourceIdFromUrl;
-  }
+  let resourceId = resourceIdFromUrl || null;
 
   return {
     hasUrlParams: !!hasUrlParams,
-    organization: ownerParam || null, // NO defaults - return exactly what's in URL
-    languageId: languageId || null, // NO defaults - return exactly what's in URL
+    isNewFormat: false,
+    organization: ownerParam || null,
+    languageId: languageId || null,
     resourceId: resourceId,
     reference: {
       bookId: bookId || null,
       chapter: chapter || null,
       verse: verse || null,
     },
+    // New format compatibility (empty arrays)
+    scriptures: [],
+    resources: []
   };
+}
+
+/**
+ * Parse a resource path string into components
+ * Format: /organization/languageId/resourceId/bookId/chapter/verse
+ * @param {string} path - The resource path to parse
+ * @returns {Object|null} Parsed resource object or null if invalid
+ */
+function parseResourcePath(path) {
+  if (!path || typeof path !== 'string') return null;
+  
+  const parts = path.split('/').filter(Boolean);
+  if (parts.length < 3) return null; // Need at least org/lang/type
+  
+  const [organization, languageId, resourceId, bookId, chapter, verse] = parts;
+  
+  return {
+    organization,
+    languageId,
+    resourceId,
+    bookId: bookId || null,
+    chapter: chapter || null,
+    verse: verse || null
+  };
+}
+
+/**
+ * Build a resource path string from components
+ * @param {Object} resource - Resource object with org/lang/type/book/chapter/verse
+ * @param {boolean} includeReference - Whether to include book/chapter/verse
+ * @returns {string} Resource path string
+ */
+export function buildResourcePath(resource, includeReference = false) {
+  const { organization, languageId, resourceId, bookId, chapter, verse } = resource;
+  
+  let path = `/${organization}/${languageId}/${resourceId}`;
+  
+  if (includeReference && bookId) {
+    path += `/${bookId}`;
+    if (chapter) {
+      path += `/${chapter}`;
+      if (verse) {
+        path += `/${verse}`;
+      }
+    }
+  }
+  
+  return path;
 }
 
 /**

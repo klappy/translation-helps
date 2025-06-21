@@ -176,14 +176,14 @@ This report evaluates all test files in the translation-helps project to identif
 - These tests are fundamental to the application
 - ResourcesContext has undergone major changes
 - ReferenceContext manages core state
-- ManifestsContext handles resource loading
+- ❌ ManifestsContext (REMOVED - use catalog API)
 
 **Files:**
 
 - `ResourcesContext.test.js`
 - `ResourcesContext.usfm-semantic-extraction.test.js`
 - `ReferenceContext.test.js`
-- `ManifestsContext.test.js`
+- ~~`ManifestsContext.test.js`~~ (❌ DELETED)
 
 **Recommendation:**
 
@@ -241,7 +241,7 @@ This report evaluates all test files in the translation-helps project to identif
 
 1. Fix USFMParser.test.js hanging issue
 2. Update all ResourcesContext tests
-3. Verify ReferenceContext and ManifestsContext tests
+3. Verify ReferenceContext tests (ManifestsContext REMOVED)
 
 #### **Phase 2: Component Layer (Week 2)**
 

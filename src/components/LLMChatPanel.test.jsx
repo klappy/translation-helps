@@ -51,9 +51,9 @@ describe("LLMChatPanel", () => {
 
     expect(screen.getByText("Translation Assistant")).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText("Ask about translation notes, word meanings, context...")
+      screen.getByPlaceholderText("Ask about this verse...")
     ).toBeInTheDocument();
-    expect(screen.getByTitle("Send message (Enter)")).toBeInTheDocument();
+    expect(screen.getByText("➤")).toBeInTheDocument();
   });
 
   it("displays welcome message on first load", () => {
@@ -75,7 +75,7 @@ describe("LLMChatPanel", () => {
     );
 
     const input = screen.getByPlaceholderText(
-      "Ask about translation notes, word meanings, context..."
+      "Ask about this verse..."
     );
     fireEvent.change(input, { target: { value: "What does this verse mean?" } });
 
@@ -89,7 +89,7 @@ describe("LLMChatPanel", () => {
       </TestWrapper>
     );
 
-    const sendButton = screen.getByTitle("Send message (Enter)");
+    const sendButton = screen.getByText("➤");
     expect(sendButton).toBeDisabled();
   });
 
@@ -101,9 +101,9 @@ describe("LLMChatPanel", () => {
     );
 
     const input = screen.getByPlaceholderText(
-      "Ask about translation notes, word meanings, context..."
+      "Ask about this verse..."
     );
-    const sendButton = screen.getByTitle("Send message (Enter)");
+    const sendButton = screen.getByText("➤");
 
     fireEvent.change(input, { target: { value: "Test message" } });
     expect(sendButton).not.toBeDisabled();

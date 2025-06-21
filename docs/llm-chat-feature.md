@@ -299,80 +299,36 @@ The AI is programmed with strict constraints:
 - **Trust**: Builds confidence in AI responses through verifiable sources
 - **Consistency**: Ensures all responses follow the same attribution standards
 
-## Real Data Implementation Details - UPDATED v0.13.3
+## Real Data Implementation Details - SIMPLE PATTERN
 
 ### How Real Data Collection Works
 
-The LLM Chat feature uses a **shared ResourcesContext architecture** to provide complete translation resource data directly to the chat without DOM extraction. This ensures the AI assistant has access to comprehensive resource data through the same context system used by UI panels.
+The LLM Chat feature uses **direct ResourcesContext access** following the Simple Verse-Loading Pattern. The chat panel gets data the same way all other panels do - through the shared context.
 
-#### ResourcesContext Integration
+#### Direct Context Access
 
-The `ChatContext.sendMessage()` function accesses complete resource data through the ResourcesContext:
+The `LLMChatPanel` accesses resource data directly from ResourcesContext:
 
 ```javascript
-// From ChatContext.jsx - Current ResourcesContext Implementation
-export function ChatProvider({ children }) {
-  // Get current resources from ResourcesContext
-  const { getFormattedContext } = useResourcesContext();
-
-  const sendMessage = useCallback(
-    async (message) => {
-      try {
-        // Get context from ResourcesContext (replaces DOM parsing and packageContext)
-        const context = getFormattedContext();
-
-        if (!context) {
-          throw new Error("No context available. Please ensure resources are loaded.");
-        }
-
-        // Send to actual LLM with complete resource data
-        response = await sendChatMessage(message, context, chatHistory);
-
-        // Handle response...
-      } catch (err) {
-        console.error("Error sending message:", err);
-      }
-    },
-    [getFormattedContext, chatHistory]
-  );
-}
-
-// From ResourcesContext.jsx - Context Formatting
-const getFormattedContext = useCallback(() => {
-  if (!metadata) return null;
-
-  return {
-    reference: {
-      book: metadata.bookId,
-      chapter: metadata.chapter,
-      verse: metadata.verse,
-      organization: metadata.organization,
-      language: metadata.languageId,
-      citation: `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`,
-    },
-    resources: {
-      scripture: resources.scripture?.verses
-        ? Object.entries(resources.scripture.verses)
-            .map(([v, text]) => `[${v}] ${text}`)
-            .join("\n")
-        : null,
-      translationNotes: resources.translationNotes,
-      translationQuestions: resources.translationQuestions,
-      translationWords: resources.translationWords,
-      translationWordLinks: resources.translationWordLinks,
-    },
-    metadata: {
-      timestamp: metadata.timestamp,
-      manifestTitles: {
-        scripture: resources.scripture?.title,
-        translationNotes: resources.translationNotes[0]?.title,
-        translationQuestions: resources.translationQuestions[0]?.title,
-        translationWords: resources.translationWords[0]?.title,
-        translationWordLinks: resources.translationWordLinks[0]?.title,
-      },
-    },
+// LLMChatPanel.jsx - SIMPLE PATTERN
+export function LLMChatPanel() {
+  const resources = useResourcesContext();
+  
+  const sendMessage = async (message) => {
+    // Context is ALWAYS ready and consistent
+    const context = {
+      reference: resources.reference,
+      scripture: resources.scripture,
+      notes: resources.notes,
+      questions: resources.questions,
+      words: resources.words,
+      links: resources.links
+    };
+    
+    const response = await llmService.send(message, context);
+    // Handle response...
   };
-}, [resources, metadata]);
+}
 ```
 
 #### Key Benefits of ResourcesContext Architecture

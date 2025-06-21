@@ -81,22 +81,62 @@
   padding: var(--spacing-2) 0;
 }
 
-/* Language Item */
-.languageItem {
+/* Language separator for grouping */
+.languageSeparator {
   display: flex;
   align-items: center;
+  margin: var(--spacing-4) 0 var(--spacing-2) 0;
+  position: relative;
+}
+
+.languageSeparator::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+  margin-right: var(--spacing-3);
+}
+
+.languageSeparator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+  margin-left: var(--spacing-3);
+}
+
+.separatorText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--color-surface);
+  padding: 0 var(--spacing-2);
+  white-space: nowrap;
+}
+
+/* Enhanced language item layout */
+.languageItem {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  width: 100%;
-  padding: var(--spacing-3);
-  border: none;
-  background: none;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
   cursor: pointer;
-  transition: background-color var(--transition-fast);
-  border-bottom: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+  gap: 12px;
 }
 
 .languageItem:hover {
-  background-color: var(--color-surface-hover);
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .languageItem:active {
@@ -104,28 +144,124 @@
 }
 
 .languageInfo {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--spacing-1);
+  gap: 6px;
+  min-width: 0; /* Allow text truncation */
+}
+
+.languageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
 }
 
 .languageName {
-  font-size: var(--font-size-base);
-  font-weight: 500;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text);
+  font-size: var(--font-size-lg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.primaryFlag {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.nativeName {
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-left: 4px;
 }
 
 .languageCode {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  font-weight: 400;
+  /* DEPRECATED: Use global .badge class instead */
 }
 
-.organizationCount {
+.countryFlags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+}
+
+.flagsLabel {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
   font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  font-weight: 400;
+}
+
+.flags {
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.languageTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  min-height: 20px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Clean tag color rules with maximum specificity */
+.languageTags .tag.gatewayTag {
+  background: var(--color-success) !important;
+  color: #000000 !important; /* Black text for light theme */
+  border: 1px solid var(--color-success) !important;
+}
+
+.languageTags .tag.rtlTag {
+  background: var(--color-warning) !important;
+  color: #000000 !important; /* Black text for light theme */
+  border: 1px solid var(--color-warning) !important;
+}
+
+.languageTags .tag.regionTag {
+  background: var(--color-info) !important;
+  color: #000000 !important; /* Black text for light theme */
+  border: 1px solid var(--color-info) !important;
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] .languageTags .tag.gatewayTag,
+:root .languageTags .tag.gatewayTag {
+  color: #ffffff !important; /* White text for dark theme */
+}
+
+[data-theme="dark"] .languageTags .tag.rtlTag,
+:root .languageTags .tag.rtlTag {
+  color: #ffffff !important; /* White text for dark theme */
+}
+
+[data-theme="dark"] .languageTags .tag.regionTag,
+:root .languageTags .tag.regionTag {
+  color: #ffffff !important; /* White text for dark theme */
+}
+
+.availableTag {
+  /* DEPRECATED: Use global .badge class instead */
 }
 
 /* Empty State */
@@ -138,7 +274,7 @@
   font-style: italic;
 }
 
-/* Responsive Design */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .header {
     padding: var(--spacing-2);
@@ -149,10 +285,79 @@
   }
   
   .languageItem {
-    padding: var(--spacing-2);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .languageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .languageCode {
+    align-self: flex-start;
+  }
+  
+  .countryFlags {
+    justify-content: flex-start;
+  }
+  
+  .languageTags {
+    justify-content: flex-start;
   }
   
   .title {
     font-size: var(--font-size-base);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .languageItem {
+    background: var(--surface-dark-color, #2a2a2a);
+    border-color: var(--border-dark-color, #404040);
+  }
+  
+  .languageItem:hover {
+    background: var(--surface-hover-dark-color, #353535);
+  }
+  
+  .languageCode {
+    background: var(--background-dark-color, #1a1a1a);
+    border-color: var(--border-dark-color, #404040);
+  }
+  
+  .availableTag {
+    background: var(--background-dark-color, #1a1a1a);
+    border-color: var(--border-dark-color, #404040);
+  }
+}
+
+/* Accessibility improvements */
+.languageItem:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.tag:hover {
+  transform: scale(1.05);
+  transition: transform 0.1s ease;
+}
+
+/* Animation for tag appearance */
+.tag {
+  animation: tagFadeIn 0.3s ease-out;
+}
+
+@keyframes tagFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }

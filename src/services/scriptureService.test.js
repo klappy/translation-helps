@@ -1,143 +1,167 @@
+/**
+ * ⚠️ CRITICAL: These tests use API-direct architecture with ingredients arrays
+ * ⚠️ DO NOT revert to manifest-based testing!
+ */
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  fetchBook,
-  fetchScriptureResources,
-  whichTestament,
-  fetchOriginalBook,
-} from "./scriptureService";
-import * as dcsClient from "./dcsClient";
+import * as dcsClient from "./dcsClient.js";
 
-// Mock dependencies
-vi.mock("./dcsClient");
+// Mock the dcsClient
+vi.mock("./dcsClient.js");
 
-describe("scriptureService", () => {
+describe("scriptureService - API-DIRECT ARCHITECTURE (NO MANIFESTS!)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("fetchBook", () => {
-    it("fetches a book successfully", async () => {
-      const mockManifest = {
-        projects: [{ identifier: "gen", path: "./01-GEN.usfm" }],
-      };
+  const mockResourceData = {
+    id: "ult",
+    books: ["gen", "tit"],
+    ingredients: [
+      {
+        identifier: "gen",
+        path: "./01-GEN.usfm",
+        title: "Genesis"
+      },
+      {
+        identifier: "tit", 
+        path: "./57-TIT.usfm",
+        title: "Titus"
+      }
+    ]
+  };
 
-      const mockUSFM = "\\c 1\\n\\v 1 In the beginning...";
+  const mockUSFM = "\\id TIT unfoldingWord\\n\\c 1\\n\\v 1 Paul, a servant of God...";
 
+  describe("fetchBook - uses ingredients array (NO MANIFESTS!)", () => {
+    it("fetches book using ingredients array for file path", async () => {
+      const { fetchBook } = await import("./scriptureService.js");
+      
       dcsClient.fetchResourceFile.mockResolvedValue(mockUSFM);
 
       const result = await fetchBook({
         languageId: "en",
-        resourceId: "ult",
-        bookId: "gen",
-        manifest: mockManifest,
+        resourceId: "ult", 
+        bookId: "tit",
+        resourceData: mockResourceData,
+        organization: "unfoldingWord"
       });
 
+      expect(result).toBe(mockUSFM);
       expect(dcsClient.fetchResourceFile).toHaveBeenCalledWith(
         "en",
-        "ult",
-        "01-GEN.usfm",
+        "ult", 
+        "57-TIT.usfm", // From ingredients array!
         "unfoldingWord"
       );
-      expect(result).toEqual(mockUSFM);
     });
 
-    it("returns null when book is not found in manifest", async () => {
-      const mockManifest = {
-        projects: [{ identifier: "exo", path: "./02-EXO.usfm" }],
-      };
+    it("throws error when ingredients array is missing", async () => {
+      const { fetchBook } = await import("./scriptureService.js");
+      
+      const badResourceData = { id: "ult", books: ["tit"] }; // No ingredients!
 
-      const result = await fetchBook({
+      await expect(fetchBook({
         languageId: "en",
         resourceId: "ult",
-        bookId: "gen",
-        manifest: mockManifest,
-      });
-
-      expect(result).toBeNull();
-      expect(dcsClient.fetchResourceFile).not.toHaveBeenCalled();
+        bookId: "tit", 
+        resourceData: badResourceData,
+        organization: "unfoldingWord"
+      })).rejects.toThrow("No ingredients array found");
     });
 
-    it("handles errors gracefully", async () => {
-      const mockManifest = {
-        projects: [{ identifier: "gen", path: "./01-GEN.usfm" }],
-      };
+    it("throws error when book not found in ingredients", async () => {
+      const { fetchBook } = await import("./scriptureService.js");
 
-      dcsClient.fetchResourceFile.mockRejectedValue(new Error("Network error"));
-
-      const result = await fetchBook({
+      await expect(fetchBook({
         languageId: "en",
         resourceId: "ult",
-        bookId: "gen",
-        manifest: mockManifest,
-      });
-
-      expect(result).toBeNull();
+        bookId: "nonexistent",
+        resourceData: mockResourceData,
+        organization: "unfoldingWord" 
+      })).rejects.toThrow("Book nonexistent not found in ult ingredients");
     });
   });
 
-  describe("whichTestament", () => {
-    it('returns "old" for Old Testament books', () => {
-      const uhbManifest = {
-        projects: [{ identifier: "gen" }, { identifier: "exo" }],
-      };
-      const ugntManifest = {
-        projects: [{ identifier: "mat" }, { identifier: "mrk" }],
-      };
-
-      const result = whichTestament({ bookId: "gen", uhbManifest, ugntManifest });
-      expect(result).toBe("old");
+  describe("isBookAvailable - checks ingredients first", () => {
+    it("returns true when book is in ingredients array", async () => {
+      const { isBookAvailable } = await import("./scriptureService.js");
+      
+      const result = isBookAvailable("tit", mockResourceData);
+      expect(result).toBe(true);
     });
 
-    it('returns "new" for New Testament books', () => {
-      const uhbManifest = {
-        projects: [{ identifier: "gen" }, { identifier: "exo" }],
+    it("falls back to books array when no ingredients", async () => {
+      const { isBookAvailable } = await import("./scriptureService.js");
+      
+      const resourceDataWithoutIngredients = {
+        id: "ult",
+        books: ["tit", "gen"]
       };
-      const ugntManifest = {
-        projects: [{ identifier: "mat" }, { identifier: "mrk" }],
-      };
-
-      const result = whichTestament({ bookId: "mat", uhbManifest, ugntManifest });
-      expect(result).toBe("new");
+      
+      const result = isBookAvailable("tit", resourceDataWithoutIngredients);
+      expect(result).toBe(true);
     });
 
-    it("returns null for unknown books", () => {
-      const uhbManifest = {
-        projects: [{ identifier: "gen" }],
-      };
-      const ugntManifest = {
-        projects: [{ identifier: "mat" }],
-      };
-
-      const result = whichTestament({ bookId: "unknown", uhbManifest, ugntManifest });
-      expect(result).toBeNull();
+    it("returns false when book not found anywhere", async () => {
+      const { isBookAvailable } = await import("./scriptureService.js");
+      
+      const result = isBookAvailable("nonexistent", mockResourceData);
+      expect(result).toBe(false);
     });
   });
 
-  describe("fetchScriptureResources", () => {
-    it.skip("fetches multiple resources in parallel", async () => {
-      const mockManifests = {
-        ult: { projects: [{ identifier: "gen", path: "./01-GEN.usfm" }] },
-        ust: { projects: [{ identifier: "gen", path: "./01-GEN.usfm" }] },
-        ulb: null,
-        udb: null,
-        irv: null,
+  describe("Legacy functions - deprecated but functional", () => {
+    it("whichTestament works with resource data (deprecated)", async () => {
+      const { whichTestament } = await import("./scriptureService.js");
+      
+      const uhbResourceData = {
+        ingredients: [{ identifier: "gen" }]
+      };
+      const ugntResourceData = {
+        ingredients: [{ identifier: "mat" }] 
       };
 
-      const mockUSFM = "\\c 1\\n\\v 1 In the beginning...";
+      const oldResult = whichTestament({ 
+        bookId: "gen", 
+        uhbResourceData, 
+        ugntResourceData 
+      });
+      expect(oldResult).toBe("old");
 
+      const newResult = whichTestament({
+        bookId: "mat",
+        uhbResourceData,
+        ugntResourceData
+      });
+      expect(newResult).toBe("new");
+    });
+
+    it("fetchScriptureResources works with resource data collection (deprecated)", async () => {
+      const { fetchScriptureResources } = await import("./scriptureService.js");
+      
       dcsClient.fetchResourceFile.mockResolvedValue(mockUSFM);
+
+      const resourceDataCollection = {
+        ult: mockResourceData,
+        ust: mockResourceData
+      };
 
       const result = await fetchScriptureResources({
         languageId: "en",
-        reference: { bookId: "gen", chapter: "1", verse: "1" },
-        manifests: mockManifests,
+        reference: { bookId: "tit" },
+        resourceDataCollection,
+        organization: "unfoldingWord"
       });
 
-      expect(result.ult).toEqual({ manifest: mockManifests.ult, data: mockUSFM });
-      expect(result.ust).toEqual({ manifest: mockManifests.ust, data: mockUSFM });
-      expect(result.ulb).toBeNull();
-      expect(result.udb).toBeNull();
-      expect(result.irv).toBeNull();
+      expect(result.ult).toEqual({ 
+        resourceData: mockResourceData, 
+        data: mockUSFM 
+      });
+      expect(result.ust).toEqual({
+        resourceData: mockResourceData,
+        data: mockUSFM
+      });
     });
   });
 });

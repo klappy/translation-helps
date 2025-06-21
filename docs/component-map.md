@@ -76,8 +76,8 @@ This document lists and describes the major components in the viewer and their r
 | Context Provider         | Path                                        | Description                                      |
 | ------------------------ | ------------------------------------------- | ------------------------------------------------ |
 | `ReferenceProvider`      | `src-new/context/ReferenceContext.jsx`      | Manages selected book, chapter, verse            |
-| `ManifestsProvider`      | `src-new/context/ManifestsContext.jsx`      | Provides DCS manifests for resources             |
-| `MultiManifestsProvider` | `src-new/context/MultiManifestsContext.jsx` | Manages multiple manifests                       |
+| ~~`ManifestsProvider`~~      | ~~`src-new/context/ManifestsContext.jsx`~~      | ❌ **REMOVED** - Use API-direct architecture     |
+| ~~`MultiManifestsProvider`~~ | ~~`src-new/context/MultiManifestsContext.jsx`~~ | ❌ **REMOVED** - Use catalog API instead         |
 | `ResourcesProvider`      | `src-new/context/ResourcesContext.jsx`      | Loads and stores resource data                   |
 | `ChatProvider`           | `src-new/context/ChatContext.jsx`           | LLM chat state management with context awareness |
 
@@ -90,7 +90,7 @@ This document lists and describes the major components in the viewer and their r
 | `useAppState`           | `src-new/hooks/useAppState.js`                                       | Main application state management hook      |
 | `useLanguages`          | `src-new/hooks/useLanguages.js`                                      | Hook for language selection and management  |
 | `useLoadResources`      | `src-new/hooks/useLoadResources.js`                                  | Hook for loading resource data              |
-| `useManifest`           | `src-new/hooks/useManifest.js`                                       | Hook for fetching DCS manifests             |
+| ~~`useManifest`~~           | ~~`src-new/hooks/useManifest.js`~~                                       | ❌ **REMOVED** - Use catalog API instead    |
 | `useOrganizations`      | `src-new/hooks/useOrganizations.js`                                  | Hook for organization data management       |
 | `useResources`          | `src-new/hooks/useResources.js`                                      | Hook for resource data access               |
 | `useTWL`                | `src-new/hooks/useTWL.js`                                            | Hook for TWL (Translation Words Links) data |

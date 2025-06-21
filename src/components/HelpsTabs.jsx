@@ -27,6 +27,8 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
   const [activeTab, setActiveTab] = useState("tn");
   const [dynamicTabs, setDynamicTabs] = useState([]);
 
+  // Simple Verse-Loading Pattern: No refs needed - LLMChatPanel uses ResourcesContext directly
+
   // Combine static and dynamic tabs
   const allTabs = [...STATIC_TABS, ...dynamicTabs];
 
@@ -169,12 +171,48 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
           </div>
         ))}
       </div>
-      <div className='tab-content' data-testid={`tab-content-${activeTab}`}>
-        {activeTabData?.articleData ? (
-          <ActiveComponent reference={reference} article={activeTabData.articleData} />
-        ) : (
-          <ActiveComponent reference={reference} />
-        )}
+      <div className='tab-content'>
+        {/* Always render all static panels but only show the active one */}
+        {/* This ensures refs are always available for LLMChatPanel to access */}
+        
+        <div 
+          data-testid="tab-content-tn"
+          style={{ display: activeTab === 'tn' ? 'block' : 'none' }}
+        >
+          <TranslationNotesPanel reference={reference} />
+        </div>
+        
+        <div 
+          data-testid="tab-content-tq"
+          style={{ display: activeTab === 'tq' ? 'block' : 'none' }}
+        >
+          <TranslationQuestionsPanel reference={reference} />
+        </div>
+        
+        <div 
+          data-testid="tab-content-tw"
+          style={{ display: activeTab === 'tw' ? 'block' : 'none' }}
+        >
+          <TranslationWordsPanel reference={reference} />
+        </div>
+        
+        <div 
+          data-testid="tab-content-chat"
+          style={{ display: activeTab === 'chat' ? 'block' : 'none' }}
+        >
+          <LLMChatPanel reference={reference} />
+        </div>
+        
+        {/* Dynamic tabs (articles) - only render when active */}
+        {dynamicTabs.map((tab) => (
+          <div
+            key={tab.id}
+            data-testid={`tab-content-${tab.id}`}
+            style={{ display: activeTab === tab.id ? 'block' : 'none' }}
+          >
+            <ArticlePanel reference={reference} article={tab.articleData} />
+          </div>
+        ))}
       </div>
     </div>
   );

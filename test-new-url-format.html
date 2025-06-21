@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New URL Format Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .url-example {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .test-link {
+            display: inline-block;
+            background: #007cba;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .test-link:hover {
+            background: #005a87;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🖖 Translation Helps - New URL Format Test</h1>
+    
+    <div class="status success">
+        <strong>Phase 1 Implementation Complete:</strong> URL Persistence with New Architecture
+        <br><strong>✅ URL Encoding Fixed:</strong> Clean, readable URLs without excessive encoding
+    </div>
+    
+    <div class="test-section">
+        <h2>New URL Format Examples</h2>
+        <p>The new format uses <code>scriptures</code> and <code>resources</code> arrays for infinite scalability:</p>
+        
+        <h3>1. Primary Scripture Only</h3>
+        <div class="url-example">
+            ?scriptures=[/unfoldingWord/en/ult/tit/1/1]
+        </div>
+        <a href="http://localhost:5174/?scriptures=[/unfoldingWord/en/ult/tit/1/1]" class="test-link" target="_blank">
+            Test Primary Scripture
+        </a>
+        
+        <h3>2. Scripture + Mixed Translation Helps</h3>
+        <div class="url-example">
+            ?scriptures=[/unfoldingWord/en/ult/tit/1/1]&resources=[/Door43-Catalog/es/tn/,/unfoldingWord/fr/tq/,/unfoldingWord/en/tw/]
+        </div>
+        <a href="http://localhost:5174/?scriptures=[/unfoldingWord/en/ult/tit/1/1]&resources=[/Door43-Catalog/es/tn/,/unfoldingWord/fr/tq/,/unfoldingWord/en/tw/]" class="test-link" target="_blank">
+            Test Mixed Resources
+        </a>
+        
+        <h3>3. Multiple Scriptures (Future Feature)</h3>
+        <div class="url-example">
+            ?scriptures=[/unfoldingWord/en/ult/tit/1/1,/wycliffe-associates/en/ulb/]&resources=[/unfoldingWord/en/tn/]
+        </div>
+        <a href="http://localhost:5174/?scriptures=[/unfoldingWord/en/ult/tit/1/1,/wycliffe-associates/en/ulb/]&resources=[/unfoldingWord/en/tn/]" class="test-link" target="_blank">
+            Test Multiple Scriptures
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>Legacy Format Compatibility</h2>
+        <p>The system maintains backward compatibility with existing URLs:</p>
+        
+        <div class="url-example">
+            ?owner=unfoldingWord&rc=/en/ult/tit/1/1
+        </div>
+        <a href="http://localhost:5174/?owner=unfoldingWord&rc=/en/ult/tit/1/1" class="test-link" target="_blank">
+            Test Legacy Format
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>Resource Path Format</h2>
+        <p>Each resource follows the pattern: <code>/organization/languageId/resourceId/bookId/chapter/verse</code></p>
+        
+        <h3>Scripture Resources (with reference)</h3>
+        <ul>
+            <li><code>/unfoldingWord/en/ult/tit/1/1</code> - ULT English Titus 1:1</li>
+            <li><code>/Door43-Catalog/es/ust/gen/1/1</code> - UST Spanish Genesis 1:1</li>
+        </ul>
+        
+        <h3>Translation Helps (without reference)</h3>
+        <ul>
+            <li><code>/unfoldingWord/en/tn/</code> - Translation Notes English</li>
+            <li><code>/Door43-Catalog/es/tq/</code> - Translation Questions Spanish</li>
+            <li><code>/unfoldingWord/fr/tw/</code> - Translation Words French</li>
+            <li><code>/unfoldingWord/en/twl/</code> - Translation Word Links English</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Benefits of New Format</h2>
+        <ul>
+            <li>✅ <strong>Infinite Scalability:</strong> Add unlimited resources without URL bloat</li>
+            <li>✅ <strong>Clear Separation:</strong> Scriptures vs translation helps</li>
+            <li>✅ <strong>Future-Proof:</strong> Ready for multiple scripture tabs</li>
+            <li>✅ <strong>Consistent:</strong> Same path format for all resources</li>
+            <li>✅ <strong>Backward Compatible:</strong> Legacy URLs still work</li>
+        </ul>
+    </div>
+    
+    <div class="status info">
+        <strong>Next Phase:</strong> Organization Priority based on repository metrics (stars/forks/watchers)
+    </div>
+    
+    <script>
+        // Log URL changes for debugging
+        window.addEventListener('popstate', () => {
+            console.log('🔗 URL changed:', window.location.search);
+        });
+        
+        console.log('🖖 New URL Format Test Page Loaded');
+        console.log('Current URL:', window.location.search);
+    </script>
+</body>
+</html> 

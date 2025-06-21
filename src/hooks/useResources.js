@@ -64,17 +64,58 @@ export function useResources(organization, language, options = {}) {
           console.log("🌐 Fetching cross-organization resources for:", language, resourceType);
           
           let crossOrgData = {};
+          let allMetadata = { organizations: [], languages: [], totalResources: 0 };
+          
           if (resourceType) {
-            // Fetch specific resource type
-            crossOrgData = await searchResourcesAcrossOrgs(language, resourceType);
+            // Fetch specific resource type - now returns enhanced structure
+            const result = await searchResourcesAcrossOrgs(language, resourceType);
+            crossOrgData = result?.resources || result; // Handle both old and new structure
+            allMetadata = result?.metadata || allMetadata;
+            
+            console.log(`📊 Enhanced metadata for ${resourceType}:`, {
+              totalResources: allMetadata.totalResources,
+              organizations: allMetadata.organizations?.length || 0,
+              languages: allMetadata.languages?.length || 0
+            });
           } else {
-            // Fetch all resource types and merge
-            const [bibleResources, notesResources, questionsResources, wordsResources] = await Promise.all([
-              searchResourcesAcrossOrgs(language, 'Bible').catch(() => ({})),
-              searchResourcesAcrossOrgs(language, 'Translation Notes').catch(() => ({})),
-              searchResourcesAcrossOrgs(language, 'Translation Questions').catch(() => ({})),
-              searchResourcesAcrossOrgs(language, 'Translation Words').catch(() => ({}))
+            // Fetch all resource types and merge - now returns enhanced structures
+            const [bibleResult, notesResult, questionsResult, wordsResult] = await Promise.all([
+              searchResourcesAcrossOrgs(language, 'Bible').catch(() => ({ resources: {}, metadata: {} })),
+              searchResourcesAcrossOrgs(language, 'Translation Notes').catch(() => ({ resources: {}, metadata: {} })),
+              searchResourcesAcrossOrgs(language, 'Translation Questions').catch(() => ({ resources: {}, metadata: {} })),
+              searchResourcesAcrossOrgs(language, 'Translation Words').catch(() => ({ resources: {}, metadata: {} }))
             ]);
+
+            // Extract resources from enhanced structure (backward compatibility)
+            const bibleResources = bibleResult?.resources || bibleResult;
+            const notesResources = notesResult?.resources || notesResult;
+            const questionsResources = questionsResult?.resources || questionsResult;
+            const wordsResources = wordsResult?.resources || wordsResult;
+
+            // Merge metadata from all calls
+            const allOrgMetadata = new Map();
+            [bibleResult, notesResult, questionsResult, wordsResult].forEach(result => {
+              if (result?.metadata?.organizations) {
+                result.metadata.organizations.forEach(org => {
+                  allOrgMetadata.set(org.login, org);
+                });
+              }
+            });
+
+            allMetadata = {
+              organizations: Array.from(allOrgMetadata.values()),
+              languages: bibleResult?.metadata?.languages || [],
+              totalResources: (bibleResult?.metadata?.totalResources || 0) + 
+                             (notesResult?.metadata?.totalResources || 0) + 
+                             (questionsResult?.metadata?.totalResources || 0) + 
+                             (wordsResult?.metadata?.totalResources || 0)
+            };
+
+            console.log(`📊 Combined enhanced metadata:`, {
+              totalResources: allMetadata.totalResources,
+              organizations: allMetadata.organizations.length,
+              languages: allMetadata.languages.length
+            });
 
             // Merge all resource types
             const allOrgs = new Set([

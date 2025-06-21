@@ -13,10 +13,13 @@ description: An application for viewing Bible translation resources from ETEN In
 
 ## 📘 Key Docs (in ./docs)
 
-- `ARCHITECTURE.md`: High-level component and data layer overview
+- `ARCHITECTURE.md`: **CORE ARCHITECTURE** - Official architecture overview with Simple Verse-Loading Pattern
+- `SIMPLE-VERSE-LOADING-PATTERN.md`: **DESIGN PATTERN DETAILS** - Detailed implementation guide for the architecture
+- `URL-PARAMETER-SPECIFICATION.md`: **URL FORMAT** - Official URL parameter format specification
+- `MIGRATION-TO-SIMPLE-PATTERN.md`: **MIGRATION GUIDE** - How to migrate from complex to simple patterns
+- `DEPRECATED-COMPLEX-PATTERNS.md`: **DEPRECATED PATTERNS** - Complex patterns that should NOT be used
 - `app-overview.md`: Defines application purpose, target audience, and supported resources
 - `ui-map.md`: UI layout, screen regions, and component interactions
-- `lifecycle.md`: Startup process, context flow, resource fetching, and offline behavior
 - `component-map.md`: Key React components with paths and descriptions
 - `TWL_Integration_Documentation.md`: Guide for the new TWL resource
 - `Translation_Notes_Implementation.md`: Implementation details for Translation Notes (tN)
@@ -49,16 +52,16 @@ description: An application for viewing Bible translation resources from ETEN In
 ## 🧠 Assistant Tips (for AGENTS)
 
 - **Repo Owner:** `klappy`
-- Be concise but context-aware
-- Prioritize docs in `/docs` for any questions about resource format or architecture
-- If editing React components, respect separation of concerns (UI, state, data-fetching)
+- **🎯 PRIMARY ARCHITECTURE**: Follow the **Simple Verse-Loading Pattern** documented in `docs/SIMPLE-VERSE-LOADING-PATTERN.md`
+- **🚨 CRITICAL PRINCIPLE**: ResourcesContext loads ALL data, panels self-activate their resources
+- **✅ CORRECT PATTERN**: Panels use `const { resources, activateResource } = useResourcesContext()` and call `activateResource('type')`
+- **✅ URL-DRIVEN**: Support URL parameters like `?scriptures=[/unfoldingWord/en/ult/tit/1/1]&resources=[/unfoldingWord/en/tn,/unfoldingWord/en/tq]`
+- **❌ ANTI-PATTERN**: Never add complex loading logic to panels
+- **⚠️ CRITICAL: DO NOT USE PROSKOMMA** - Use custom USFM semantic rendering system in `src/components/ScripturePanelRCL/`
+- **🚀 API-DIRECT ONLY**: Use catalog API with ingredients array, NO manifest files ever
 - TWL is a new addition that replaces Greek inline tags—point devs to TWL documentation
-- UI/UX tests use Vitest and React Testing Library. Component tests are co-located with components (e.g., `src/components/ScripturePanelRCL/USFMParser.test.js`).
-- For Dev Server issues (blank page), refer to the "Debugging Dev Server Blank Screen" section in README.md.
-- The app now uses `js-yaml` for YAML parsing (`load()` API); remove any legacy `yaml` aliasing in `vite.config.ts` and add `js-yaml` to `optimizeDeps.include` if needed.
-- **⚠️ CRITICAL: DO NOT USE PROSKOMMA** - Proskomma has been completely removed. Use the custom USFM semantic rendering system in `src/components/ScripturePanelRCL/` instead. See `docs/usfm-semantic-rendering.md` and `docs/proskomma-deprecation-history.md` for details.
-- **🚀 USFM Semantic Rendering**: Custom USFM 3.0 parser with semantic HTML output and multiple view modes (preview/full/debug). Located in `src/components/ScripturePanelRCL/` with components: USFMTokenizer, USFMParser, USFMHTMLRenderer, USFMSemanticRenderer. 85% faster than Proskomma approach.
-- **LLM Chat Environment Variables**: Use `VITE_USE_MOCK_CHAT=true` to enable mock responses, `VITE_USE_MOCK_CHAT=false` or unset to use real OpenAI API. Requires `OPENAI_API_KEY` in environment for real API usage.
+- UI/UX tests use Vitest and React Testing Library
+- **LLM Chat**: Direct ResourcesContext access, no panel refs or polling
 
 ## 🔄 GitFlow Branch Strategy
 
@@ -274,3 +277,69 @@ The project maintains a comprehensive CHANGELOG.md file documenting all changes:
    - Reference all relevant commits and PRs
    - Close the issue through GitHub API
    - Verify all acceptance criteria have been met
+
+## 🚨 CRITICAL: NO MANIFESTS! API-DIRECT ARCHITECTURE ONLY 🚨
+
+**⚠️ BEFORE MAKING ANY CHANGES: This app uses API-direct architecture**
+
+- ❌ **NEVER use `manifest.yaml` files**
+- ❌ **NEVER call `fetchManifest()`**
+- ❌ **NEVER use manifest-based file path resolution**
+- ✅ **ALWAYS use `ingredients` array from catalog API**
+- ✅ **ALWAYS use resource data directly from API**
+
+**📖 Read `docs/NO-MANIFESTS-API-DIRECT.md` for full details!**
+
+---
+
+## Overview
+
+This is a React-based web application for viewing and working with Bible translation resources. The app provides access to:
+
+- Scripture texts (USFM format)
+- Translation Notes (tN)
+- Translation Questions (tQ) 
+- Translation Words (tW)
+- Translation Word Links (tWL)
+
+## Key Architecture Principles
+
+### 1. API-Direct Resource Loading
+- Resources are discovered via DCS Catalog API (`/api/v1/catalog/search`)
+- File paths come from `ingredients` array in API response
+- No manifest files are used for file path resolution
+
+### 2. Cross-Organization Support
+- Users can mix resources from different organizations
+- Advanced mode allows per-resource-type organization selection
+- Resource availability is discovered dynamically
+
+### 3. URL-Driven State
+- All app state is reflected in URL parameters
+- Direct linking to specific references works
+- Browser navigation (back/forward) works correctly
+
+## File Structure
+
+```
+src/
+├── components/          # React components
+├── context/            # React context providers
+├── services/           # API and data services (NO MANIFESTS!)
+├── hooks/              # Custom React hooks
+├── utils/              # Utility functions
+└── styles/             # CSS and styling
+```
+
+## Services Architecture
+
+### Scripture Service (`src/services/scriptureService.js`)
+- ✅ Uses `resourceData.ingredients` for file paths
+- ✅ Fetches USFM content directly from DCS
+- ❌ NO manifest dependencies
+
+### Translation Helps Services
+- `tnService.js` - Translation Notes (uses `resourceData.ingredients` for file paths)
+- `tqService.js` - Translation Questions (uses `resourceData.ingredients` for file paths)  
+- `twlService.js` - Translation Word Links (uses `resourceData.ingredients` for file paths)
+- `twService.js` - Translation Words (fetches from links)

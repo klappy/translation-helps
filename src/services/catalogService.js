@@ -47,6 +47,9 @@ class CatalogCache {
 
 const cache = new CatalogCache();
 
+// Promise cache to prevent duplicate simultaneous requests
+const pendingRequests = new Map();
+
 /**
  * Enhanced fetch with performance optimizations, caching and error handling
  * @param {string} url - The URL to fetch
@@ -60,36 +63,52 @@ async function fetchWithCache(url, cacheKey) {
     return cached;
   }
 
+  // Check if there's already a pending request for this cache key
+  if (pendingRequests.has(cacheKey)) {
+    console.log(`🔄 Deduplicating request for ${cacheKey} - using existing promise`);
+    return await pendingRequests.get(cacheKey);
+  }
+
   // Start performance tracking
   const timerLabel = `fetch:${cacheKey}`;
   performanceTracker.startTimer(timerLabel);
 
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-    }
+  // Create the request promise
+  const requestPromise = (async () => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      }
 
-    const data = await response.json();
-    
-    // Store in both caches for redundancy
-    cache.set(cacheKey, data);
-    resourceCache.set(cacheKey, data);
-    
-    return data;
-  } catch (error) {
-    console.error(`Failed to fetch from ${url}:`, error);
-    
-    // Return cached data if available, even if expired
-    const expiredCache = cache.cache.get(cacheKey);
-    if (expiredCache) {
-      console.warn(`Using expired cache for ${cacheKey}`);
-      return expiredCache.data;
+      const data = await response.json();
+      
+      // Store in both caches for redundancy
+      cache.set(cacheKey, data);
+      resourceCache.set(cacheKey, data);
+      
+      return data;
+    } catch (error) {
+      console.error(`Failed to fetch from ${url}:`, error);
+      
+      // Return cached data if available, even if expired
+      const expiredCache = cache.cache.get(cacheKey);
+      if (expiredCache) {
+        console.warn(`Using expired cache for ${cacheKey}`);
+        return expiredCache.data;
+      }
+      throw error;
+    } finally {
+      performanceTracker.endTimer(timerLabel);
+      // Clean up the pending request
+      pendingRequests.delete(cacheKey);
     }
-    throw error;
-  } finally {
-    performanceTracker.endTimer(timerLabel);
-  }
+  })();
+
+  // Store the promise to prevent duplicate requests
+  pendingRequests.set(cacheKey, requestPromise);
+
+  return await requestPromise;
 }
 
 /**
@@ -345,6 +364,12 @@ export async function fetchBibleResources(owner, language) {
             repoUrl: repo.html_url || repo.repo_url,
             avatarUrl: repo.avatar_url || null, // Repository avatar
             owner: repo.owner || null, // Owner information
+            // Repository metrics for organization priority calculation
+            stars_count: repo.stars_count || 0,
+            forks_count: repo.forks_count || 0,
+            watchers_count: repo.watchers_count || 0,
+            size: repo.size || 0,
+            open_issues_count: repo.open_issues_count || 0,
           };
         })
         .sort((a, b) => a.name.localeCompare(b.name));
@@ -385,9 +410,271 @@ export async function preloadCatalogData(owner = null) {
 }
 
 /**
- * Search for resources across all organizations by language and subject
- * Uses the catalog search API that doesn't require organization filtering
- * Enhanced with performance optimizations and intelligent caching
+ * Search for ALL resources across all organizations for a language
+ * Uses a single catalog search API call and filters client-side for maximum efficiency
+ * @param {string} languageCode - The language code to search for
+ * @param {string} stage - Release stage filter (prod, pre-prod, draft, latest)
+ * @returns {Promise<Object>} Complete resource data with client-side filtering capabilities
+ */
+export const searchAllResourcesForLanguage = createOptimizedSearch(
+  async function _searchAllResourcesForLanguage(languageCode, stage = "prod") {
+    if (!languageCode) {
+      return { resources: {}, metadata: {}, bySubject: {} };
+    }
+
+    const searchParams = new URLSearchParams({
+      metadataType: "rc",
+      lang: languageCode,
+      stage: stage,
+      limit: "200", // Higher limit to get ALL resources
+    });
+
+    // NO subject filter - get everything in one call!
+    const url = `${CATALOG_SEARCH_URL}?${searchParams}`;
+    const cacheKey = `all_resources_${languageCode}_${stage}`;
+
+    try {
+      console.log(`🌟 Fetching ALL resources for ${languageCode} in single API call: ${url}`);
+      const data = await fetchWithCache(url, cacheKey);
+
+      // Initialize comprehensive result structure
+      const comprehensiveResult = {
+        resources: {}, // Grouped by organization (backward compatible)
+        bySubject: {}, // NEW: Grouped by subject type for easy filtering
+        metadata: {
+          languages: new Map(),
+          organizations: new Map(),
+          bookAvailability: new Map(),
+          resourceTypesByOrg: new Map(),
+          subjectBreakdown: new Map() // NEW: Count by subject
+        }
+      };
+
+      // Handle different response structures
+      let resourcesArray = null;
+      if (data && Array.isArray(data)) {
+        resourcesArray = data;
+      } else if (data && data.data && Array.isArray(data.data)) {
+        resourcesArray = data.data;
+      }
+
+      if (resourcesArray) {
+        // Initialize metadata collections to extract ALL available data
+        const { metadata } = comprehensiveResult;
+
+        resourcesArray.forEach((resource) => {
+          // Extract organization
+          let org = "unknown";
+          if (typeof resource.owner === 'string') {
+            org = resource.owner;
+          } else if (resource.owner?.login) {
+            org = resource.owner.login;
+          } else if (resource.full_name) {
+            org = resource.full_name.split("/")[0];
+          }
+
+          // Store organization metadata
+          if (resource.repo?.owner && !metadata.organizations.has(org)) {
+            metadata.organizations.set(org, {
+              login: org,
+              avatarUrl: resource.repo.owner.avatar_url,
+              htmlUrl: resource.repo.owner.html_url,
+              repoLanguages: resource.repo.owner.repo_languages || [],
+              repoSubjects: resource.repo.owner.repo_subjects || [],
+              description: resource.repo.owner.description,
+              fullName: resource.repo.owner.full_name || org,
+              resourceCount: 0
+            });
+          }
+
+          // Increment resource count
+          if (metadata.organizations.has(org)) {
+            metadata.organizations.get(org).resourceCount++;
+          }
+
+          // Store language metadata
+          if (resource.language && !metadata.languages.has(resource.language)) {
+            metadata.languages.set(resource.language, {
+              code: resource.language,
+              name: resource.language_title || getLanguageName(resource.language),
+              direction: resource.language_direction || getLanguageDirection(resource.language),
+              isGateway: resource.language_is_gl || false,
+              organizations: new Set()
+            });
+          }
+
+          // Add organization to language
+          if (resource.language && metadata.languages.has(resource.language)) {
+            metadata.languages.get(resource.language).organizations.add(org);
+          }
+
+          // Track subjects
+          const subject = resource.subject || 'Unknown';
+          if (!metadata.subjectBreakdown.has(subject)) {
+            metadata.subjectBreakdown.set(subject, 0);
+          }
+          metadata.subjectBreakdown.set(subject, metadata.subjectBreakdown.get(subject) + 1);
+
+          // Store book availability
+          const resourceKey = `${org}/${resource.name}`;
+          if (resource.books && resource.books.length > 0) {
+            metadata.bookAvailability.set(resourceKey, resource.books);
+          }
+
+          // Track resource types by organization
+          if (!metadata.resourceTypesByOrg.has(org)) {
+            metadata.resourceTypesByOrg.set(org, new Set());
+          }
+          if (resource.subject) {
+            metadata.resourceTypesByOrg.get(org).add(resource.subject);
+          }
+
+          // Extract resource ID
+          let resourceId = resource.name || resource.identifier;
+          const languagePrefixPattern = new RegExp(`^${languageCode}_`);
+          if (languagePrefixPattern.test(resourceId)) {
+            resourceId = resourceId.replace(languagePrefixPattern, "");
+          }
+
+          // Create enhanced resource object
+          const enhancedResource = {
+            id: resourceId,
+            name: resource.name || resource.identifier,
+            fullName: resource.full_name,
+            description: resource.description || resource.title,
+            subject: resource.subject,
+            organization: org,
+            combinedId: `${org}/${resource.name}`,
+            repoUrl: resource.html_url || resource.repo_url,
+            avatarUrl: resource.avatar_url || resource.repo?.avatar_url,
+            stage: resource.stage || stage,
+            version: resource.version,
+            modified: resource.modified,
+            checking: resource.checking,
+            organizationData: resource.repo?.owner || (typeof resource.owner === 'object' ? resource.owner : null),
+            // Repository metrics for organization priority calculation
+            stars_count: resource.repo?.stars_count || 0,
+            forks_count: resource.repo?.forks_count || 0,
+            watchers_count: resource.repo?.watchers_count || 0,
+            size: resource.repo?.size || 0,
+            open_issues_count: resource.repo?.open_issues_count || 0,
+            // Enhanced data from API payload
+            title: resource.title,
+            abbreviation: resource.abbreviation,
+            flavor: resource.flavor,
+            flavorType: resource.flavor_type,
+            languageTitle: resource.language_title,
+            languageDirection: resource.language_direction,
+            languageIsGateway: resource.language_is_gl,
+            books: resource.books || [],
+            ingredients: resource.ingredients || [],
+            isValid: resource.is_valid,
+            validationErrorsUrl: resource.validation_errors_url,
+            _debug: {
+              catalogId: resource.id,
+              catalogUrl: resource.url
+            }
+          };
+
+          // Group by organization (backward compatible)
+          if (!comprehensiveResult.resources[org]) {
+            comprehensiveResult.resources[org] = [];
+          }
+          comprehensiveResult.resources[org].push(enhancedResource);
+
+          // NEW: Group by subject for easy filtering
+          if (!comprehensiveResult.bySubject[subject]) {
+            comprehensiveResult.bySubject[subject] = {};
+          }
+          if (!comprehensiveResult.bySubject[subject][org]) {
+            comprehensiveResult.bySubject[subject][org] = [];
+          }
+          comprehensiveResult.bySubject[subject][org].push(enhancedResource);
+        });
+
+        // Sort resources within each organization and subject
+        Object.keys(comprehensiveResult.resources).forEach((org) => {
+          comprehensiveResult.resources[org].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+        });
+
+        Object.keys(comprehensiveResult.bySubject).forEach(subject => {
+          Object.keys(comprehensiveResult.bySubject[subject]).forEach(org => {
+            comprehensiveResult.bySubject[subject][org].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+          });
+        });
+
+        // Finalize metadata
+        const finalMetadata = {
+          languages: Array.from(metadata.languages.values()).map(lang => ({
+            ...lang,
+            organizations: Array.from(lang.organizations).sort(),
+            organizationCount: lang.organizations.size
+          })),
+          organizations: Array.from(metadata.organizations.values()),
+          resourceTypesByOrg: Object.fromEntries(
+            Array.from(metadata.resourceTypesByOrg.entries()).map(([org, types]) => [org, Array.from(types).sort()])
+          ),
+          bookAvailability: Object.fromEntries(metadata.bookAvailability.entries()),
+          subjectBreakdown: Object.fromEntries(metadata.subjectBreakdown.entries()),
+          searchParams: { languageCode, stage },
+          totalResources: Object.values(comprehensiveResult.resources).reduce((sum, resources) => sum + resources.length, 0),
+          timestamp: new Date().toISOString()
+        };
+
+        console.log(`🌟 Single API call returned ${finalMetadata.totalResources} resources from ${finalMetadata.organizations.length} organizations`);
+        console.log(`📊 Subject breakdown:`, finalMetadata.subjectBreakdown);
+
+        return {
+          resources: comprehensiveResult.resources,
+          bySubject: comprehensiveResult.bySubject,
+          metadata: finalMetadata
+        };
+      }
+
+      // Return empty structure if no resources found
+      return {
+        resources: {},
+        bySubject: {},
+        metadata: {
+          languages: [],
+          organizations: [],
+          resourceTypesByOrg: {},
+          bookAvailability: {},
+          subjectBreakdown: {},
+          searchParams: { languageCode, stage },
+          totalResources: 0,
+          timestamp: new Date().toISOString(),
+          error: "No resources found"
+        }
+      };
+    } catch (error) {
+      console.error("Failed to search all resources:", error);
+      return {
+        resources: {},
+        bySubject: {},
+        metadata: {
+          languages: [],
+          organizations: [],
+          resourceTypesByOrg: {},
+          bookAvailability: {},
+          subjectBreakdown: {},
+          searchParams: { languageCode, stage },
+          totalResources: 0,
+          timestamp: new Date().toISOString(),
+          error: error.message
+        }
+      };
+    }
+  }, {
+    cacheKey: 'all-resources-single-call',
+    debounceDelay: 500,
+    enableCache: true,
+    enablePreload: true
+  }
+);
+
+/**
+ * Legacy function - now uses the optimized single call with client-side filtering
  * @param {string} languageCode - The language code to search for
  * @param {string|null} subject - Optional subject filter (e.g., "Bible", "Translation Notes")
  * @param {string} stage - Release stage filter (prod, pre-prod, draft, latest)
@@ -396,119 +683,66 @@ export async function preloadCatalogData(owner = null) {
 export const searchResourcesAcrossOrgs = createOptimizedSearch(
   async function _searchResourcesAcrossOrgs(languageCode, subject = null, stage = "prod") {
   if (!languageCode) {
-    return {};
+    return { resources: {}, metadata: {} };
   }
 
-  const searchParams = new URLSearchParams({
-    metadataType: "rc",
-    lang: languageCode,
-    stage: stage,
-    limit: "100",
-  });
-
-  if (subject) {
-    searchParams.append("subject", subject);
+  // OPTIMIZATION: Use the single API call and filter client-side
+  console.log(`🚀 Using optimized single API call for ${languageCode} ${subject ? `(filtering for ${subject})` : '(all resources)'}`);
+  
+  const allResourcesResult = await searchAllResourcesForLanguage(languageCode, stage);
+  
+  if (!subject) {
+    // Return all resources if no subject filter
+    return {
+      resources: allResourcesResult.resources,
+      metadata: allResourcesResult.metadata
+    };
   }
 
-  const url = `${CATALOG_SEARCH_URL}?${searchParams}`;
-  const cacheKey = `cross_org_search_${languageCode}_${subject || "all"}_${stage}`;
-
-  try {
-    console.log(`🔍 Searching resources across organizations: ${url}`);
-    const data = await fetchWithCache(url, cacheKey);
-
-    // Group results by organization for display
-    const groupedResults = {};
-    
-    // Handle different response structures
-    let resourcesArray = null;
-    if (data && Array.isArray(data)) {
-      // Handle case where data is directly an array
-      resourcesArray = data;
-    } else if (data && data.data && Array.isArray(data.data)) {
-      // Handle case where data is wrapped in a data property
-      resourcesArray = data.data;
-    }
-
-    if (resourcesArray) {
-      resourcesArray.forEach((resource) => {
-        // Extract organization from the resource data - handle both string and object owner formats
-        let org = "unknown";
-        if (typeof resource.owner === 'string') {
-          org = resource.owner;
-        } else if (resource.owner?.login) {
-          org = resource.owner.login;
-        } else if (resource.full_name) {
-          org = resource.full_name.split("/")[0];
-        }
-        
-        if (!groupedResults[org]) {
-          groupedResults[org] = [];
-        }
-
-        // Extract resource ID by removing language prefix if present
-        let resourceId = resource.name || resource.identifier;
-        const languagePrefixPattern = new RegExp(`^${languageCode}_`);
-        if (languagePrefixPattern.test(resourceId)) {
-          resourceId = resourceId.replace(languagePrefixPattern, "");
-        }
-
-        groupedResults[org].push({
-          id: resourceId,
-          name: resource.name || resource.identifier,
-          fullName: resource.full_name,
-          description: resource.description || resource.title,
-          subject: resource.subject,
-          organization: org,
-          combinedId: `${org}/${resource.name}`, // Unique identifier
-          repoUrl: resource.html_url || resource.repo_url,
-          avatarUrl: resource.avatar_url || resource.repo?.avatar_url, // Repository avatar
-          stage: resource.stage || stage,
-          version: resource.version,
-          modified: resource.modified,
-          checking: resource.checking,
-          // Organization metadata for displaying logos - use repo.owner for full metadata
-          organizationData: resource.repo?.owner || (typeof resource.owner === 'object' ? resource.owner : null),
-          raw: resource, // Keep raw data for debugging
-        });
-      });
-
-      // Sort resources within each organization
-      Object.keys(groupedResults).forEach((org) => {
-        groupedResults[org].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
-      });
-
-      console.log(`✅ Found resources from ${Object.keys(groupedResults).length} organizations:`, 
-                  Object.keys(groupedResults));
-    }
-
-    return groupedResults;
-  } catch (error) {
-    console.error("Failed to search resources across organizations:", error);
-    
-    // Fallback: try to get resources from known organizations
-    const fallbackOrgs = ["unfoldingWord", "door43-catalog", "STR", "WA"];
-    const fallbackResults = {};
-    
-    for (const org of fallbackOrgs) {
-      try {
-        const orgResources = await fetchBibleResources(org, languageCode);
-        if (orgResources.length > 0) {
-          fallbackResults[org] = orgResources.map(r => ({
-            ...r,
-            organization: org,
-            combinedId: `${org}/${r.name}`,
-          }));
-        }
-      } catch (fallbackError) {
-        console.warn(`Fallback failed for ${org}:`, fallbackError);
+  // Client-side filtering by subject (much faster than separate API calls)
+  // Handle comma-separated subjects like "Aligned Bible,Bible"
+  const requestedSubjects = subject.split(',').map(s => s.trim());
+  const filteredBySubject = {};
+  
+  // Merge resources from all requested subjects
+  requestedSubjects.forEach(requestedSubject => {
+    const subjectResources = allResourcesResult.bySubject[requestedSubject] || {};
+    Object.entries(subjectResources).forEach(([org, resources]) => {
+      if (!filteredBySubject[org]) {
+        filteredBySubject[org] = [];
       }
-    }
-    
-    return fallbackResults;
-  }
+      filteredBySubject[org].push(...resources);
+    });
+  });
+  
+  // Remove duplicates within each organization
+  Object.keys(filteredBySubject).forEach(org => {
+    const seen = new Set();
+    filteredBySubject[org] = filteredBySubject[org].filter(resource => {
+      const key = `${resource.id || resource.name}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  });
+  
+  console.log(`🔍 Client-side filtered for "${subject}" (${requestedSubjects.join(', ')}): ${Object.keys(filteredBySubject).length} organizations`);
+  
+  // Calculate filtered metadata
+  const filteredMetadata = {
+    ...allResourcesResult.metadata,
+    totalResources: Object.values(filteredBySubject).reduce((sum, orgResources) => sum + orgResources.length, 0),
+    filteredFor: subject,
+    searchParams: { languageCode, subject, stage }
+  };
+
+  return {
+    resources: filteredBySubject,
+    metadata: filteredMetadata
+  };
+
   }, {
-    cacheKey: 'cross-org-search',
+    cacheKey: 'cross-org-search-optimized',
     debounceDelay: 500,
     enableCache: true,
     enablePreload: true
@@ -517,6 +751,7 @@ export const searchResourcesAcrossOrgs = createOptimizedSearch(
 
 /**
  * Get all available languages across all organizations that have scripture resources
+ * OPTIMIZED: Uses the dedicated languages list endpoint instead of parsing individual resources
  * @param {boolean} includeOrgInfo - Whether to include organization information for each language
  * @returns {Promise<Object[]>} Array of language objects with optional organization info
  */
@@ -524,7 +759,75 @@ export async function fetchAllLanguages(includeOrgInfo = true) {
   const cacheKey = `all_languages_scripture_${includeOrgInfo}`;
 
   try {
-    console.log(`🌐 Fetching all languages with scripture resources...`);
+    console.log(`🌐 Fetching all languages with scripture resources (OPTIMIZED)...`);
+    
+    // OPTIMIZATION: Use the dedicated languages list endpoint
+    // This is MUCH faster than parsing individual resources
+    const searchParams = new URLSearchParams({
+      stage: "prod",
+      subject: "Bible,Aligned Bible", // Comma-separated subjects
+    });
+
+    const url = `https://git.door43.org/api/v1/catalog/list/languages?${searchParams}`;
+    const data = await fetchWithCache(url, cacheKey);
+
+    if (data && data.data && Array.isArray(data.data)) {
+      console.log(`🚀 Languages API returned ${data.data.length} languages directly`);
+      
+      // Transform API response to our expected format
+      const languages = data.data
+        .filter(lang => lang && lang.lc && lang.lc.length >= 2) // Valid language codes only
+        .map(lang => {
+          const result = {
+            code: lang.lc,
+            name: lang.ln || lang.ang || lang.lc.toUpperCase(),
+            direction: lang.ld || 'ltr',
+            // Additional metadata from the API
+            anglicizedName: lang.ang,
+            isGateway: lang.gw || false,
+            countryCodes: lang.cc || [],
+            region: lang.lr,
+            homeCountry: lang.hc,
+            alternatives: lang.alt || [],
+            primaryKey: lang.pk
+          };
+
+          // Add organization info if requested
+          if (includeOrgInfo) {
+            // For the languages endpoint, we don't get org-specific data
+            // But we can indicate that multiple organizations likely have resources
+            result.organizations = ['Multiple']; // Placeholder - real org data would need separate calls
+            result.organizationCount = 1; // Placeholder
+          }
+
+          return result;
+        })
+        .sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code));
+
+      console.log(`✅ Found ${languages.length} languages with scripture resources (OPTIMIZED)`);
+      return languages;
+    }
+
+    // Fallback to the old inefficient method if the optimized endpoint fails
+    console.warn('📋 Languages list endpoint failed, falling back to resource parsing method');
+    return await fetchAllLanguagesLegacy(includeOrgInfo);
+  } catch (error) {
+    console.error("Failed to fetch languages with scripture resources (optimized):", error);
+    console.warn('📋 Falling back to legacy resource parsing method');
+    return await fetchAllLanguagesLegacy(includeOrgInfo);
+  }
+}
+
+/**
+ * Legacy method - kept as fallback for the optimized fetchAllLanguages
+ * @param {boolean} includeOrgInfo - Whether to include organization information for each language
+ * @returns {Promise<Object[]>} Array of language objects with optional organization info
+ */
+async function fetchAllLanguagesLegacy(includeOrgInfo = true) {
+  const cacheKey = `all_languages_scripture_legacy_${includeOrgInfo}`;
+
+  try {
+    console.log(`🌐 Fetching all languages with scripture resources (LEGACY METHOD)...`);
     
     // Use the cross-organization search to find languages with Bible resources
     const searchParams = new URLSearchParams({
@@ -601,14 +904,14 @@ export async function fetchAllLanguages(includeOrgInfo = true) {
       // Sort by name
       languages.sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code));
 
-      console.log(`✅ Found ${languages.length} languages with scripture resources`);
+      console.log(`✅ Found ${languages.length} languages with scripture resources (LEGACY)`);
       return languages;
     }
 
     // Fallback to aggregating from known organizations
     return await fetchLanguagesFromKnownOrgs();
   } catch (error) {
-    console.error("Failed to fetch languages with scripture resources:", error);
+    console.error("Failed to fetch languages with scripture resources (legacy):", error);
     return await fetchLanguagesFromKnownOrgs();
   }
 }
@@ -857,6 +1160,7 @@ export default {
   clearCatalogCache,
   preloadCatalogData,
   searchResourcesAcrossOrgs,
+  searchAllResourcesForLanguage,
   fetchAllLanguages,
   analyzeResourceCompatibility,
   fetchOrganizationDetails,

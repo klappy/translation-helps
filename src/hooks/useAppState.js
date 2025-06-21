@@ -1,7 +1,7 @@
 /**
  * useAppState - Context Coordination Layer
  *
- * This hook coordinates between the separated contexts (ReferenceContext, ManifestsContext, ResourcesContext)
+ * This hook coordinates between the separated contexts (ReferenceContext, ResourcesContext)
  * and provides intelligent navigation, validation, and workflow logic from the original app.
  *
  * It preserves the architectural benefits of separated contexts while enabling original UX behaviors.
@@ -9,7 +9,6 @@
 
 import { useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { ReferenceContext } from "../context/ReferenceContext";
-import { ManifestsContext } from "../context/ManifestsContext";
 import { ResourcesContext } from "../context/ResourcesContext";
 
 import {
@@ -46,7 +45,6 @@ import {
 export function useAppState() {
   // Access existing separated contexts
   const { reference, setReference, updateReference } = useContext(ReferenceContext);
-  const { manifests } = useContext(ManifestsContext);
   const { resources, loadResource, isLoading } = useContext(ResourcesContext);
 
   // Additional coordination state

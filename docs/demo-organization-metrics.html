@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organization Metrics Demo - Translation Helps</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8fafc;
+            color: #1a202c;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .header p {
+            margin: 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #2d3748;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .feature-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .feature-card h3 {
+            margin: 0 0 10px 0;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .feature-card p {
+            margin: 0;
+            color: #4a5568;
+        }
+        
+        .demo-org {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .org-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .org-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .org-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .org-details h4 {
+            margin: 0 0 4px 0;
+            color: #2d3748;
+            font-size: 16px;
+        }
+        
+        .org-recommendation {
+            font-size: 12px;
+            color: #718096;
+            margin: 0;
+        }
+        
+        .tier-badge {
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        
+        .metric-badges {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .metric-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #4a5568;
+        }
+        
+        .metric-icon {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+        
+        .premier { color: #10b981; }
+        .established { color: #3b82f6; }
+        .emerging { color: #8b5cf6; }
+        .community { color: #f59e0b; }
+        .experimental { color: #6b7280; }
+        
+        .implementation-status {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .status-complete {
+            color: #2f855a;
+            font-weight: 600;
+        }
+        
+        .code-snippet {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .highlight {
+            background: #fef5e7;
+            border-left: 4px solid #f6ad55;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .org-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .metric-badges {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖖 Organization Metrics System</h1>
+            <p>Data-driven organization priority based on community engagement</p>
+        </div>
+        
+        <div class="content">
+            <div class="implementation-status">
+                <h3 class="status-complete">✅ Phase 2 Complete: Metric-Based Organization Priority</h3>
+                <p>Organizations are now sorted by community engagement metrics (stars, watchers, forks) with transparent quality indicators and visual badges.</p>
+            </div>
+            
+            <div class="section">
+                <h2>🏆 Key Features Implemented</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>📊 Metric-Based Scoring</h3>
+                        <p>Organizations ranked by weighted score: Stars (3x) + Watchers (2x) + Forks (1x) for transparent quality assessment.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🎯 Tier Classification</h3>
+                        <p>Premier, Established, Emerging, Community, and Experimental tiers based on engagement levels.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🏷️ Visual Badges</h3>
+                        <p>Real-time metric display with stars, watchers, and forks counts for each organization.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🔄 Consistent UI</h3>
+                        <p>Shared ResourceGrid component ensures identical experience for both Scripture and Translation Helps.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🌟 Demo: Organization Rankings</h2>
+                <p>Example of how organizations would be displayed with real DCS API metrics:</p>
+                
+                <div class="demo-org">
+                    <div class="org-header">
+                        <div class="org-info">
+                            <div class="org-avatar">uW</div>
+                            <div class="org-details">
+                                <h4>unfoldingWord</h4>
+                                <p class="org-recommendation">Highly recommended (45 stars, 120 watchers)</p>
+                                <div class="tier-badge premier">🏆 Premier</div>
+                            </div>
+                        </div>
+                        <div class="metric-badges">
+                            <div class="metric-badge">
+                                <span class="metric-icon">⭐</span>
+                                <span>45</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-icon">👁</span>
+                                <span>120</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-icon">🍴</span>
+                                <span>28</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="demo-org">
+                    <div class="org-header">
+                        <div class="org-info">
+                            <div class="org-avatar">D43</div>
+                            <div class="org-details">
+                                <h4>Door43-Catalog</h4>
+                                <p class="org-recommendation">Recommended (18 stars, 34 watchers)</p>
+                                <div class="tier-badge established">⭐ Established</div>
+                            </div>
+                        </div>
+                        <div class="metric-badges">
+                            <div class="metric-badge">
+                                <span class="metric-icon">⭐</span>
+                                <span>18</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-icon">👁</span>
+                                <span>34</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-icon">🍴</span>
+                                <span>12</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="demo-org">
+                    <div class="org-header">
+                        <div class="org-info">
+                            <div class="org-avatar">WA</div>
+                            <div class="org-details">
+                                <h4>Wycliffe-Associates</h4>
+                                <p class="org-recommendation">Good choice (8 stars, 15 watchers)</p>
+                                <div class="tier-badge emerging">🌟 Emerging</div>
+                            </div>
+                        </div>
+                        <div class="metric-badges">
+                            <div class="metric-badge">
+                                <span class="metric-icon">⭐</span>
+                                <span>8</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-icon">👁</span>
+                                <span>15</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-icon">🍴</span>
+                                <span>5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>⚙️ Technical Implementation</h2>
+                
+                <div class="highlight">
+                    <strong>Scoring Algorithm:</strong> Score = (Stars × 3) + (Watchers × 2) + (Forks × 1)
+                    <br><strong>Tier Thresholds:</strong> Premier (100+), Established (50+), Emerging (20+), Community (5+), Experimental (0+)
+                </div>
+                
+                <h3>New Files Created:</h3>
+                <div class="code-snippet">src/utils/organizationMetrics.js
+├── calculateOrganizationMetrics()
+├── sortOrganizationsByMetrics()
+├── getTierDisplayInfo()
+├── formatMetricNumber()
+├── getRecommendationText()
+└── createMetricBadges()</div>
+                
+                <h3>Enhanced Components:</h3>
+                <div class="code-snippet">src/components/shared/ResourceGrid.jsx
+├── Added metric-based sorting
+├── Enhanced organization headers
+├── Added tier badges and metric displays
+└── Responsive design for mobile</div>
+                
+                <h3>CSS Enhancements:</h3>
+                <div class="code-snippet">src/components/shared/ResourceGrid.module.css
+├── .organizationInfo - flexible layout
+├── .organizationMetrics - recommendation display
+├── .metricBadges - visual metric indicators
+├── .tierBadge - tier classification display
+└── Responsive breakpoints for mobile</div>
+            </div>
+            
+            <div class="section">
+                <h2>🧪 Test Coverage</h2>
+                <p>Comprehensive test suite ensures reliability:</p>
+                <div class="code-snippet">✅ All 8 tests passing
+├── calculateOrganizationMetrics (3 tests)
+├── sortOrganizationsByMetrics (1 test)
+├── getTierDisplayInfo (1 test)
+├── formatMetricNumber (1 test)
+├── getRecommendationText (1 test)
+└── createMetricBadges (1 test)</div>
+            </div>
+            
+            <div class="section">
+                <h2>🎯 Consistency Achievement</h2>
+                <p>The implementation ensures identical behavior between Scripture and Translation Helps:</p>
+                <ul>
+                    <li><strong>Shared Component:</strong> Both use the same ResourceGrid component</li>
+                    <li><strong>Unified Metrics:</strong> Same scoring algorithm and tier system</li>
+                    <li><strong>Consistent UI:</strong> Identical visual design and interaction patterns</li>
+                    <li><strong>Real-time Data:</strong> Metrics pulled directly from DCS API repository data</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>🚀 Next Steps</h2>
+                <p>With Phase 2 complete, the system now provides:</p>
+                <ul>
+                    <li>✅ Clean, scalable URL format</li>
+                    <li>✅ Data-driven organization priority</li>
+                    <li>✅ Transparent quality indicators</li>
+                    <li>✅ Consistent UI/UX across all resource types</li>
+                </ul>
+                
+                <p>Future enhancements could include:</p>
+                <ul>
+                    <li>Performance optimizations (caching, debouncing, lazy loading)</li>
+                    <li>Advanced features (resource recommendations, bulk operations)</li>
+                    <li>Analytics and usage tracking</li>
+                    <li>User preference customization</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResourceGrid Metrics Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .console-output {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🖖 ResourceGrid Metrics Test</h1>
+        
+        <div class="status success">
+            <strong>✅ Test Environment Ready</strong><br>
+            This page tests the ResourceGrid component with organization metrics display.
+        </div>
+        
+        <div>
+            <h3>Test Actions:</h3>
+            <button class="test-button" onclick="testBibleResources()">Test Bible Resources (EN)</button>
+            <button class="test-button" onclick="testTranslationNotes()">Test Translation Notes (EN)</button>
+            <button class="test-button" onclick="testMetricsCalculation()">Test Metrics Calculation</button>
+            <button class="test-button" onclick="clearOutput()">Clear Output</button>
+        </div>
+        
+        <div class="console-output" id="output">
+🔍 Click a test button to see ResourceGrid metrics in action...
+
+Expected Results:
+- Organizations should be sorted by community engagement score
+- Metric badges should show stars, watchers, forks counts
+- Tier badges should display (Premier, Established, Emerging, etc.)
+- Recommendation text should appear based on scores
+        </div>
+    </div>
+
+    <script type="module">
+        const output = document.getElementById('output');
+        
+        function log(message) {
+            output.textContent += '\n' + message;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        window.clearOutput = () => {
+            output.textContent = '🔍 Console cleared. Click test buttons to see results...\n';
+        };
+        
+        window.testBibleResources = async () => {
+            log('🚀 Testing Bible Resources...');
+            try {
+                const module = await import('./src/services/catalogService.js');
+                const result = await module.searchResourcesAcrossOrgs('en', 'Bible');
+                
+                log(`✅ Found ${Object.keys(result.resources).length} organizations with Bible resources:`);
+                Object.entries(result.resources).forEach(([org, resources]) => {
+                    const totalStars = resources.reduce((sum, r) => sum + (r.stars_count || 0), 0);
+                    const totalWatchers = resources.reduce((sum, r) => sum + (r.watchers_count || 0), 0);
+                    const totalForks = resources.reduce((sum, r) => sum + (r.forks_count || 0), 0);
+                    const score = (totalStars * 3) + (totalWatchers * 2) + (totalForks * 1);
+                    log(`  ${org}: ${totalStars} stars, ${totalWatchers} watchers, ${totalForks} forks (Score: ${score})`);
+                });
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+            }
+        };
+        
+        window.testTranslationNotes = async () => {
+            log('🚀 Testing Translation Notes...');
+            try {
+                const module = await import('./src/services/catalogService.js');
+                const result = await module.searchResourcesAcrossOrgs('en', 'TSV Translation Notes');
+                
+                log(`✅ Found ${Object.keys(result.resources).length} organizations with Translation Notes:`);
+                Object.entries(result.resources).forEach(([org, resources]) => {
+                    const firstResource = resources[0];
+                    log(`  ${org}: ${firstResource.stars_count} stars, ${firstResource.watchers_count} watchers, ${firstResource.forks_count} forks`);
+                });
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+            }
+        };
+        
+        window.testMetricsCalculation = async () => {
+            log('🚀 Testing Metrics Calculation...');
+            try {
+                const module = await import('./src/utils/organizationMetrics.js');
+                
+                const testData = [{
+                    organization: { name: 'TestOrg' },
+                    resources: [
+                        { stars_count: 10, forks_count: 5, watchers_count: 8 },
+                        { stars_count: 20, forks_count: 3, watchers_count: 12 }
+                    ]
+                }];
+                
+                const sorted = module.sortOrganizationsByMetrics(testData);
+                const metrics = sorted[0].metrics;
+                
+                log(`✅ Metrics calculation working:`);
+                log(`  Total Stars: ${metrics.totalStars}`);
+                log(`  Total Watchers: ${metrics.totalWatchers}`);
+                log(`  Total Forks: ${metrics.totalForks}`);
+                log(`  Score: ${metrics.score}`);
+                log(`  Tier: ${metrics.tier}`);
+                
+                const badges = module.createMetricBadges(metrics);
+                log(`  Badges: ${badges.map(b => `${b.icon} ${b.displayValue}`).join(', ')}`);
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+            }
+        };
+    </script>
+</body>
+</html> 

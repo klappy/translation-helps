@@ -19,11 +19,13 @@ export function ScripturePanelNavigation({
 }) {
   const [currentStep, setCurrentStep] = useState('complete');
   const [slideDirection, setSlideDirection] = useState('');
+  const [isTransitioning, setIsTransitioning] = useState(false); // Prevent multiple transitions
   const { 
     reference, 
     organization, 
     languageId, 
     resourceId, 
+    resourceOrganization,
     updateContext 
   } = useContext(ReferenceContext);
 
@@ -34,33 +36,49 @@ export function ScripturePanelNavigation({
     }
   }, [currentStep, onNavigationChange]);
 
-  // Auto-start navigation if context is incomplete
+  // Auto-start navigation if context is incomplete - with debounce to prevent multiple triggers
   useEffect(() => {
-    if (!languageId) {
-      setCurrentStep('language');
-      setSlideDirection('left');
-    } else if (!resourceId) {
-      setCurrentStep('resource');
-      setSlideDirection('left');
-    } else if (!reference?.bookId || !reference?.chapter) {
-      setCurrentStep('book');
-      setSlideDirection('left');
-    } else {
-      setCurrentStep('complete');
-    }
-  }, [languageId, resourceId, reference]);
+    if (isTransitioning) return; // Prevent multiple transitions
+    
+    const timer = setTimeout(() => {
+      // Only auto-advance if we're currently at 'complete' step (not manually navigating)
+      if (currentStep !== 'complete') return;
+      
+      if (!languageId) {
+        setCurrentStep('language');
+        setSlideDirection('left');
+      } else if (!resourceId) {
+        setCurrentStep('resource');
+        setSlideDirection('left');
+      } else if (!reference?.bookId || !reference?.chapter) {
+        setCurrentStep('book');
+        setSlideDirection('left');
+      } else {
+        setCurrentStep('complete');
+      }
+    }, 100); // Small debounce to prevent rapid fire
+
+    return () => clearTimeout(timer);
+  }, [languageId, resourceId, reference, isTransitioning]); // Removed currentStep from dependencies
 
   const handleStepChange = (step, direction = 'left') => {
+    setIsTransitioning(true);
     setSlideDirection(direction);
     setCurrentStep(step);
+    
+    // Clear transition flag after a short delay
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 300);
   };
 
-  const handleLanguageSelect = (language) => {
+  const handleLanguageSelect = async (language) => {
     console.log('🌐 ScripturePanelNavigation: Language selected:', language);
     
     // Handle both language object and language code for backward compatibility
     const languageCode = typeof language === 'object' ? language.code : language;
     
+    // IMMEDIATE: Update context and move to resource step first
     updateContext({ 
       languageId: languageCode,
       // Reset downstream selections when language changes
@@ -68,25 +86,68 @@ export function ScripturePanelNavigation({
       reference: { bookId: null, chapter: 1, verse: 1 }
     });
     
+    // IMMEDIATE: Move to resource step
     handleStepChange('resource', 'left');
+    
+    // ASYNC: Do translation helps discovery in background (don't block UI)
+    try {
+      const { discoverAllTranslationHelps, selectOptimalOrganizations } = await import('../../services/translationHelpsDiscovery.js');
+      
+      console.log('🔍 Discovering translation helps for:', languageCode);
+      const availability = await discoverAllTranslationHelps(languageCode);
+      
+      // Select optimal organizations (no primary preference, no scripture org yet)
+      const optimal = selectOptimalOrganizations(availability, null, null);
+      
+      console.log('✅ Translation helps discovered:', optimal);
+      
+      // Update context with discovered resources (don't change navigation state)
+      updateContext({ 
+        mixedResources: optimal
+      });
+    } catch (error) {
+      console.warn('⚠️ Translation helps discovery failed:', error);
+      // Fallback - just continue without mixed resources
+    }
   };
 
   const handleResourceSelect = (resource) => {
     console.log('📚 ScripturePanelNavigation: Resource selected:', resource);
+    console.log('📚 About to update context with:', {
+      resourceId: resource.id,
+      resourceOrganization: resource.organization,
+      hasResourceData: !!resource,
+      availableBooks: resource.books ? resource.books.length : 0
+    });
     
+    // IMMEDIATE: Update context with resource selection AND resource data
     updateContext({ 
       resourceId: resource.id,
-      // Pass organization information to context for cross-organization support
       resourceOrganization: resource.organization,
+      currentResourceData: resource, // Store the full resource data from search API
       // Reset book selection when resource changes, keep same position if book exists
       reference: reference?.bookId 
         ? reference 
         : { bookId: null, chapter: 1, verse: 1 }
     });
+    
+    console.log('📚 Context updated with resource data, now navigating to book selection');
+    
+    // IMMEDIATE: Navigate to book selection
     handleStepChange('book', 'left');
   };
 
   const handleBookSelect = ({ bookId, chapter }) => {
+    console.log('📖 ScripturePanelNavigation: Book selected:', { bookId, chapter });
+    console.log('📖 Current context before book select:', { 
+      organization, 
+      languageId, 
+      resourceId, 
+      resourceOrganization 
+    });
+    
+
+    
     updateContext({ 
       reference: { 
         bookId, 
@@ -123,14 +184,79 @@ export function ScripturePanelNavigation({
       'ru': 'Russian',
       'ja': 'Japanese'
     };
-    const flag = getLanguageFlag(languageId);
     const name = languageNames[languageId] || languageId.toUpperCase();
-    return `${flag} ${name}`;
+    return name; // No flag here - shown separately in icon
   };
 
   const getResourceName = () => {
     if (!resourceId) return null;
-    const icon = getResourceIcon(resourceId); return `${icon} ${resourceId.toUpperCase()}`;
+    return resourceId.toUpperCase(); // No icon here - shown separately
+  };
+
+  // Get the appropriate icon for the current resource based on book content
+  const getCurrentResourceIcon = () => {
+    if (!resourceId) return '📖';
+    
+    // If we have current resource data with book information, use enhanced icons
+    const { currentResourceData } = useContext(ReferenceContext);
+    if (currentResourceData?.books) {
+      return getResourceBookIcon(currentResourceData);
+    }
+    
+    // Fallback to general resource icon
+    return getResourceIcon(resourceId);
+  };
+
+  // Enhanced book icon function for current resource
+  const getResourceBookIcon = (resource) => {
+    if (!resource?.books || !Array.isArray(resource.books)) {
+      return getResourceIcon(resource?.id || resourceId);
+    }
+
+    // Old Testament books (39 books)
+    const otBooks = [
+      'gen', 'exo', 'lev', 'num', 'deu', 'jos', 'jdg', 'rut', '1sa', '2sa',
+      '1ki', '2ki', '1ch', '2ch', 'ezr', 'neh', 'est', 'job', 'psa', 'pro',
+      'ecc', 'sng', 'isa', 'jer', 'lam', 'ezk', 'dan', 'hos', 'jol', 'amo',
+      'oba', 'jon', 'mic', 'nam', 'hab', 'zep', 'hag', 'zec', 'mal'
+    ];
+
+    // New Testament books (27 books)
+    const ntBooks = [
+      'mat', 'mrk', 'luk', 'jhn', 'act', 'rom', '1co', '2co', 'gal', 'eph',
+      'php', 'col', '1th', '2th', '1ti', '2ti', 'tit', 'phm', 'heb', 'jas',
+      '1pe', '2pe', '1jn', '2jn', '3jn', 'jud', 'rev'
+    ];
+
+    const bookIds = resource.books.map(book => 
+      typeof book === 'string' ? book.toLowerCase() : book.id?.toLowerCase()
+    ).filter(Boolean);
+
+    const otCount = bookIds.filter(id => otBooks.includes(id)).length;
+    const ntCount = bookIds.filter(id => ntBooks.includes(id)).length;
+
+    // Complete Bible gets the full Bible icon
+    if (otCount === 39 && ntCount === 27) {
+      return '📖';
+    }
+
+    // Mixed OT/NT gets Bible icon
+    if (otCount > 0 && ntCount > 0) {
+      return '📖';
+    }
+
+    // Old Testament only
+    if (otCount > 0 && ntCount === 0) {
+      return '📜';
+    }
+
+    // New Testament only
+    if (ntCount > 0 && otCount === 0) {
+      return '✝️';
+    }
+
+    // Fallback to general resource icon
+    return getResourceIcon(resource.id || resourceId);
   };
 
   const getBookName = () => {
@@ -153,7 +279,8 @@ export function ScripturePanelNavigation({
       'phm': 'Philemon', 'heb': 'Hebrews', 'jas': 'James', '1pe': '1 Peter', '2pe': '2 Peter',
       '1jn': '1 John', '2jn': '2 John', '3jn': '3 John', 'jud': 'Jude', 'rev': 'Revelation'
     };
-    const emoji = getBookEmoji(reference.bookId); const name = bookNames[reference.bookId] || reference.bookId.toUpperCase(); return `${emoji} ${name}`;
+    const name = bookNames[reference.bookId] || reference.bookId.toUpperCase();
+    return name; // No emoji here - shown separately
   };
 
   const getChapterVerse = () => {
@@ -173,7 +300,11 @@ export function ScripturePanelNavigation({
             title={languageId ? `Change ${getLanguageName()}` : 'Select Language'}
             disabled={currentStep === 'language'}
           >
-            {getLanguageName() || 'Language'}
+            <span style={{ fontSize: '12px' }}>
+              {languageId ? (getLanguageFlag(languageId) || '🌐') : '🌐'}
+            </span>
+            <span>{getLanguageName() || 'Language'}</span>
+            {languageId && <span style={{ fontSize: '9px', marginLeft: '3px' }}>✓</span>}
           </button>
 
           {languageId && (
@@ -185,7 +316,11 @@ export function ScripturePanelNavigation({
                 title={resourceId ? `Change ${getResourceName()}` : 'Select Resource'}
                 disabled={currentStep === 'resource'}
               >
-                {getResourceName() || 'Resource'}
+                <span style={{ fontSize: '12px' }}>
+                  {getCurrentResourceIcon()}
+                </span>
+                <span>{getResourceName() || 'Resource'}</span>
+                {resourceId && <span style={{ fontSize: '9px', marginLeft: '3px' }}>✓</span>}
               </button>
             </>
           )}
@@ -199,7 +334,11 @@ export function ScripturePanelNavigation({
                 title={reference?.bookId ? `Change ${getBookName()}` : 'Select Book'}
                 disabled={currentStep === 'book'}
               >
-                {getBookName() || 'Book'}
+                <span style={{ fontSize: '12px' }}>
+                  {reference?.bookId ? getBookEmoji(reference.bookId) : '📚'}
+                </span>
+                <span>{getBookName() || 'Book'}</span>
+                {reference?.bookId && <span style={{ fontSize: '9px', marginLeft: '3px' }}>✓</span>}
               </button>
             </>
           )}
@@ -213,7 +352,9 @@ export function ScripturePanelNavigation({
                 title={reference?.chapter ? `Change ${getChapterVerse()}` : 'Select Chapter'}
                 disabled={currentStep === 'book'}
               >
-                {getChapterVerse() || 'Chapter'}
+                <span style={{ fontSize: '12px' }}>📍</span>
+                <span>{getChapterVerse() || 'Chapter'}</span>
+                {reference?.chapter && <span style={{ fontSize: '9px', marginLeft: '3px' }}>✓</span>}
               </button>
             </>
           )}

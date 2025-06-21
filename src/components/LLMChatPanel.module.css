@@ -63,6 +63,42 @@
   color: var(--color-text-on-primary);
 }
 
+/* Context update indicator styling */
+.contextUpdateIndicator {
+  background-color: var(--color-warning);
+  color: var(--color-text-on-primary);
+  border: 1px solid var(--color-warning-light);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--help-meta-size);
+  font-weight: var(--font-weight-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  animation: contextPulse 2s infinite;
+  cursor: help;
+}
+
+.contextUpdateIcon {
+  font-size: var(--font-size-sm);
+  animation: contextSpin 2s linear infinite;
+}
+
+.contextUpdateText {
+  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+}
+
+@keyframes contextPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes contextSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .loadingIndicator {
   display: flex;
   align-items: center;
@@ -1078,4 +1114,34 @@
 
 .messagesContainer::-webkit-scrollbar-thumb:hover {
   background: var(--color-border-hover);
+}
+
+.refreshButton {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.refreshButton:hover {
+  background: #45a049;
+}
+
+.debugButton {
+  background: #ff9800;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.debugButton:hover {
+  background: #e68900;
 }

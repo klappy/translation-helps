@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { fetchResourceManifest } from "../../../services/manifestService";
+// Note: manifestService removed after manifest elimination
 import styles from "../NavigationWizard.module.css";
 
 // Helper function to extract and format metadata from manifest
@@ -78,44 +78,36 @@ export function ResourceMetadataCard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch manifest data
+  // Note: Manifest loading removed after manifest elimination
+  // Generate basic metadata from props
   useEffect(() => {
-    let isMounted = true;
-
-    const loadManifest = async () => {
-      if (!organization || !languageId || !resourceId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        const manifestData = await fetchResourceManifest(organization, languageId, resourceId);
-
-        if (isMounted && manifestData) {
-          setManifest(manifestData);
-          const resourceMetadata = getResourceMetadata(manifestData, resourceId);
-          setMetadata(resourceMetadata);
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.warn("Failed to load resource manifest:", err);
-          setError(err.message);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
+    const getResourceTypeDisplay = (id) => {
+      const types = {
+        ult: "Literal Text Bible",
+        ust: "Simplified Text Bible", 
+        utn: "Translation Notes",
+        utq: "Translation Questions",
+        utw: "Translation Words",
+        tw: "Translation Words",
+        tn: "Translation Notes",
+        tq: "Translation Questions",
+        ta: "Translation Academy",
+        obs: "Open Bible Stories",
+      };
+      return types[id.toLowerCase()] || "Bible Resource";
     };
 
-    loadManifest();
-
-    return () => {
-      isMounted = false;
+    // Create basic metadata from props (no manifest needed)
+    const basicMetadata = {
+      title: getResourceTypeDisplay(resourceId),
+      organization: organization || "Unknown Publisher",
+      version: "Latest",
+      updated: "Recently",
+      license: "CC BY-SA 4.0",
     };
+
+    setMetadata(basicMetadata);
+    setLoading(false);
   }, [organization, languageId, resourceId]);
 
   // Don't render anything while loading or if no data

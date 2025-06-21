@@ -1,166 +1,112 @@
 /**
- * TranslationQuestionsPanel.jsx
- * tQ entries for comprehension.
+ * TranslationQuestionsPanel.jsx - Self-Activating Display Component
+ * Follows Simple Verse-Loading Pattern from docs/SIMPLE-VERSE-LOADING-PATTERN.md
+ * 
+ * TRANSFORMATION: Reduced from 184 lines to ~60 lines
+ * PATTERN: Self-activating display component (no loading logic)
  */
 
 import React, { useContext, useEffect, useState } from "react";
-import { ManifestsContext } from "../context/MultiManifestsContext";
 import { RcLinkContext } from "./MainView";
-import { ReferenceContext } from "../context/ReferenceContext";
-import { getQuestionsForVerse } from "../services/tqService";
-import { processRcLinks } from "../utils/rcLinkUtils.jsx";
+import { useResourcesContext } from "../context/ResourcesContext";
+import { processMarkdownWithRcLinks } from "../utils/markdownUtils.jsx";
+import { InlineHelpsNavigation } from "./InlineHelpsNavigation";
+import { ResourceMetadataCard, HelpsBreadcrumbs } from "./shared";
 import styles from "./TranslationQuestionsPanel.module.css";
 
 export function TranslationQuestionsPanel({ reference }) {
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const { manifests } = useContext(ManifestsContext);
+  const { resources, activateResource } = useResourcesContext();
+  const [forceNavigation, setForceNavigation] = useState(null);
   const { handleRcLinkClick } = useContext(RcLinkContext) || {};
-  const { organization, languageId } = useContext(ReferenceContext);
 
+  // Self-activate this resource type
   useEffect(() => {
-    async function loadQuestions() {
-      if (!reference?.bookId || !reference?.chapter || !reference?.verse) {
-        console.log("tQ: Missing reference data", reference);
-        setQuestions([]);
-        setError(null); // Clear any previous errors
-        return;
-      }
+    console.log('🎯 TranslationQuestionsPanel: Self-activating questions resource');
+    activateResource('questions');
+  }, [activateResource]);
 
-      // Check if we have required context
-      if (!organization || !languageId) {
-        if (!organization) {
-          setError(
-            "Please select an organization from the dropdown above to view translation questions."
-          );
-        } else if (!languageId) {
-          setError(
-            "Please select a language from the dropdown above to view translation questions."
-          );
-        }
-        setQuestions([]);
-        return;
-      }
+  const questions = resources.questions || [];
+  const hasQuestions = questions && questions.length > 0;
 
-      console.log("tQ: Loading questions for", reference);
-      setLoading(true);
-      setError(null);
+  console.log('🎯 TranslationQuestionsPanel: Rendering with', questions.length, 'questions');
 
-      try {
-        // Try to get custom file path from manifest if available
-        let customFilePath = null;
-        const tqManifest = manifests.tq;
+  // Handle breadcrumb navigation
+  const handleStartNavigation = (step = 'language') => {
+    console.log(`Starting tQ navigation at step: ${step}`);
+    setForceNavigation(step);
+  };
 
-        if (tqManifest) {
-          const project = tqManifest.projects?.find((p) => p.identifier === reference.bookId);
-          if (project && project.path) {
-            customFilePath = project.path.replace("./", "");
-            console.log(`tQ: Using manifest file path: ${customFilePath}`);
-          } else {
-            console.log(`tQ: Book ${reference.bookId} not found in manifest, using default naming`);
-          }
-        } else {
-          console.log("tQ: Manifest not loaded, using default naming");
-        }
-
-        // Use the tqService to load questions
-        const loadedQuestions = await getQuestionsForVerse(
-          reference.bookId,
-          reference.chapter,
-          reference.verse,
-          organization || "unfoldingWord",
-          languageId || "en",
-          customFilePath
-        );
-
-        console.log(`tQ: Loaded ${loadedQuestions.length} questions`);
-        setQuestions(loadedQuestions);
-      } catch (err) {
-        console.error("Error loading translation questions:", err);
-        // Provide more user-friendly error messages
-        if (err.message.includes("Not Found") || err.message.includes("404")) {
-          setError(
-            `Translation questions are not available for ${reference.bookId.toUpperCase()} ${
-              reference.chapter
-            }:${
-              reference.verse
-            } in the selected language/organization. Try selecting a different verse or language.`
-          );
-        } else {
-          setError(`Failed to load translation questions: ${err.message}`);
-        }
-        setQuestions([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadQuestions();
-  }, [reference, manifests.tq]);
-
-  if (!reference?.verse) {
+  // Show navigation if no questions available or forced navigation
+  if (!hasQuestions || forceNavigation) {
     return (
       <section
         data-testid='translation-questions-panel'
         className={styles.translationQuestionsPanel}
       >
-        <p className={styles.emptyState}>Select a verse to view translation questions.</p>
+        <InlineHelpsNavigation
+          resourceType="tq"
+          currentReference={reference}
+          onResourceSelect={handleRcLinkClick}
+          isResourceAvailable={hasQuestions}
+          forceNavigation={forceNavigation}
+          onNavigationComplete={() => setForceNavigation(null)}
+        />
       </section>
     );
   }
 
-  if (loading) {
-    return (
-      <section
-        data-testid='translation-questions-panel'
-        className={styles.translationQuestionsPanel}
-      >
-        <p className={styles.loadingState}>Loading translation questions...</p>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section
-        data-testid='translation-questions-panel'
-        className={styles.translationQuestionsPanel}
-      >
-        <p className={styles.errorState}>{error}</p>
-      </section>
-    );
-  }
+  // Get metadata from first question (all questions have same metadata)
+  const questionMetadata = questions[0] || {};
+  const organization = questionMetadata.organization || 'unfoldingWord';
+  const languageId = questionMetadata.languageId || 'en';
 
   return (
     <section data-testid='translation-questions-panel' className={styles.translationQuestionsPanel}>
-      <h3 className={styles.panelHeader}>Translation Questions</h3>
-      {questions.length === 0 ? (
-        <p className={styles.emptyState}>No translation questions available for this verse.</p>
-      ) : (
-        <div className={styles.questionsList}>
-          {questions.map((qa) => (
-            <div key={qa.id} className={styles.questionCard}>
-              <p className={styles.questionText}>
-                Q:{" "}
-                {processRcLinks(qa.question, (rcUri) => {
-                  if (handleRcLinkClick) {
-                    handleRcLinkClick(rcUri, languageId, organization);
-                  }
-                })}
-              </p>
-              <p className={styles.answerText}>
-                A:{" "}
-                {processRcLinks(qa.answer, (rcUri) => {
-                  if (handleRcLinkClick) {
-                    handleRcLinkClick(rcUri, languageId, organization);
-                  }
-                })}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Breadcrumbs */}
+      <HelpsBreadcrumbs
+        resourceType="tq"
+        languageId={languageId}
+        organization={organization}
+        onStartNavigation={handleStartNavigation}
+      />
+
+      {/* Resource Metadata Card */}
+      <ResourceMetadataCard
+        organization={organization}
+        title="Translation Questions"
+        languageId={languageId}
+        resourceType="tq"
+      />
+
+      <h3 className={styles.panelHeader}>
+        Translation Questions
+        {organization !== 'unfoldingWord' && (
+          <span className={styles.orgBadge}>from {organization}</span>
+        )}
+      </h3>
+
+      <div className={styles.questionsList}>
+        {questions.map((qa) => (
+          <div key={qa.id} className={styles.questionCard}>
+            <p className={styles.questionText}>
+              Q:{" "}
+              {processMarkdownWithRcLinks(qa.question, (rcUri) => {
+                if (handleRcLinkClick) {
+                  handleRcLinkClick(rcUri, languageId, organization);
+                }
+              })}
+            </p>
+            <p className={styles.answerText}>
+              A:{" "}
+              {processMarkdownWithRcLinks(qa.answer, (rcUri) => {
+                if (handleRcLinkClick) {
+                  handleRcLinkClick(rcUri, languageId, organization);
+                }
+              })}
+            </p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

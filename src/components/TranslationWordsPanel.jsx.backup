@@ -1,0 +1,319 @@
+/**
+ * TranslationWordsPanel.jsx
+ * Responsible for displaying linked translation words articles from TWL.
+ */
+import React, { useContext, useEffect, useState, useRef, useImperativeHandle, forwardRef } from "react";
+// Note: ManifestsContext removed - now using resource data from ReferenceContext
+import { RcLinkContext } from "./MainView";
+import { ReferenceContext } from "../context/ReferenceContext";
+// ResourcesContext removed - using direct service calls instead
+import { processRcLinks, RcLink } from "../utils/rcLinkUtils.jsx";
+import { InlineHelpsNavigation } from "./InlineHelpsNavigation";
+import { ResourceMetadataCard, HelpsBreadcrumbs } from "./shared";
+import { getLinksForVerseWithResourceData } from "../services/twlService";
+import { getArticlesForLinks } from "../services/twService";
+import { searchResourcesAcrossOrgs } from "../services/catalogService";
+import styles from "./TranslationWordsPanel.module.css";
+
+/**
+ * Extracts a summary from article content (first sentence or paragraph)
+ * @param {string} content - Article content
+ * @returns {string} Summary text
+ */
+function extractSummary(content) {
+  if (!content) return "";
+
+  // Find first definition section or paragraph
+  const lines = content.split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // Skip empty lines and headers
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    // Return first meaningful sentence/paragraph
+    if (trimmed.length > 20) {
+      return trimmed.split(".")[0] + ".";
+    }
+  }
+
+  return content.substring(0, 150) + (content.length > 150 ? "..." : "");
+}
+
+/**
+ * @param {object} props
+ * @param {object} props.reference - Reference object { bookId, chapter, verse }
+ * @param {function} props.onWordClick - Optional callback when a word is clicked for navigation
+ */
+export const TranslationWordsPanel = forwardRef(function TranslationWordsPanel({ reference, onWordClick }, ref) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [forceNavigation, setForceNavigation] = useState(null); // For breadcrumb navigation
+  const [translationWords, setTranslationWords] = useState([]);
+  const [translationWordLinks, setTranslationWordLinks] = useState([]);
+  
+  const { handleRcLinkClick } = useContext(RcLinkContext) || {};
+  const { organization, languageId, getResourceOrganization, getResourceLanguage } = useContext(ReferenceContext);
+
+  // Expose data to parent components via ref
+  useImperativeHandle(ref, () => ({
+    getData: () => ({
+      words: translationWords || [],
+      links: translationWordLinks || [],
+      loading,
+      error,
+      reference,
+      resourceType: 'tw'
+    })
+  }));
+
+  useEffect(() => {
+    async function loadWords() {
+      if (!reference?.bookId || !reference?.chapter || !reference?.verse) {
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      const twOrganization = getResourceOrganization ? getResourceOrganization('tw') : organization;
+      const twlOrganization = getResourceOrganization ? getResourceOrganization('twl') : organization;
+
+      if (!twOrganization || !languageId) {
+        if (!twOrganization) {
+          setError("Please select an organization from the dropdown above to view translation words.");
+        } else if (!languageId) {
+          setError("Please select a language from the dropdown above to view translation words.");
+        }
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const catalogResult = await searchResourcesAcrossOrgs(languageId, 'TSV Translation Words Links');
+        const twlResource = catalogResult.resources[twlOrganization]?.find(r => r.id === 'twl');
+        
+        let twlLinksData = [];
+        if (twlResource) {
+          twlLinksData = await getLinksForVerseWithResourceData(
+            reference.bookId,
+            reference.chapter,
+            reference.verse,
+            twlResource,
+            languageId
+          );
+        }
+        
+        setTranslationWordLinks(twlLinksData);
+        
+        let twWordsData = [];
+        if (twlLinksData.length > 0) {
+          twWordsData = await getArticlesForLinks(twlLinksData, languageId, twOrganization);
+        }
+        
+        setTranslationWords(twWordsData);
+        
+      } catch (err) {
+        console.error("Error loading translation words:", err);
+        if (err.message.includes("Not Found") || err.message.includes("404")) {
+          setError(
+            `Translation words are not available for ${reference.bookId.toUpperCase()} ${
+              reference.chapter
+            }:${
+              reference.verse
+            } in the selected language/organization. Try selecting a different verse or language.`
+          );
+        } else {
+          setError("Failed to load translation words");
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadWords();
+  }, [reference?.bookId, reference?.chapter, reference?.verse, organization, languageId]);
+
+  // Use data from local state
+  const words = translationWords || [];
+  const twlLinks = translationWordLinks || [];
+
+  // Determine if resource is available for navigation
+  const isResourceAvailable = !loading && !error && words && words.length > 0;
+
+  const handleWordClick = (word) => {
+    // First try the provided callback
+    if (onWordClick) {
+      onWordClick(word);
+      return;
+    }
+
+    // If no callback provided, and we have the rc link context, open as new tab
+    if (handleRcLinkClick && word.rcUri) {
+      handleRcLinkClick(word.rcUri, languageId, organization);
+    }
+  };
+
+  // Handle breadcrumb navigation
+  const handleStartNavigation = (step = 'language') => {
+    console.log(`Starting tW navigation at step: ${step}`);
+    setForceNavigation(step);
+  };
+
+  if (!reference?.verse) {
+    return (
+      <section data-testid='translation-words-panel' className={styles.translationWordsPanel}>
+        <p className={styles.emptyState}>Select a verse to view translation words.</p>
+      </section>
+    );
+  }
+
+  if (loading) {
+    return (
+      <section data-testid='translation-words-panel' className={styles.translationWordsPanel}>
+        <p className={styles.loadingState}>Loading translation words...</p>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section data-testid='translation-words-panel' className={styles.translationWordsPanel}>
+        <InlineHelpsNavigation
+          resourceType="tw"
+          currentReference={reference}
+          onResourceSelect={handleRcLinkClick}
+          isResourceAvailable={isResourceAvailable}
+          forceNavigation={forceNavigation}
+          onNavigationComplete={() => setForceNavigation(null)}
+        />
+        {twlLinks.length > 0 && (
+          <details className={styles.debugInfo}>
+            <summary className={styles.debugSummary}>Debug Info</summary>
+            <p>Found {twlLinks.length} TWL link(s) for this verse:</p>
+            <ul className={styles.debugList}>
+              {twlLinks.map((link, index) => (
+                <li key={index} className={styles.debugItem}>
+                  {link}
+                </li>
+              ))}
+            </ul>
+                    </details>
+        )}
+      </section>
+    );
+  }
+
+  // Get organization and language info for display
+  const twOrganization = getResourceOrganization ? getResourceOrganization('tw') : organization;
+  const twLanguageId = getResourceLanguage ? getResourceLanguage('tw') : languageId;
+  const showOrgBadge = twOrganization && twOrganization !== organization;
+
+  return (
+    <section data-testid='translation-words-panel' className={styles.translationWordsPanel}>
+      {/* Breadcrumbs */}
+      <HelpsBreadcrumbs
+        resourceType="tw"
+        languageId={twLanguageId}
+        organization={twOrganization}
+        onStartNavigation={handleStartNavigation}
+      />
+
+      {/* Resource Metadata Card */}
+      <ResourceMetadataCard
+        organization={twOrganization}
+        title="Translation Words"
+        languageId={twLanguageId}
+        resourceType="tw"
+      />
+
+      {/* Always render InlineHelpsNavigation for breadcrumb functionality */}
+      <InlineHelpsNavigation
+        resourceType="tw"
+        currentReference={reference}
+        onResourceSelect={handleRcLinkClick}
+        isResourceAvailable={isResourceAvailable}
+        forceNavigation={forceNavigation}
+        onNavigationComplete={() => setForceNavigation(null)}
+      />
+
+      <h3 className={styles.panelHeader}>
+        Translation Words
+        {showOrgBadge && (
+          <span className={styles.orgBadge}>from {twOrganization}</span>
+        )}
+      </h3>
+      {words.length === 0 && twlLinks.length > 0 && (
+        <details className={styles.debugInfo}>
+          <summary className={styles.debugSummary}>Debug Info</summary>
+          <p>Found {twlLinks.length} TWL link(s) but no articles loaded.</p>
+        </details>
+      )}
+      {words.length > 0 && (
+        <div className={styles.wordsList}>
+          {words.map((word) => {
+            const isClickable = onWordClick || (handleRcLinkClick && word.rcUri);
+            return (
+              <div
+                key={word.id}
+                className={`${styles.wordCard} ${!isClickable ? styles.nonClickable : ""}`}
+                onClick={() => handleWordClick(word)}
+              >
+                <h4 className={styles.wordTitle}>
+                  {word.title}
+                  {isClickable && (
+                    <span className={styles.clickIndicator}>Click to view full article →</span>
+                  )}
+                </h4>
+
+                <p className={styles.wordSummary}>
+                  {processRcLinks(word.summary, (rcUri) => {
+                    if (handleRcLinkClick) {
+                      handleRcLinkClick(rcUri, languageId, organization);
+                    }
+                  })}
+                </p>
+
+                {/* Hidden full content for chat context extraction */}
+                {word.content && (
+                  <div className={styles.visuallyHidden} aria-hidden='true'>
+                    {word.content}
+                  </div>
+                )}
+
+                {word.rcUri && (
+                  <p
+                    className={styles.rcLink}
+                    onClick={(e) => e.stopPropagation()} // Prevent triggering parent onClick
+                  >
+                    <RcLink
+                      rcUri={word.rcUri}
+                      onRcLinkClick={(rcUri) => {
+                        if (handleRcLinkClick) {
+                          handleRcLinkClick(rcUri, languageId, organization);
+                        }
+                      }}
+                    >
+                      {word.rcUri}
+                    </RcLink>
+                  </p>
+                )}
+              </div>
+            );
+          })}
+
+          <div className={styles.tipSection}>
+            <p className={styles.tipText}>
+              <span className={styles.tipIcon}>💡</span>
+              <span className={styles.tipBold}>Tip:</span> These words are linked to this verse
+              through Translation Words Links (TWL).
+              {(onWordClick || handleRcLinkClick) &&
+                " Click any word above to view the complete article."}
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+});

@@ -3,46 +3,53 @@
  * Table of tN entries.
  */
 
-import React, { useContext, useEffect, useState } from "react";
-import { ManifestsContext } from "../context/MultiManifestsContext";
+import React, { useContext, useEffect, useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { RcLinkContext } from "./MainView";
 import { ReferenceContext } from "../context/ReferenceContext";
-import { getNotesForVerse, getNotesForBook } from "../services/tnService";
+import { getNotesForVerseWithResourceData } from "../services/tnService";
+import { searchResourcesAcrossOrgs } from "../services/catalogService";
 import { processMarkdownWithRcLinks } from "../utils/markdownUtils.jsx";
+import { InlineHelpsNavigation } from "./InlineHelpsNavigation";
+import { ResourceMetadataCard, HelpsBreadcrumbs } from "./shared";
+// Event bus removed - using direct ref access in ResourcesContext
 import styles from "./TranslationNotesPanel.module.css";
 
-export function TranslationNotesPanel({ reference }) {
+export const TranslationNotesPanel = forwardRef(function TranslationNotesPanel({ reference }, ref) {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { manifests } = useContext(ManifestsContext);
+  const [forceNavigation, setForceNavigation] = useState(null); // For breadcrumb navigation
+  
   const { handleRcLinkClick } = useContext(RcLinkContext) || {};
-  const { organization, languageId } = useContext(ReferenceContext);
+  const { organization, languageId, getResourceOrganization, getResourceLanguage } = useContext(ReferenceContext);
+
+  // Expose data to parent components via ref
+  useImperativeHandle(ref, () => ({
+    getData: () => ({
+      notes: notes || [],
+      loading,
+      error,
+      reference,
+      resourceType: 'tn'
+    })
+  }));
 
   useEffect(() => {
     async function loadNotes() {
-      if (!reference?.bookId) {
+      if (!reference?.bookId || !reference?.chapter || !reference?.verse) {
         setNotes([]);
-        setError(null); // Clear any previous errors
+        setError(null);
+        setLoading(false);
         return;
       }
 
-      // Check if we have required context
-      if (!organization || !languageId) {
-        if (!organization) {
-          setError(
-            "Please select an organization from the dropdown above to view translation notes."
-          );
-        } else if (!languageId) {
-          setError("Please select a language from the dropdown above to view translation notes.");
-        }
-        setNotes([]);
-        return;
-      }
+      const tnOrganization = getResourceOrganization ? getResourceOrganization('tn') : organization;
+      const tnLanguageId = getResourceLanguage ? getResourceLanguage('tn') : languageId;
 
-      const tnManifest = manifests.tn;
-      if (!tnManifest) {
-        console.log("tN manifest not loaded yet");
+      if (!tnOrganization || !tnLanguageId) {
+        setError("Missing organization or language");
+        setNotes([]);
+        setLoading(false);
         return;
       }
 
@@ -50,46 +57,25 @@ export function TranslationNotesPanel({ reference }) {
       setError(null);
 
       try {
-        let parsedNotes = [];
-        if (!reference.chapter && !reference.verse) {
-          // Book-level context: get only book intro notes
-          const allNotes = await getNotesForBook(
+        const catalogResult = await searchResourcesAcrossOrgs(tnLanguageId, 'TSV Translation Notes');
+        const tnResource = catalogResult.resources[tnOrganization]?.find(r => r.id === 'tn');
+        
+        let notesData = [];
+        if (tnResource) {
+          notesData = await getNotesForVerseWithResourceData(
             reference.bookId,
-            organization || "unfoldingWord",
-            languageId || "en"
-          );
-          parsedNotes = allNotes.filter(
-            (note) =>
-              note.reference &&
-              (note.reference === "front:intro" ||
-                (note.verse === "intro" && note.chapter === "front"))
-          );
-        } else {
-          // Chapter/verse context: get chapter/verse/intro notes
-          parsedNotes = await getNotesForVerse(
-            reference.bookId,
-            reference.chapter || null,
-            reference.verse || null,
-            organization || "unfoldingWord",
-            languageId || "en"
+            reference.chapter,
+            reference.verse,
+            tnResource,
+            tnLanguageId
           );
         }
-
-        setNotes(parsedNotes);
+        
+        setNotes(notesData);
+        
       } catch (err) {
         console.error("Error loading translation notes:", err);
-        // Provide more user-friendly error messages
-        if (err.message.includes("Not Found") || err.message.includes("404")) {
-          setError(
-            `Translation notes are not available for ${reference.bookId.toUpperCase()} ${
-              reference.chapter
-            }:${
-              reference.verse
-            } in the selected language/organization. Try selecting a different verse or language.`
-          );
-        } else {
-          setError("Failed to load translation notes");
-        }
+        setError(err.message);
         setNotes([]);
       } finally {
         setLoading(false);
@@ -97,16 +83,18 @@ export function TranslationNotesPanel({ reference }) {
     }
 
     loadNotes();
-  }, [reference, manifests.tn]);
+  }, [reference?.bookId, reference?.chapter, reference?.verse, organization, languageId]);
 
-  // Only show empty state if there are no notes and not loading/error
-  if (!loading && !error && (!notes || notes.length === 0)) {
-    return (
-      <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
-        <p className={styles.emptyState}>No translation notes available for this selection.</p>
-      </section>
-    );
-  }
+
+
+  // Determine if resource is available for navigation
+  const isResourceAvailable = !loading && !error && notes && notes.length > 0 && !forceNavigation;
+
+  // Handle breadcrumb navigation
+  const handleStartNavigation = (step = 'language') => {
+    console.log(`Starting tN navigation at step: ${step}`);
+    setForceNavigation(step);
+  };
 
   if (loading) {
     return (
@@ -116,20 +104,51 @@ export function TranslationNotesPanel({ reference }) {
     );
   }
 
-  if (error) {
+  if (error || !notes || notes.length === 0) {
     return (
       <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
-        <p className={styles.errorState}>{error}</p>
+        <InlineHelpsNavigation
+          resourceType="tn"
+          currentReference={reference}
+          onResourceSelect={handleRcLinkClick}
+          isResourceAvailable={isResourceAvailable}
+          forceNavigation={forceNavigation}
+          onNavigationComplete={() => setForceNavigation(null)}
+        />
       </section>
     );
   }
 
+  // Get organization and language info for display
+  const tnOrganization = getResourceOrganization ? getResourceOrganization('tn') : organization;
+  const tnLanguageId = getResourceLanguage ? getResourceLanguage('tn') : languageId;
+  const showOrgBadge = tnOrganization && tnOrganization !== organization;
+
   return (
     <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
-      <h3 className={styles.panelHeader}>Translation Notes</h3>
-      {notes.length === 0 ? (
-        <p className={styles.emptyState}>No translation notes available for this verse.</p>
-      ) : (
+      {/* Breadcrumbs */}
+      <HelpsBreadcrumbs
+        resourceType="tn"
+        languageId={tnLanguageId}
+        organization={tnOrganization}
+        onStartNavigation={handleStartNavigation}
+      />
+
+      {/* Resource Metadata Card */}
+      <ResourceMetadataCard
+        organization={tnOrganization}
+        title="Translation Notes"
+        languageId={tnLanguageId}
+        resourceType="tn"
+      />
+
+      <h3 className={styles.panelHeader}>
+        Translation Notes
+        {showOrgBadge && (
+          <span className={styles.orgBadge}>from {tnOrganization}</span>
+        )}
+      </h3>
+      {notes.length > 0 && (
         <ul className={styles.notesList}>
           {notes.map((note) => (
             <li key={note.id} className={styles.noteCard}>
@@ -188,6 +207,6 @@ export function TranslationNotesPanel({ reference }) {
       )}
     </section>
   );
-}
+});
 
 /* (CollapsibleNote component removed; now handled by CSS) */

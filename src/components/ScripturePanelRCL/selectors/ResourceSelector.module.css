@@ -121,7 +121,7 @@
   border: 1px solid var(--color-border);
 }
 
-.alignedLabel {
+.resourceBadge {
   font-size: var(--font-size-xs);
   padding: 2px var(--spacing-1);
   border-radius: var(--radius-sm);

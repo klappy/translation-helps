@@ -1,0 +1,575 @@
+/**
+ * LLMChatPanel.jsx
+ * Main chat interface component for LLM translation assistance
+ * Now using direct panel data access - no ResourcesContext dependency!
+ */
+
+import React, { useState, useRef, useEffect, useCallback, useMemo, useContext } from "react";
+import { useChatContext } from "../context/ChatContext";
+import { ReferenceContext } from "../context/ReferenceContext";
+import { sendChatMessage, createMockResponse } from "../services/llmChatService";
+import { processMarkdownWithRcLinks } from "../utils/markdownUtils";
+import { enhanceLLMResponse } from "../utils/emojiEnhancer";
+import styles from "./LLMChatPanel.module.css";
+
+export function LLMChatPanel({ panelRefs }) {
+  const [userInput, setUserInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resourceCounts, setResourceCounts] = useState({
+    scripture: 0,
+    translationNotes: 0,
+    translationQuestions: 0,
+    translationWords: 0,
+    translationWordLinks: 0,
+  });
+  const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  // Get reference context as fallback
+  const { reference: contextReference } = useContext(ReferenceContext);
+
+  // 🎯 DIRECT ACCESS TO PANEL DATA - No more ResourcesContext!
+  const getResourcesFromPanels = useCallback(() => {
+    const resources = {
+      scripture: null,
+      translationNotes: [],
+      translationQuestions: [],
+      translationWords: [],
+      translationWordLinks: [],
+      reference: null
+    };
+
+    // Get data from each panel via their exposed refs
+    if (panelRefs?.scripturePanel?.current) {
+      try {
+        const scriptureData = panelRefs.scripturePanel.current.getData?.();
+        if (scriptureData) {
+          resources.scripture = scriptureData.usfmContent || null;
+          resources.reference = scriptureData.reference;
+        }
+      } catch (e) {
+        console.warn('Could not get scripture panel data:', e);
+      }
+    }
+
+    if (panelRefs?.translationNotesPanel?.current) {
+      try {
+        const notesData = panelRefs.translationNotesPanel.current.getData?.();
+        if (notesData) {
+          resources.translationNotes = notesData.notes || [];
+          // Use reference from notes panel if scripture panel doesn't have it
+          if (!resources.reference && notesData.reference) {
+            resources.reference = notesData.reference;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not get translation notes panel data:', e);
+      }
+    }
+
+    if (panelRefs?.translationQuestionsPanel?.current) {
+      try {
+        const questionsData = panelRefs.translationQuestionsPanel.current.getData?.();
+        if (questionsData) {
+          resources.translationQuestions = questionsData.questions || [];
+          // Use reference from questions panel if not yet available
+          if (!resources.reference && questionsData.reference) {
+            resources.reference = questionsData.reference;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not get translation questions panel data:', e);
+      }
+    }
+
+    if (panelRefs?.translationWordsPanel?.current) {
+      try {
+        const wordsData = panelRefs.translationWordsPanel.current.getData?.();
+        if (wordsData) {
+          resources.translationWords = wordsData.words || [];
+          resources.translationWordLinks = wordsData.links || [];
+          // Use reference from words panel if not yet available
+          if (!resources.reference && wordsData.reference) {
+            resources.reference = wordsData.reference;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not get translation words panel data:', e);
+      }
+    }
+
+    // Use context reference as final fallback
+    if (!resources.reference && contextReference) {
+      resources.reference = contextReference;
+    }
+
+    return resources;
+  }, [panelRefs, contextReference]);
+
+  // Update resource counts by polling panel data
+  useEffect(() => {
+    const updateResourceCounts = () => {
+      const resources = getResourcesFromPanels();
+      const newCounts = {
+        scripture: resources.scripture ? 1 : 0,
+        translationNotes: (resources.translationNotes || []).length,
+        translationQuestions: (resources.translationQuestions || []).length,
+        translationWords: (resources.translationWords || []).length,
+        translationWordLinks: (resources.translationWordLinks || []).length,
+      };
+      
+      setResourceCounts(newCounts);
+    };
+
+    // Update immediately
+    updateResourceCounts();
+    
+    // Poll for changes (simple and reliable)
+    const interval = setInterval(updateResourceCounts, 500);
+    return () => clearInterval(interval);
+  }, [getResourcesFromPanels]);
+
+  // Create formatted context for LLM from panel data
+  const getFormattedContext = useCallback(() => {
+    const resources = getResourcesFromPanels();
+    
+    return {
+      reference: resources.reference ? {
+        book: resources.reference.bookId,
+        chapter: resources.reference.chapter,
+        verse: resources.reference.verse,
+        citation: `${resources.reference.bookId} ${resources.reference.chapter}:${resources.reference.verse}`,
+      } : null,
+      resources: {
+        scripture: resources.scripture,
+        translationNotes: resources.translationNotes,
+        translationQuestions: resources.translationQuestions,
+        translationWords: resources.translationWords,
+        translationWordLinks: resources.translationWordLinks,
+      },
+      metadata: {
+        timestamp: Date.now(),
+        contextSize: 0,
+        resourceLoadingStatus: {
+          scripture: !!resources.scripture,
+          translationNotes: resources.translationNotes.length > 0,
+          translationQuestions: resources.translationQuestions.length > 0,
+          translationWords: resources.translationWords.length > 0,
+          translationWordLinks: resources.translationWordLinks.length > 0,
+        },
+      },
+    };
+  }, [getResourcesFromPanels]);
+
+  const {
+    messages,
+    addMessage,
+    clearMessages,
+    isReady: chatReady,
+    error: chatError,
+    activateAITab,
+  } = useChatContext();
+
+  // Activate AI tab when component mounts (lazy loading)
+  useEffect(() => {
+    console.log('[LLMChatPanel] Component mounted - activating AI tab');
+    activateAITab();
+  }, []); // Only run once on mount
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    // Check if scrollIntoView exists (not available in JSDOM test environment)
+    if (messagesEndRef.current?.scrollIntoView) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [userInput]);
+
+  const handleSendMessage = async () => {
+    if (!userInput.trim() || isSubmitting) return;
+
+    const message = userInput.trim();
+    setUserInput("");
+    setIsSubmitting(true);
+
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+
+    try {
+      // Add user message
+      addMessage({ role: 'user', content: message });
+      
+      // Get current context directly from ResourcesContext
+      const formattedContext = getFormattedContext();
+      
+      // Send to LLM service
+      const response = await sendChatMessage(message, formattedContext);
+      
+      // Add AI response
+      addMessage({ role: 'assistant', content: response });
+      
+      // Activate AI tab to show the response
+      activateAITab();
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      addMessage({ 
+        role: 'error', 
+        content: 'Sorry, there was an error processing your message. Please try again.' 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const formatTimestamp = (timestamp) => {
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatCostDisplay = (cost) => {
+    if (cost < 0.0001) {
+      return "<$0.0001";
+    }
+    return `$${cost.toFixed(4)}`;
+  };
+
+  const getSessionCostColor = (total) => {
+    if (total < 0.01) return styles.sessionCostLow;
+    if (total < 0.1) return styles.sessionCostMedium;
+    return styles.sessionCostHigh;
+  };
+
+  // Handle clicking on prompt suggestions
+  const handlePromptSuggestionClick = async (prompt) => {
+    if (isSubmitting) return;
+    
+    setUserInput(prompt);
+    
+    // Auto-send the message
+    await handleSendMessage();
+  };
+
+  // Get contextual prompt suggestions based on available resources
+  const getPromptSuggestions = () => {
+    const suggestions = [
+      "What are the key translation challenges for this verse?",
+      "Explain the cultural context of this passage",
+      "What are the important words to understand in this verse?",
+    ];
+
+    // Add resource-specific suggestions
+    if (resourceCounts.translationNotes > 0) {
+      suggestions.push("Summarize the translation notes for this verse");
+    }
+    
+    if (resourceCounts.translationQuestions > 0) {
+      suggestions.push("What questions should translators consider?");
+    }
+    
+    if (resourceCounts.translationWords > 0) {
+      suggestions.push("Define the key theological terms in this passage");
+    }
+
+    return suggestions.slice(0, 6); // Limit to 6 suggestions
+  };
+
+  const renderMessage = (message) => {
+    const isUser = message.type === "user";
+    const isError = message.type === "error";
+    const isAssistant = message.type === "assistant";
+
+    return (
+      <div
+        key={message.id}
+        className={`${styles.message} ${isUser ? styles.userMessage : styles.assistantMessage} ${
+          isError ? styles.errorMessage : ""
+        }`}
+      >
+        <div className={styles.messageContent}>
+          <div className={styles.messageText}>
+            {isAssistant ? (
+              processMarkdownWithRcLinks(enhanceLLMResponse(message.content, {
+                enabled: true,
+                maxEmojisPerResponse: 6,
+                excludeCategories: [],
+              }), (rcLink) => {
+                // Handle RC link clicks in chat context if needed
+                console.log("RC link clicked in chat:", rcLink);
+              })
+            ) : (
+              message.content
+            )}
+          </div>
+          <div className={styles.messageTime}>
+            {formatTimestamp(message.timestamp)}
+            {isAssistant && message.costEstimate && (
+              <div
+                className={styles.messageCost}
+                title={`Message Cost Breakdown
+Context: ${message.costEstimate.contextSize}
+Input: ${
+                  message.costEstimate.actualInputTokens
+                    ? `${message.costEstimate.actualInputTokens.toLocaleString()} tokens (actual)`
+                    : `${message.costEstimate.estimatedInputTokens.toLocaleString()} tokens (estimated)`
+                } ($${message.costEstimate.inputCost.toFixed(4)})
+Output: ${
+                  message.costEstimate.actualOutputTokens
+                    ? `${message.costEstimate.actualOutputTokens.toLocaleString()} tokens (actual)`
+                    : `${message.costEstimate.estimatedOutputTokens.toLocaleString()} tokens (estimated)`
+                } ($${message.costEstimate.outputCost.toFixed(4)})
+Total: ${formatCostDisplay(message.costEstimate.totalCost)}
+
+Resources Used:
+${message.costEstimate.resources.scripture === "✓" ? "✓" : "✗"} Scripture
+${message.costEstimate.resources.translationNotes ? "✓" : "✗"} Notes (${
+                  message.costEstimate.resources.translationNotes
+                })
+${message.costEstimate.resources.translationQuestions ? "✓" : "✗"} Questions (${
+                  message.costEstimate.resources.translationQuestions
+                })
+${message.costEstimate.resources.translationWords ? "✓" : "✗"} Words (${
+                  message.costEstimate.resources.translationWords
+                })
+${message.costEstimate.resources.translationWordLinks ? "✓" : "✗"} Links (${
+                  message.costEstimate.resources.translationWordLinks
+                })
+
+Model: ${message.costEstimate.model}`}
+              >
+                <span className={styles.costBadge}>{formatCostDisplay(message.costEstimate.totalCost)}</span>
+              </div>
+            )}
+            {message.metadata?.mock && <span className={styles.mockBadge}>MOCK</span>}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const getContextInfo = () => {
+    const resources = getResourcesFromPanels();
+    const totalResources = (resources.scripture ? 1 : 0) +
+                          (resources.translationNotes?.length || 0) +
+                          (resources.translationQuestions?.length || 0) +
+                          (resources.translationWords?.length || 0) +
+                          (resources.translationWordLinks?.length || 0);
+    
+    return {
+      reference: resources.reference?.citation || 'No reference',
+      resourceCount: totalResources
+    };
+  };
+  
+  const contextInfo = getContextInfo();
+  
+  const referenceDisplay = contextInfo?.reference;
+
+  // Debug function to inspect current context
+  const debugContext = () => {
+    const formattedContext = getFormattedContext();
+    const resources = getResourcesFromPanels();
+    
+    console.log('🐛 LLMChatPanel context (direct ref):', resources);
+    console.log('🐛 LLMChatPanel formatted context:', formattedContext);
+    console.log('🐛 Resource counts:', resourceCounts);
+    
+    return 'Debug info logged to console';
+  };
+
+  return (
+    <div className={styles.chatPanel} data-testid='llm-chat-panel'>
+      {/* Chat Header */}
+      <div className={styles.chatHeader}>
+        <div className={styles.headerTitle}>
+          <h3>Translation Assistant</h3>
+          <span className={styles.subtitle}>Powered by AI</span>
+        </div>
+        <div className={styles.headerActions}>
+          {contextInfo && (
+            <div className={styles.contextIndicator} title='Current context'>
+              <span className={styles.contextIcon}>📚</span>
+              <span className={styles.contextText}>
+                {referenceDisplay} ({contextInfo.resourceCount} sources)
+              </span>
+            </div>
+          )}
+
+          <button
+            onClick={() => window.location.reload()}
+            className={styles.refreshButton}
+            title="Refresh page to reload context"
+          >
+            🔄
+          </button>
+          <button
+            onClick={debugContext}
+            className={styles.debugButton}
+            title="Debug AI context (check console)"
+          >
+            🐛
+          </button>
+          <button
+            onClick={clearMessages}
+            className={styles.clearButton}
+            title='Clear conversation'
+            disabled={messages.length === 0}
+          >
+            🗑️
+          </button>
+        </div>
+      </div>
+
+      {/* Welcome Message */}
+      {messages.length === 0 && (
+        <div className={styles.welcomeMessage}>
+          <div className={styles.welcomeIcon}>🤖</div>
+          <h4>Welcome to Translation Assistant!</h4>
+          <p>
+            I can help with translation resources as they become available. Ask me anything about:
+          </p>
+          <ul>
+            <li>Translation notes and explanations</li>
+            <li>Key words and their meanings</li>
+            <li>Cultural and historical context</li>
+            <li>Translation questions and challenges</li>
+          </ul>
+          
+          {/* Show current resources if any */}
+          {(resourceCounts.scripture > 0 || 
+            resourceCounts.translationNotes > 0 || 
+            resourceCounts.translationQuestions > 0 || 
+            resourceCounts.translationWords > 0 || 
+            resourceCounts.translationWordLinks > 0) && (
+            <div className={styles.availableResources}>
+              <p><strong>Currently Available:</strong></p>
+              <div className={styles.resourcesList}>
+                {resourceCounts.scripture > 0 && (
+                  <span className={styles.resourceTag}>Scripture ✓</span>
+                )}
+                {resourceCounts.translationNotes > 0 && (
+                  <span className={styles.resourceTag}>
+                    Notes ({resourceCounts.translationNotes}) ✓
+                  </span>
+                )}
+                {resourceCounts.translationQuestions > 0 && (
+                  <span className={styles.resourceTag}>
+                    Questions ({resourceCounts.translationQuestions}) ✓
+                  </span>
+                )}
+                {resourceCounts.translationWords > 0 && (
+                  <span className={styles.resourceTag}>
+                    Words ({resourceCounts.translationWords}) ✓
+                  </span>
+                )}
+                {resourceCounts.translationWordLinks > 0 && (
+                  <span className={styles.resourceTag}>
+                    Links ({resourceCounts.translationWordLinks}) ✓
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <div className={styles.promptSuggestions}>
+            <p><strong>Try asking:</strong></p>
+            <div className={styles.suggestionsList}>
+              {getPromptSuggestions().map((suggestion, index) => (
+                <button
+                  key={index}
+                  className={styles.suggestionButton}
+                  onClick={() => handlePromptSuggestionClick(suggestion)}
+                  disabled={isSubmitting}
+                  title={`Click to ask: "${suggestion}"`}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chat Messages */}
+      <div className={styles.messagesContainer}>
+        {messages.map(renderMessage)}
+                  {isSubmitting && (
+          <div className={styles.loadingMessage}>
+            <div className={styles.messageContent}>
+              <div className={styles.typingIndicator}>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div className={styles.loadingText}>AI is thinking...</div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Error Display */}
+      {chatError && (
+        <div className={styles.errorBanner}>
+          <span className={styles.errorIcon}>⚠️</span>
+          <span className={styles.errorText}>{chatError}</span>
+        </div>
+      )}
+
+      {/* Chat Input */}
+      <div className={styles.chatInput}>
+        <div className={styles.inputContainer}>
+          <textarea
+            ref={textareaRef}
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask about translation notes, word meanings, context..."
+            className={styles.messageInput}
+            disabled={isSubmitting}
+            rows={1}
+            maxLength={4000}
+          />
+          <button
+            onClick={handleSendMessage}
+            className={styles.sendButton}
+            disabled={!userInput.trim() || isSubmitting}
+            title="Send message (Enter)"
+          >
+            {isSubmitting ? (
+              <span className={styles.loadingSpinner}>⏳</span>
+            ) : (
+              <span className={styles.sendIcon}>➤</span>
+            )}
+          </button>
+        </div>
+        <div className={styles.inputFooter}>
+          <span className={styles.charCount}>{userInput.length}/4000</span>
+          {import.meta.env.VITE_USE_MOCK_CHAT === "true" && (
+            <span className={styles.devIndicator}>Using Mock Responses</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default LLMChatPanel;

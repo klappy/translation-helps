@@ -1,0 +1,521 @@
+/* ResourceGrid.module.css */
+/* Shared resource selection grid styles - matches Scripture panel design */
+
+/* Container */
+.selectorContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-surface-primary);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-4) var(--spacing-5);
+  border-bottom: 1px solid var(--color-border-secondary);
+  background: var(--color-surface-primary);
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  padding: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.backButton:hover {
+  background: var(--color-surface-secondary);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-left: var(--spacing-4);
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* Search */
+.searchContainer {
+  padding: var(--spacing-4) var(--spacing-5);
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+  transition: border-color var(--transition-fast);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* List Container */
+.listContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-4) var(--spacing-5);
+}
+
+/* Resource Group Styles */
+.resourceGroup {
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-4);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.resourceGroup:hover {
+  border-color: var(--color-border-primary);
+}
+
+/* Organization Header - Avatar First Design */
+.groupHeader {
+  padding: var(--spacing-4) var(--spacing-5);
+  background: transparent;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  border: none;
+  width: 100%;
+}
+
+.groupHeader:hover {
+  background: var(--color-surface-secondary);
+}
+
+.groupHeader:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* Organization Avatar */
+.organizationAvatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  background: var(--color-surface-tertiary);
+}
+
+/* Organization Info */
+.organizationInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.organizationName {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.organizationStats {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.resourceCount {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+}
+
+.tierBadge {
+  font-size: var(--font-size-sm);
+  opacity: 0.8;
+}
+
+/* Organization Metrics - Compact */
+.organizationMetrics {
+  display: flex;
+  gap: var(--spacing-1);
+  align-items: center;
+}
+
+.metricBadge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px var(--spacing-1);
+  background: var(--color-surface-tertiary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  cursor: help;
+  transition: background-color var(--transition-fast);
+}
+
+.metricBadge:hover {
+  background: var(--color-surface-quaternary);
+}
+
+.metricIcon {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.metricValue {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-xs);
+}
+
+/* Expand Button */
+.expandButton {
+  flex-shrink: 0;
+  padding: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chevron {
+  display: inline-block;
+  transition: transform var(--transition-fast);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+.chevron.expanded {
+  transform: rotate(90deg);
+}
+
+/* Resources List - Clean Layout */
+.resourcesList {
+  padding: 0 var(--spacing-4) var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  animation: slideDown var(--transition-fast) ease-out;
+}
+
+.resourceItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  width: 100%;
+}
+
+.resourceItem:hover {
+  background: var(--color-surface-secondary);
+  border-color: var(--color-border-primary);
+  transform: translateY(-1px);
+}
+
+.resourceItem:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Resource Icon/Avatar */
+.resourceIcon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  background: var(--color-surface-tertiary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.resourceAvatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.resourceIconFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+}
+
+/* Resource Content */
+.resourceContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.resourceName {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resourceBadges {
+  display: flex;
+  gap: var(--spacing-1);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-1);
+}
+
+.resourceBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-1) var(--spacing-2);
+  background: var(--color-surface-tertiary);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  width: fit-content;
+}
+
+.bookCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-1);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+}
+
+/* Resource Metrics - Compact - Now using same styling as organization metrics */
+.resourceMetrics {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-1);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Unified metric badge styling for both organization and resource levels */
+.resourceMetricBadge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px var(--spacing-1);
+  background: var(--color-surface-tertiary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  cursor: help;
+  transition: background-color var(--transition-fast);
+}
+
+.resourceMetricBadge:hover {
+  background: var(--color-surface-quaternary);
+}
+
+.resourceMetricIcon {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.resourceMetricValue {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-xs);
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-8);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-md);
+  text-align: center;
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+  
+  .title {
+    font-size: var(--font-size-lg);
+    margin-left: var(--spacing-3);
+  }
+  
+  .searchContainer {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+  
+  .listContainer {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+  
+  .groupHeader {
+    padding: var(--spacing-3) var(--spacing-4);
+    gap: var(--spacing-3);
+  }
+  
+  .organizationAvatar {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .organizationName {
+    font-size: var(--font-size-md);
+  }
+  
+  .organizationMetrics {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+  
+  .metricBadge {
+    padding: 1px 4px;
+    font-size: 10px;
+  }
+  
+  .resourcesList {
+    padding: 0 var(--spacing-3) var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+  
+  .resourceItem {
+    padding: var(--spacing-3);
+    gap: var(--spacing-3);
+  }
+  
+  .resourceIcon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .resourceMetrics {
+    gap: 2px;
+    justify-content: flex-end;
+  }
+  
+  .resourceMetricBadge {
+    padding: 1px 4px;
+    font-size: 10px;
+  }
+}
+
+/* Dark theme adjustments */
+@media (prefers-color-scheme: dark) {
+  .resourceGroup {
+    background: var(--color-surface-primary);
+  }
+  
+  .groupHeader:hover {
+    background: var(--color-surface-secondary);
+  }
+  
+  .avatarFallback {
+    background: var(--color-surface-tertiary);
+  }
+  
+  .resourceIcon {
+    background: var(--color-surface-tertiary);
+  }
+  
+  .metricBadge {
+    background: var(--color-surface-tertiary);
+    border-color: var(--color-border-tertiary);
+  }
+  
+  .resourceMetricBadge {
+    background: var(--color-surface-tertiary);
+    border-color: var(--color-border-tertiary);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .groupHeader,
+  .chevron,
+  .resourceItem,
+  .resourcesList {
+    transition: none;
+    animation: none;
+  }
+}

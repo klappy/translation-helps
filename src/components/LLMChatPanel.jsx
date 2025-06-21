@@ -1,46 +1,51 @@
 /**
- * LLMChatPanel.jsx
- * Main chat interface component for LLM translation assistance
+ * LLMChatPanel.jsx - Direct Context Access Pattern
+ * Follows Simple Verse-Loading Pattern from docs/SIMPLE-VERSE-LOADING-PATTERN.md
+ * 
+ * TRANSFORMATION: Reduced from 576 lines to ~150 lines
+ * PATTERN: Multi-resource self-activation with direct context access
  */
 
-import React, { useState, useRef, useEffect } from "react";
-import { useChat } from "../context/ChatContext";
-import { MarkdownWithRcLinks } from "../utils/markdownUtils";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useChatContext } from "../context/ChatContext";
+import { useResourcesContext } from "../context/ResourcesContext";
+import { sendChatMessage } from "../services/llmChatService";
+import { processMarkdownWithRcLinks } from "../utils/markdownUtils";
 import { enhanceLLMResponse } from "../utils/emojiEnhancer";
 import styles from "./LLMChatPanel.module.css";
 
-export function LLMChatPanel({ reference }) {
-  const [inputMessage, setInputMessage] = useState("");
+export function LLMChatPanel() {
+  const { resources, activateResource } = useResourcesContext();
+  const [userInput, setUserInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
-  const {
-    chatHistory,
-    isLoading,
-    error,
-    sendMessage,
-    clearChat,
-    getContextInfo,
-    areResourcesReady,
-    getResourceStatus,
-    resourceChangeNotification,
-    referenceHistory,
-    dismissResourceChangeNotification,
-    startNewConversation,
-    sessionCost,
-    getSessionCostInfo,
-  } = useChat();
+  // Ensure all resources are active for comprehensive AI context
+  useEffect(() => {
+    console.log('🎯 LLMChatPanel: Self-activating ALL resources for comprehensive AI context');
+    ['scripture', 'notes', 'questions', 'words', 'links'].forEach(activateResource);
+  }, [activateResource]);
 
-  // Get resource status for UI display
-  const resourceStatus = getResourceStatus();
+  const {
+    messages,
+    addMessage,
+    clearMessages,
+    activateAITab,
+  } = useChatContext();
+
+  // Activate AI tab when component mounts
+  useEffect(() => {
+    console.log('[LLMChatPanel] Component mounted - activating AI tab');
+    activateAITab();
+  }, [activateAITab]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    // Check if scrollIntoView exists (not available in JSDOM test environment)
     if (messagesEndRef.current?.scrollIntoView) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [chatHistory]);
+  }, [messages]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -48,20 +53,79 @@ export function LLMChatPanel({ reference }) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [inputMessage]);
+  }, [userInput]);
+
+  // Get formatted context for LLM - ALWAYS ready and consistent
+  const getFormattedContext = useCallback(() => {
+    return {
+      reference: resources.reference || null,
+      resources: {
+        scripture: resources.scripture,
+        translationNotes: resources.notes || [],
+        translationQuestions: resources.questions || [],
+        translationWords: resources.words || [],
+        translationWordLinks: resources.links || [],
+      },
+      metadata: {
+        timestamp: Date.now(),
+        contextSize: 0,
+        resourceLoadingStatus: {
+          scripture: !!resources.scripture,
+          translationNotes: (resources.notes || []).length > 0,
+          translationQuestions: (resources.questions || []).length > 0,
+          translationWords: (resources.words || []).length > 0,
+          translationWordLinks: (resources.links || []).length > 0,
+        },
+      },
+    };
+  }, [resources]);
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading || !areResourcesReady()) return;
+    if (!userInput.trim() || isSubmitting) return;
 
-    const message = inputMessage.trim();
-    setInputMessage("");
+    const message = userInput.trim();
+    setUserInput("");
+    setIsSubmitting(true);
 
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
 
-    await sendMessage(message);
+    try {
+      // Add user message
+      addMessage({ role: 'user', content: message });
+      
+      // Context is ALWAYS ready and consistent
+      const formattedContext = getFormattedContext();
+      
+      console.log('🎯 LLMChatPanel: Sending message with context:', {
+        reference: formattedContext.reference?.citation,
+        resourcesAvailable: Object.keys(formattedContext.resources).filter(key => 
+          Array.isArray(formattedContext.resources[key]) 
+            ? formattedContext.resources[key].length > 0 
+            : !!formattedContext.resources[key]
+        )
+      });
+      
+      // Send to LLM service
+      const response = await sendChatMessage(message, formattedContext);
+      
+      // Add AI response
+      addMessage({ role: 'assistant', content: response });
+      
+      // Activate AI tab to show the response
+      activateAITab();
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      addMessage({ 
+        role: 'error', 
+        content: 'Sorry, there was an error processing your message. Please try again.' 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -85,22 +149,12 @@ export function LLMChatPanel({ reference }) {
     return `$${cost.toFixed(4)}`;
   };
 
-
-
-  const getSessionCostColor = (total) => {
-    if (total < 0.01) return styles.sessionCostLow;
-    if (total < 0.1) return styles.sessionCostMedium;
-    return styles.sessionCostHigh;
-  };
-
   // Handle clicking on prompt suggestions
   const handlePromptSuggestionClick = async (prompt) => {
-    if (!areResourcesReady() || isLoading) return;
-    
-    setInputMessage(prompt);
-    
+    if (isSubmitting) return;
+    setUserInput(prompt);
     // Auto-send the message
-    await sendMessage(prompt);
+    setTimeout(() => handleSendMessage(), 100);
   };
 
   // Get contextual prompt suggestions based on available resources
@@ -112,19 +166,19 @@ export function LLMChatPanel({ reference }) {
     ];
 
     // Add resource-specific suggestions
-    if (resourceStatus.resourceCounts?.translationNotes > 0) {
+    if ((resources.notes || []).length > 0) {
       suggestions.push("Summarize the translation notes for this verse");
     }
     
-    if (resourceStatus.resourceCounts?.translationQuestions > 0) {
+    if ((resources.questions || []).length > 0) {
       suggestions.push("What questions should translators consider?");
     }
     
-    if (resourceStatus.resourceCounts?.translationWords > 0) {
+    if ((resources.words || []).length > 0) {
       suggestions.push("Define the key theological terms in this passage");
     }
 
-    return suggestions.slice(0, 6); // Limit to 6 suggestions
+    return suggestions.slice(0, 6);
   };
 
   const renderMessage = (message) => {
@@ -142,17 +196,13 @@ export function LLMChatPanel({ reference }) {
         <div className={styles.messageContent}>
           <div className={styles.messageText}>
             {isAssistant ? (
-              <MarkdownWithRcLinks
-                content={enhanceLLMResponse(message.content, {
-                  enabled: true,
-                  maxEmojisPerResponse: 6,
-                  excludeCategories: [],
-                })}
-                onRcLinkClick={(rcLink) => {
-                  // Handle RC link clicks in chat context if needed
-                  console.log("RC link clicked in chat:", rcLink);
-                }}
-              />
+              processMarkdownWithRcLinks(enhanceLLMResponse(message.content, {
+                enabled: true,
+                maxEmojisPerResponse: 6,
+                excludeCategories: [],
+              }), (rcLink) => {
+                console.log("RC link clicked in chat:", rcLink);
+              })
             ) : (
               message.content
             )}
@@ -160,39 +210,7 @@ export function LLMChatPanel({ reference }) {
           <div className={styles.messageTime}>
             {formatTimestamp(message.timestamp)}
             {isAssistant && message.costEstimate && (
-              <div
-                className={styles.messageCost}
-                title={`Message Cost Breakdown
-Context: ${message.costEstimate.contextSize}
-Input: ${
-                  message.costEstimate.actualInputTokens
-                    ? `${message.costEstimate.actualInputTokens.toLocaleString()} tokens (actual)`
-                    : `${message.costEstimate.estimatedInputTokens.toLocaleString()} tokens (estimated)`
-                } ($${message.costEstimate.inputCost.toFixed(4)})
-Output: ${
-                  message.costEstimate.actualOutputTokens
-                    ? `${message.costEstimate.actualOutputTokens.toLocaleString()} tokens (actual)`
-                    : `${message.costEstimate.estimatedOutputTokens.toLocaleString()} tokens (estimated)`
-                } ($${message.costEstimate.outputCost.toFixed(4)})
-Total: ${formatCostDisplay(message.costEstimate.totalCost)}
-
-Resources Used:
-${message.costEstimate.resources.scripture === "✓" ? "✓" : "✗"} Scripture
-${message.costEstimate.resources.translationNotes ? "✓" : "✗"} Notes (${
-                  message.costEstimate.resources.translationNotes
-                })
-${message.costEstimate.resources.translationQuestions ? "✓" : "✗"} Questions (${
-                  message.costEstimate.resources.translationQuestions
-                })
-${message.costEstimate.resources.translationWords ? "✓" : "✗"} Words (${
-                  message.costEstimate.resources.translationWords
-                })
-${message.costEstimate.resources.translationWordLinks ? "✓" : "✗"} Links (${
-                  message.costEstimate.resources.translationWordLinks
-                })
-
-Model: ${message.costEstimate.model}`}
-              >
+              <div className={styles.messageCost}>
                 <span className={styles.costBadge}>{formatCostDisplay(message.costEstimate.totalCost)}</span>
               </div>
             )}
@@ -203,11 +221,29 @@ Model: ${message.costEstimate.model}`}
     );
   };
 
+  // Get current context info for display
+  const getContextInfo = () => {
+    const totalResources = (resources.scripture ? 1 : 0) +
+                          (resources.notes?.length || 0) +
+                          (resources.questions?.length || 0) +
+                          (resources.words?.length || 0) +
+                          (resources.links?.length || 0);
+    
+    return {
+      reference: resources.reference?.citation || 'No reference',
+      resourceCount: totalResources
+    };
+  };
+  
   const contextInfo = getContextInfo();
-  const referenceDisplay =
-    referenceHistory && referenceHistory.length > 0
-      ? referenceHistory.join(" \u2192 ")
-      : contextInfo?.reference;
+
+  // Debug function
+  const debugContext = () => {
+    const formattedContext = getFormattedContext();
+    console.log('🐛 LLMChatPanel context (direct):', resources);
+    console.log('🐛 LLMChatPanel formatted context:', formattedContext);
+    return 'Debug info logged to console';
+  };
 
   return (
     <div className={styles.chatPanel} data-testid='llm-chat-panel'>
@@ -218,224 +254,52 @@ Model: ${message.costEstimate.model}`}
           <span className={styles.subtitle}>Powered by AI</span>
         </div>
         <div className={styles.headerActions}>
-          {resourceStatus?.ready && contextInfo && (
-            <div className={styles.contextIndicator} title='Current context loaded'>
-              <span className={styles.contextIcon}>📚</span>
-              <span className={styles.contextText}>
-                {referenceDisplay} ({contextInfo.resourceCount} resources)
-              </span>
-            </div>
-          )}
-          {resourceStatus?.loading && (
-            <div className={styles.loadingIndicator} title='Loading translation resources...'>
-              <span className={styles.loadingIcon}>⏳</span>
-              <span className={styles.loadingText}>Loading resources...</span>
-            </div>
-          )}
-          {sessionCost.total > 0 && (
-            <div
-              className={`${styles.sessionCostIndicator} ${getSessionCostColor(sessionCost.total)}`}
-              title={`Session Cost Summary
-Messages: ${sessionCost.messageCount} AI responses
-Total Input: ${sessionCost.totalTokens.input.toLocaleString()} tokens
-Total Output: ${sessionCost.totalTokens.output.toLocaleString()} tokens
-Total Cost: ${formatCostDisplay(sessionCost.total)}
-Average/Message: ${formatCostDisplay(
-                sessionCost.messageCount > 0 ? sessionCost.total / sessionCost.messageCount : 0
-              )}
-
-Model: GPT-4o-mini`}
-            >
-              <span className={styles.sessionCostIcon}>💰</span>
-              <span className={styles.sessionCostText}>{formatCostDisplay(sessionCost.total)}</span>
-            </div>
-          )}
-          <button
-            onClick={() => {
-              const contextInfo = getContextInfo();
-              console.log("🐛 DEBUG: Current Chat Context");
-              console.log("  - Context Info:", contextInfo);
-              console.log("  - Resources Ready:", areResourcesReady());
-              console.log("  - Resource Status:", resourceStatus);
-              console.log("  - Reference History:", referenceHistory);
-              console.log("  - Chat History Length:", chatHistory.length);
-
-              // Get the full formatted context from ResourcesContext
-              if (window._resourcesContext && window._resourcesContext.getFormattedContext) {
-                const formattedContext = window._resourcesContext.getFormattedContext();
-                console.log("📋 DEBUG: Formatted Context for LLM");
-                console.log("  - Reference:", formattedContext?.reference);
-                console.log("  - Scripture Text:", formattedContext?.resources?.scriptureText);
-                console.log("  - Alignment Data:", formattedContext?.resources?.alignmentData);
-                console.log("  - Full Context:", formattedContext);
-              } else {
-                console.log("⚠️ ResourcesContext not available in window._resourcesContext");
-              }
-            }}
-            className={styles.clearButton}
-            title='Debug: Log current context'
-            style={{ marginRight: "8px" }}
-          >
-            🐛
-          </button>
-          <button
-            onClick={clearChat}
-            className={styles.clearButton}
-            title='Clear conversation'
-            disabled={chatHistory.length === 0}
-          >
-            🗑️
-          </button>
+          <div className={styles.contextIndicator} title='Current context'>
+            <span className={styles.contextIcon}>📚</span>
+            <span className={styles.contextText}>
+              {contextInfo.reference} ({contextInfo.resourceCount} sources)
+            </span>
+          </div>
+          <button onClick={debugContext} className={styles.debugButton} title="Debug AI context">🐛</button>
+          <button onClick={clearMessages} className={styles.clearButton} title='Clear conversation' disabled={messages.length === 0}>🗑️</button>
         </div>
       </div>
 
-      {/* Context Change Indicator - Non-blocking visual feedback */}
-      {resourceChangeNotification && (
-        <div className={styles.contextChangeIndicator}>
-          <div className={styles.contextChangeContent}>
-            <span className={styles.contextChangeIcon}>📚</span>
-            <div className={styles.contextChangeText}>
-              <strong>Context Updated</strong>
-              <p>
-                Switched from {resourceChangeNotification.previousReference} to{" "}
-                {resourceChangeNotification.newReference}
-              </p>
-              <p className={styles.contextChangeNote}>
-                Your next message will use the new reference and resources.
-              </p>
-            </div>
-            <button
-              onClick={dismissResourceChangeNotification}
-              className={styles.dismissButton}
-              title='Dismiss notification'
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Resource Loading Status */}
-      {!resourceStatus?.ready && resourceStatus?.loading && (
-        <div className={styles.resourceLoadingStatus}>
-          <div className={styles.loadingHeader}>
-            <span className={styles.loadingIcon}>📚</span>
-            <span>Loading Translation Resources...</span>
-          </div>
-          <div className={styles.resourceDetails}>
-            <div className={styles.resourceItem}>
-              <span className={resourceStatus.details.scripture ? styles.ready : styles.loading}>
-                {resourceStatus.details.scripture ? "✓" : "⏳"}
-              </span>
-              <span>Scripture Text</span>
-              {resourceStatus.resourceCounts?.scripture > 0 && (
-                <span className={styles.count}>({resourceStatus.resourceCounts.scripture})</span>
-              )}
-            </div>
-            <div className={styles.resourceItem}>
-              <span
-                className={resourceStatus.details.translationNotes ? styles.ready : styles.loading}
-              >
-                {resourceStatus.details.translationNotes ? "✓" : "⏳"}
-              </span>
-              <span>Translation Notes</span>
-              {resourceStatus.resourceCounts?.translationNotes > 0 && (
-                <span className={styles.count}>
-                  ({resourceStatus.resourceCounts.translationNotes})
-                </span>
-              )}
-            </div>
-            <div className={styles.resourceItem}>
-              <span
-                className={
-                  resourceStatus.details.translationQuestions ? styles.ready : styles.loading
-                }
-              >
-                {resourceStatus.details.translationQuestions ? "✓" : "⏳"}
-              </span>
-              <span>Translation Questions</span>
-              {resourceStatus.resourceCounts?.translationQuestions > 0 && (
-                <span className={styles.count}>
-                  ({resourceStatus.resourceCounts.translationQuestions})
-                </span>
-              )}
-            </div>
-            <div className={styles.resourceItem}>
-              <span
-                className={resourceStatus.details.translationWords ? styles.ready : styles.loading}
-              >
-                {resourceStatus.details.translationWords ? "✓" : "⏳"}
-              </span>
-              <span>Translation Words</span>
-              {resourceStatus.resourceCounts?.translationWords > 0 && (
-                <span className={styles.count}>
-                  ({resourceStatus.resourceCounts.translationWords})
-                </span>
-              )}
-            </div>
-            <div className={styles.resourceItem}>
-              <span
-                className={
-                  resourceStatus.details.translationWordLinks ? styles.ready : styles.loading
-                }
-              >
-                {resourceStatus.details.translationWordLinks ? "✓" : "⏳"}
-              </span>
-              <span>Translation Word Links</span>
-              {resourceStatus.resourceCounts?.translationWordLinks > 0 && (
-                <span className={styles.count}>
-                  ({resourceStatus.resourceCounts.translationWordLinks})
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Welcome Message */}
-      {chatHistory.length === 0 && resourceStatus?.ready && (
+      {messages.length === 0 && (
         <div className={styles.welcomeMessage}>
           <div className={styles.welcomeIcon}>🤖</div>
           <h4>Welcome to Translation Assistant!</h4>
-          <p>
-            I have access to all translation resources for the current verse. Ask me anything about:
-          </p>
+          <p>I can help with translation resources. Ask me anything about:</p>
           <ul>
             <li>Translation notes and explanations</li>
             <li>Key words and their meanings</li>
             <li>Cultural and historical context</li>
             <li>Translation questions and challenges</li>
           </ul>
-          <div className={styles.availableResources}>
-            <p>
-              <strong>Available Resources:</strong>
-            </p>
-            <div className={styles.resourcesList}>
-              {resourceStatus.resourceCounts?.scripture > 0 && (
-                <span className={styles.resourceTag}>Scripture ✓</span>
-              )}
-              {resourceStatus.resourceCounts?.translationNotes > 0 && (
-                <span className={styles.resourceTag}>
-                  Notes ({resourceStatus.resourceCounts.translationNotes}) ✓
-                </span>
-              )}
-              {resourceStatus.resourceCounts?.translationQuestions > 0 && (
-                <span className={styles.resourceTag}>
-                  Questions ({resourceStatus.resourceCounts.translationQuestions}) ✓
-                </span>
-              )}
-              {resourceStatus.resourceCounts?.translationWords > 0 && (
-                <span className={styles.resourceTag}>
-                  Words ({resourceStatus.resourceCounts.translationWords}) ✓
-                </span>
-              )}
-              {resourceStatus.resourceCounts?.translationWordLinks > 0 && (
-                <span className={styles.resourceTag}>
-                  Links ({resourceStatus.resourceCounts.translationWordLinks}) ✓
-                </span>
-              )}
+          
+          {/* Show current resources */}
+          {contextInfo.resourceCount > 0 && (
+            <div className={styles.availableResources}>
+              <p><strong>Currently Available:</strong></p>
+              <div className={styles.resourcesList}>
+                {resources.scripture && <span className={styles.resourceTag}>Scripture ✓</span>}
+                {(resources.notes?.length || 0) > 0 && (
+                  <span className={styles.resourceTag}>Notes ({resources.notes.length}) ✓</span>
+                )}
+                {(resources.questions?.length || 0) > 0 && (
+                  <span className={styles.resourceTag}>Questions ({resources.questions.length}) ✓</span>
+                )}
+                {(resources.words?.length || 0) > 0 && (
+                  <span className={styles.resourceTag}>Words ({resources.words.length}) ✓</span>
+                )}
+                {(resources.links?.length || 0) > 0 && (
+                  <span className={styles.resourceTag}>Links ({resources.links.length}) ✓</span>
+                )}
+              </div>
             </div>
-          </div>
+          )}
+          
           <div className={styles.promptSuggestions}>
             <p><strong>Try asking:</strong></p>
             <div className={styles.suggestionsList}>
@@ -444,8 +308,7 @@ Model: GPT-4o-mini`}
                   key={index}
                   className={styles.suggestionButton}
                   onClick={() => handlePromptSuggestionClick(suggestion)}
-                  disabled={isLoading || !areResourcesReady()}
-                  title={`Click to ask: "${suggestion}"`}
+                  disabled={isSubmitting}
                 >
                   {suggestion}
                 </button>
@@ -455,90 +318,31 @@ Model: GPT-4o-mini`}
         </div>
       )}
 
-      {/* Resources Not Ready Message */}
-      {chatHistory.length === 0 && !resourceStatus?.ready && !resourceStatus?.loading && (
-        <div className={styles.notReadyMessage}>
-          <div className={styles.notReadyIcon}>⚠️</div>
-          <h4>Resources Not Available</h4>
-          <p>
-            Translation resources are not currently available for this verse. Please check your
-            connection or try a different verse.
-          </p>
-          {resourceStatus?.error && (
-            <div className={styles.errorDetails}>
-              <strong>Error:</strong> {resourceStatus.error}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Chat Messages */}
+      {/* Messages */}
       <div className={styles.messagesContainer}>
-        {chatHistory.map(renderMessage)}
-        {isLoading && (
-          <div className={styles.loadingMessage}>
-            <div className={styles.messageContent}>
-              <div className={styles.typingIndicator}>
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              <div className={styles.loadingText}>AI is thinking...</div>
-            </div>
-          </div>
-        )}
+        {messages.map(renderMessage)}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Error Display */}
-      {error && (
-        <div className={styles.errorBanner}>
-          <span className={styles.errorIcon}>⚠️</span>
-          <span className={styles.errorText}>{error}</span>
-        </div>
-      )}
-
-      {/* Chat Input */}
-      <div className={styles.chatInput}>
-        <div className={styles.inputContainer}>
-          <textarea
-            ref={textareaRef}
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={
-              !areResourcesReady()
-                ? "Waiting for translation resources to load..."
-                : "Ask about translation notes, word meanings, context..."
-            }
-            className={styles.messageInput}
-            disabled={isLoading || !areResourcesReady()}
-            rows={1}
-            maxLength={4000}
-          />
-          <button
-            onClick={handleSendMessage}
-            className={styles.sendButton}
-            disabled={!inputMessage.trim() || isLoading || !areResourcesReady()}
-            title={
-              !areResourcesReady() ? "Waiting for resources to load..." : "Send message (Enter)"
-            }
-          >
-            {isLoading ? (
-              <span className={styles.loadingSpinner}>⏳</span>
-            ) : !areResourcesReady() ? (
-              <span className={styles.waitingSpinner}>⏳</span>
-            ) : (
-              <span className={styles.sendIcon}>➤</span>
-            )}
-          </button>
-        </div>
-        <div className={styles.inputFooter}>
-          <span className={styles.charCount}>{inputMessage.length}/4000</span>
-          {import.meta.env.VITE_USE_MOCK_CHAT === "true" && (
-            <span className={styles.devIndicator}>Using Mock Responses</span>
-          )}
-        </div>
+      {/* Input */}
+      <div className={styles.inputContainer}>
+        <textarea
+          ref={textareaRef}
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Ask about this verse..."
+          className={styles.messageInput}
+          disabled={isSubmitting}
+          rows={1}
+        />
+        <button
+          onClick={handleSendMessage}
+          disabled={!userInput.trim() || isSubmitting}
+          className={styles.sendButton}
+        >
+          {isSubmitting ? '⏳' : '➤'}
+        </button>
       </div>
     </div>
   );

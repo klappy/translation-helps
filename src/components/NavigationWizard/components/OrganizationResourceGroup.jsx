@@ -1,6 +1,7 @@
 /**
  * OrganizationResourceGroup.jsx
  * Component to display resources grouped by organization with collapsible sections
+ * Decluttered UI with avatar-first design and progressive disclosure
  */
 
 import React, { useState } from "react";
@@ -22,11 +23,13 @@ export function OrganizationResourceGroup({
 
   // Get organization stats
   const resourceCount = resources.length;
-  const resourceTypes = [...new Set(resources.map(r => r.metadata.type))];
   const selectedCount = resources.filter(resource => {
     const resourceType = getResourceTypeKey(resource.metadata.type);
     return selectedResources[resourceType]?.organization === organization;
   }).length;
+
+  // Get organization avatar (use first resource's avatar as org avatar)
+  const organizationAvatar = resources[0]?.avatar;
 
   // Check if this resource is selected
   const isResourceSelected = (resource) => {
@@ -45,7 +48,7 @@ export function OrganizationResourceGroup({
 
   return (
     <div className={`${styles.organizationGroup} ${isDesktop ? styles.desktop : ""}`}>
-      {/* Organization header */}
+      {/* Organization header - clean and avatar-first */}
       <div 
         className={`${styles.organizationHeader} ${isDesktop ? styles.desktop : ""}`}
         onClick={toggleExpanded}
@@ -58,47 +61,50 @@ export function OrganizationResourceGroup({
           }
         }}
       >
-        <div className={styles.organizationInfo}>
-          <div className={styles.organizationName}>
-            <span className={styles.expandIcon}>
-              {isExpanded ? '📂' : '📁'}
-            </span>
-            <h3 className={styles.orgTitle}>{organization}</h3>
+        {/* Organization avatar */}
+        <div className={styles.organizationAvatar}>
+          {organizationAvatar ? (
+            organizationAvatar.startsWith('http') || organizationAvatar.startsWith('/') ? (
+              <img 
+                src={organizationAvatar} 
+                alt={organization}
+                className={styles.avatarImage}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextElementSibling.style.display = 'flex';
+                }}
+              />
+            ) : (
+              <div className={styles.avatarFallback}>{organizationAvatar}</div>
+            )
+          ) : null}
+          <div className={styles.avatarFallback} style={{ display: organizationAvatar ? 'none' : 'flex' }}>
+            🏢
           </div>
+        </div>
+
+        <div className={styles.organizationInfo}>
+          <h3 className={styles.orgTitle}>{organization}</h3>
           <div className={styles.organizationStats}>
             <span className={styles.resourceCount}>
-              {resourceCount} resource{resourceCount !== 1 ? 's' : ''}
+              {resourceCount} {resourceCount === 1 ? 'resource' : 'resources'}
             </span>
             {selectedCount > 0 && (
-              <span className={styles.selectedCount}>
-                {selectedCount} selected
+              <span className={styles.selectedBadge}>
+                {selectedCount}
               </span>
             )}
           </div>
         </div>
         
-        {/* Resource types preview */}
-        <div className={styles.resourceTypesPreview}>
-          {resourceTypes.slice(0, 3).map((type, index) => (
-            <span key={index} className={styles.resourceTypeTag}>
-              {getResourceTypeIcon(type)} {type}
-            </span>
-          ))}
-          {resourceTypes.length > 3 && (
-            <span className={styles.moreTypes}>
-              +{resourceTypes.length - 3} more
-            </span>
-          )}
-        </div>
-
         <div className={styles.expandButton}>
           <span className={`${styles.chevron} ${isExpanded ? styles.expanded : ''}`}>
-            ▼
+            ▶
           </span>
         </div>
       </div>
 
-      {/* Resources grid */}
+      {/* Resources grid - cleaner layout */}
       {isExpanded && (
         <div className={`${styles.resourcesGrid} ${isDesktop ? styles.desktop : ""}`}>
           {resources.map((resource) => (
@@ -122,46 +128,10 @@ export function OrganizationResourceGroup({
                 languageId={resource.metadata?.languageId}
                 isDesktop={isDesktop}
                 layout="narrow"
-                showMetadata={true}
+                showMetadata={false} // Hide metadata by default for cleaner look
               />
-              
-              {/* Resource type indicator */}
-              <div className={styles.resourceTypeIndicator}>
-                <span className={styles.typeIcon}>
-                  {getResourceTypeIcon(resource.metadata.type)}
-                </span>
-                <span className={styles.typeName}>
-                  {resource.metadata.type}
-                </span>
-              </div>
-
-              {/* Selection overlay */}
-              {isResourceSelected(resource) && (
-                <div className={styles.selectionOverlay}>
-                  <div className={styles.selectionIcon}>✓</div>
-                </div>
-              )}
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Collapsed state summary */}
-      {!isExpanded && (
-        <div className={styles.collapsedSummary}>
-          <div className={styles.summaryText}>
-            {selectedCount > 0 
-              ? `${selectedCount} of ${resourceCount} resources selected`
-              : `${resourceCount} resources available`
-            }
-          </div>
-          <div className={styles.summaryTypes}>
-            {resourceTypes.map((type, index) => (
-              <span key={index} className={styles.summaryTypeIcon}>
-                {getResourceTypeIcon(type)}
-              </span>
-            ))}
-          </div>
         </div>
       )}
     </div>

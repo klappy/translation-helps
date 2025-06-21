@@ -6,9 +6,9 @@
 import React, { useState, useMemo, useContext } from 'react';
 import { AVAILABLE_BOOKS } from '../../../utils/defaultReference';
 import { ReferenceContext } from '../../../context/ReferenceContext';
-import { ManifestsContext } from '../../../context/MultiManifestsContext';
+// Note: ManifestsContext removed - now using resource data from ReferenceContext
 import { getBookEmoji } from "../../../utils/visualHelpers";
-import { extractAvailableBooks, getBookChapterCount } from '../../../services/manifestService';
+// Note: manifestService imports removed - using resource data directly
 import styles from './BookSelector.module.css';
 
 // Helper function to categorize books
@@ -27,86 +27,51 @@ export function BookSelector({ onSelect, onBack }) {
   const [sortMode, setSortMode] = useState('traditional'); // 'traditional' or 'alphabetical'
   const [expandedBook, setExpandedBook] = useState(null); // Track which book is expanded
 
-  const { languageId, getResourceId, getResourceOrganization } = useContext(ReferenceContext);
-  const { manifests, isLoading: manifestsLoading } = useContext(ManifestsContext);
+  const { languageId, getResourceId, getResourceOrganization, currentResourceData } = useContext(ReferenceContext);
 
   // Get current resource information
   const currentResourceId = getResourceId('scripture');
   const currentOrganization = getResourceOrganization('scripture');
 
-  // Get the manifest for the current resource
-  const currentManifest = useMemo(() => {
-    if (!currentResourceId || !manifests) return null;
-    
-    // Try different manifest key formats that the context might use
-    const possibleKeys = [
-      currentResourceId, // Simple resource ID
-      `${currentOrganization}/${currentResourceId}`, // Organization/resource format
-      languageId && currentResourceId.startsWith(`${languageId}_`) 
-        ? currentResourceId.substring(languageId.length + 1) 
-        : null // Strip language prefix if present
-    ].filter(Boolean);
-    
-    for (const key of possibleKeys) {
-      if (manifests[key]) {
-        console.log(`📋 Found manifest for ${currentResourceId} using key: ${key}`);
-        return manifests[key];
-      }
-    }
-    
-    console.warn(`📋 No manifest found for ${currentResourceId}, tried keys:`, possibleKeys);
-    return null;
-  }, [manifests, currentResourceId, currentOrganization, languageId]);
+  // Use resource data from ReferenceContext instead of manifests
+  const resourceAvailable = currentResourceData !== null;
 
-  // Get available books from manifest or fallback to all books
+  // Get available books from resource data or fallback to all books
   const availableBooks = useMemo(() => {
-    if (currentManifest) {
-      try {
-        // Extract books from manifest
-        const manifestBooks = extractAvailableBooks(currentManifest);
-        
-        if (manifestBooks && manifestBooks.length > 0) {
-          console.log(`📚 Found ${manifestBooks.length} books in manifest for ${currentResourceId}`);
+    if (currentResourceData && currentResourceData.books) {
+      console.log(`📚 Found ${currentResourceData.books.length} books in resource data for ${currentResourceId}`);
+      
+      // Map the books from resource data to our standard format
+      return currentResourceData.books
+        .map(bookId => {
+          // Find the corresponding book in AVAILABLE_BOOKS for additional metadata
+          const standardBook = AVAILABLE_BOOKS.find(book => book.id === bookId);
           
-          // Filter out non-Bible books (like Front Matter, etc.) and map to our standard format
-          return manifestBooks
-            .filter(manifestBook => {
-              // Filter out Front Matter and other non-Bible content
-              const isNonBibleContent = 
-                manifestBook.id === 'frt' || 
-                manifestBook.identifier === 'frt' ||
-                manifestBook.categories?.includes('bible-frt') ||
-                manifestBook.title === 'Front Matter';
-              
-              return !isNonBibleContent;
-            })
-            .map(manifestBook => {
-              // Find the corresponding book in AVAILABLE_BOOKS for additional metadata
-              const standardBook = AVAILABLE_BOOKS.find(book => book.id === manifestBook.id);
-              
-              return {
-                id: manifestBook.id,
-                name: manifestBook.title || standardBook?.name || manifestBook.id.toUpperCase(),
-                manifestChapters: manifestBook.chapters,
-                sort: manifestBook.sort || standardBook?.sort || 999,
-                category: standardBook ? getBookCategory(standardBook) : 'Other'
-              };
-            })
-            .sort((a, b) => a.sort - b.sort);
-        }
-      } catch (error) {
-        console.warn(`📚 Error extracting books from manifest for ${currentResourceId}:`, error);
-      }
+          if (!standardBook) {
+            console.warn(`📚 Unknown book ID: ${bookId}`);
+            return null;
+          }
+          
+          return {
+            id: bookId,
+            name: standardBook.name,
+                         // Chapter count determined dynamically via getMaxChaptersForBook
+            sort: standardBook.sort,
+            category: getBookCategory(standardBook)
+          };
+        })
+        .filter(Boolean) // Remove null entries
+        .sort((a, b) => a.sort - b.sort);
     }
     
-    // Fallback to all books if no manifest or no books in manifest
-    console.log(`📚 No manifest data for ${currentResourceId}, showing all books`);
+    // Fallback to all books if no resource data
+    console.log(`📚 No resource data for ${currentResourceId}, showing all books`);
     return AVAILABLE_BOOKS.map(book => ({
       ...book,
-      manifestChapters: null,
+      // Chapter count determined dynamically via getMaxChaptersForBook
       category: getBookCategory(book)
     }));
-  }, [currentManifest, currentResourceId]);
+  }, [currentResourceData, currentResourceId]);
 
   const sortedBooks = useMemo(() => {
     const books = [...availableBooks];
@@ -146,15 +111,7 @@ export function BookSelector({ onSelect, onBack }) {
 
 
   const getMaxChaptersForBook = (bookId) => {
-    // First try to get from manifest
-    if (currentManifest) {
-      const manifestChapterCount = getBookChapterCount(currentManifest, bookId);
-      if (manifestChapterCount > 0) {
-        return manifestChapterCount;
-      }
-    }
-    
-    // Fallback to static chapter counts
+    // Use static chapter counts (manifest-based chapter counting removed)
     const chapterCounts = {
       // Old Testament
       'gen': 50, 'exo': 40, 'lev': 27, 'num': 36, 'deu': 34,
@@ -192,8 +149,8 @@ export function BookSelector({ onSelect, onBack }) {
     return groups;
   }, [filteredBooks]);
 
-  // Show loading state if manifests are still loading
-  if (manifestsLoading) {
+  // Show loading state if resource data is not available
+  if (!resourceAvailable) {
     return (
       <div className={styles.selectorContainer}>
         <div className={styles.header}>
@@ -217,8 +174,8 @@ export function BookSelector({ onSelect, onBack }) {
         </button>
         <h3 className={styles.title}>
           Select Book
-          {currentManifest && (
-            <span className={styles.manifestIndicator}>
+          {currentResourceData && (
+            <span className={styles.resourceIndicator}>
               ({availableBooks.length} available)
             </span>
           )}
@@ -272,11 +229,9 @@ export function BookSelector({ onSelect, onBack }) {
                     <div className={styles.bookInfo}>
                       <div className={styles.bookName}>
                         {getBookEmoji(book.id)} {book.name}
-                        {book.manifestChapters > 0 && (
-                          <span className={styles.chapterCount}>
-                            ({book.manifestChapters} chapters)
-                          </span>
-                        )}
+                        <span className={styles.chapterCount}>
+                          ({getMaxChaptersForBook(book.id)} chapters)
+                        </span>
                       </div>
                       <div className={styles.bookId}>{book.id.toUpperCase()}</div>
                     </div>

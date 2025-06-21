@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo, useEffect, useContext } from "react";
 import { SearchableGrid } from "../SearchableGrid";
-import { ManifestsContext } from "../../../context/MultiManifestsContext";
+// Note: ManifestsContext removed - now using resource data from ReferenceContext
 import styles from "../NavigationWizard.module.css";
 
 // Bible book data with testament categorization
@@ -94,9 +94,9 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [usingFallback, setUsingFallback] = useState(false);
-  const { manifests, isLoading: manifestsLoading } = useContext(ManifestsContext);
+  // Note: Manifest loading removed - using resource data from ReferenceContext
 
-  // Determine available books from manifests (with fallback to default list)
+  // Use default book list (manifest-based book discovery removed)
   useEffect(() => {
     let isMounted = true;
 
@@ -121,48 +121,13 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
         return;
       }
 
-      if (manifestsLoading) {
-        setLoading(true);
-        return;
-      }
-
-      const manifest = manifests[wizardData.resourceId];
-
-      if (manifest && manifest.projects?.length) {
-        const manifestBooks = manifest.projects
-          .filter((project) => project && project.identifier)
-          .map((project) => {
-            const bookId = project.identifier.toLowerCase();
-            const fallbackBook = getAllBooks().find((b) => b.id === bookId);
-
-            return {
-              id: bookId,
-              name: project.title || (fallbackBook ? fallbackBook.name : bookId.toUpperCase()),
-              chapters: project.chapters?.length || (fallbackBook ? fallbackBook.chapters : 1),
-              sort:
-                project.sort ||
-                (fallbackBook ? getAllBooks().findIndex((b) => b.id === bookId) : 999),
-              categories: project.categories || [],
-              versification: project.versification,
-            };
-          })
-          .sort((a, b) => a.sort - b.sort);
-
-        if (isMounted) {
-          setManifest(manifest);
-          setAvailableBooks(manifestBooks);
-          setUsingFallback(false);
-          setError(null);
-          setLoading(false);
-        }
-      } else {
-        if (isMounted) {
-          setManifest(null);
-          setAvailableBooks(getAllBooks());
-          setUsingFallback(true);
-          setError("Dynamic book list unavailable. Showing default book list.");
-          setLoading(false);
-        }
+      // Use default book list for all resources
+      if (isMounted) {
+        setManifest(null);
+        setAvailableBooks(getAllBooks());
+        setUsingFallback(false);
+        setError(null);
+        setLoading(false);
       }
     };
 
@@ -175,8 +140,6 @@ export function BookStep({ onNext, onPrevious, onStepChange, wizardData, isDeskt
     wizardData.organization,
     wizardData.languageId,
     wizardData.resourceId,
-    manifests,
-    manifestsLoading,
   ]);
 
   const handleBookSelect = (book) => {

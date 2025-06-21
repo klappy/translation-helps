@@ -1,0 +1,206 @@
+/**
+ * TWLPanel.jsx
+ * Translation Word Links panel
+ */
+
+import React, { useContext, useEffect, useState } from "react";
+import { RcLinkContext } from "./MainView";
+import { ReferenceContext } from "../context/ReferenceContext";
+import { getLinksForVerseWithResourceData } from "../services/twlService";
+import { getArticlesForLinks } from "../services/twService";
+import { searchResourcesAcrossOrgs } from "../services/catalogService";
+import { InlineHelpsNavigation } from "./InlineHelpsNavigation";
+import { ResourceMetadataCard, HelpsBreadcrumbs } from "./shared";
+// Event bus removed - using direct ref access in ResourcesContext
+import styles from "./TranslationWordsPanel.module.css";
+
+export function TWLPanel({ reference }) {
+  const [links, setLinks] = useState([]);
+  const [words, setWords] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [forceNavigation, setForceNavigation] = useState(null);
+  
+  const { handleRcLinkClick } = useContext(RcLinkContext) || {};
+  const { organization, languageId, getResourceOrganization, getResourceLanguage } = useContext(ReferenceContext);
+
+  useEffect(() => {
+    async function loadWordLinks() {
+      if (!reference?.bookId || !reference?.chapter || !reference?.verse) {
+        setLinks([]);
+        setWords([]);
+        setError(null);
+        return;
+      }
+
+      const twlOrganization = getResourceOrganization ? getResourceOrganization('twl') : organization;
+      const twlLanguageId = getResourceLanguage ? getResourceLanguage('twl') : languageId;
+
+      if (!twlOrganization || !twlLanguageId) {
+        setError("Missing organization or language");
+        setLinks([]);
+        setWords([]);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        console.log(`🔄 TWLPanel: Loading TWL for ${reference.bookId} ${reference.chapter}:${reference.verse} from ${twlOrganization}/${twlLanguageId}`);
+        
+        // 1. Get resource data from catalog
+        const catalogResult = await searchResourcesAcrossOrgs(twlLanguageId, 'Translation Word Links');
+        const twlResource = catalogResult.resources[twlOrganization]?.find(r => r.id === 'twl');
+        
+        // 2. Load word links using the service
+        let linksData = [];
+        if (twlResource) {
+          linksData = await getLinksForVerseWithResourceData(
+            reference.bookId,
+            reference.chapter,
+            reference.verse,
+            twlResource,
+            twlLanguageId
+          );
+        }
+        
+        // 3. Load translation words based on links
+        let wordsData = [];
+        if (linksData.length > 0) {
+          wordsData = await getArticlesForLinks(linksData, twlLanguageId, twlOrganization);
+        }
+        
+        // 4. Update local state
+        setLinks(linksData);
+        setWords(wordsData);
+        
+        // Event emissions removed - ResourcesContext handles AI context directly
+        console.log(`📦 TWLPanel: Loaded ${linksData.length} links and ${wordsData.length} words (handled by ResourcesContext)`);
+        
+      } catch (err) {
+        console.error("Error loading translation word links:", err);
+        setError(err.message);
+        setLinks([]);
+        setWords([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadWordLinks();
+  }, [reference, organization, languageId, getResourceOrganization, getResourceLanguage]);
+
+
+
+  // Determine if resource is available for navigation
+  const isResourceAvailable = !loading && !error && links && links.length > 0;
+
+  // Handle breadcrumb navigation
+  const handleStartNavigation = (step = 'language') => {
+    console.log(`Starting TWL navigation at step: ${step}`);
+    setForceNavigation(step);
+  };
+
+  if (!reference?.bookId) {
+    return (
+      <div className="twl-panel" data-testid="twl-panel">
+        <p>Please select a verse to view Translation Word Links.</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="twl-panel" data-testid="twl-panel">
+        <p>Loading Translation Word Links...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <section data-testid='twl-panel' className={styles.twlPanel}>
+        <InlineHelpsNavigation
+          resourceType="twl"
+          currentReference={reference}
+          onResourceSelect={handleRcLinkClick}
+          isResourceAvailable={isResourceAvailable}
+          forceNavigation={forceNavigation}
+          onNavigationComplete={() => setForceNavigation(null)}
+        />
+      </section>
+    );
+  }
+
+  if (!links || links.length === 0) {
+    return (
+      <section data-testid='twl-panel' className={styles.twlPanel}>
+        <InlineHelpsNavigation
+          resourceType="twl"
+          currentReference={reference}
+          onResourceSelect={handleRcLinkClick}
+          isResourceAvailable={isResourceAvailable}
+          forceNavigation={forceNavigation}
+          onNavigationComplete={() => setForceNavigation(null)}
+        />
+      </section>
+    );
+  }
+
+  // Get organization and language info for display
+  const twlOrganization = getResourceOrganization ? getResourceOrganization('twl') : organization;
+  const twlLanguageId = getResourceLanguage ? getResourceLanguage('twl') : languageId;
+
+  return (
+    <section data-testid='twl-panel' className={styles.twlPanel}>
+      {/* Breadcrumbs */}
+      <HelpsBreadcrumbs
+        resourceType="twl"
+        languageId={twlLanguageId}
+        organization={twlOrganization}
+        onStartNavigation={handleStartNavigation}
+      />
+
+      {/* Resource Metadata Card */}
+      <ResourceMetadataCard
+        organization={twlOrganization}
+        title="Translation Word Links"
+        languageId={twlLanguageId}
+        resourceType="twl"
+      />
+
+      {/* Always render InlineHelpsNavigation for breadcrumb functionality */}
+      <InlineHelpsNavigation
+        resourceType="twl"
+        currentReference={reference}
+        onResourceSelect={handleRcLinkClick}
+        isResourceAvailable={isResourceAvailable}
+        forceNavigation={forceNavigation}
+        onNavigationComplete={() => setForceNavigation(null)}
+      />
+
+      <h3>Translation Word Links</h3>
+      <div className="twl-content">
+        {links.map((item) => (
+          <div key={item.id} className="twl-item" style={{ marginBottom: '16px', padding: '12px', border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: 'var(--color-primary)' }}>
+              {item.word} 
+              {item.occurrence !== '1' && <span style={{ fontSize: '0.8em', color: '#666' }}> (occurrence {item.occurrence})</span>}
+            </h4>
+            <div className="twl-link">
+              <a 
+                href={`https://git.door43.org/unfoldingWord/en_tw/src/branch/master/bible/${item.twLink}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                style={{ color: 'var(--color-primary)' }}
+              >
+                View Translation Word Article →
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}

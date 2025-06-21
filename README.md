@@ -119,7 +119,7 @@ resolve: {
 
 ## Technical Overview
 
-All resources are managed in Git repositories on (DCS)[https://git.door43.org]. Each repository is organized in a Resource Container Spec (RC). Each RC has a manifest that contains metadata about included resource projects. Each project has metadata including information such as the book id and relative paths to included project files. By fetching the project file it can then be parsed by file type. Each resource project's data can then be integrated based on the relevant alignments and tags that link the resources together.
+All resources are managed in Git repositories on (DCS)[https://git.door43.org]. Each repository is organized in a Resource Container Spec (RC). Each RC contains resource projects with metadata accessible through the DCS catalog API. The catalog API provides resource metadata including book lists and file paths through the `ingredients` array. By using the catalog API project file it can then be parsed by file type. Each resource project's data can then be integrated based on the relevant alignments and tags that link the resources together.
 
 ### Relationships
 

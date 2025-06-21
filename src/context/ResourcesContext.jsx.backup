@@ -1,0 +1,1190 @@
+/**
+ * ResourcesContext.jsx
+ * Unified context for managing all translation resources with anti-hallucination measures
+ * Enhanced with cross-organization resource support for advanced mode
+ * Serves as single source of truth for scripture, translation notes, questions, words, and TWL
+ * Now using useRef for direct resource access - no more event bus!
+ */
+
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { ReferenceContext, useReferenceContext } from "./ReferenceContext";
+
+// Import existing services
+import { fetchBook, fetchBookWithFallback } from "../services/scriptureService";
+import { getNotesForVerse, getNotesForVerseWithResourceData } from "../services/tnService";
+import { getQuestionsForVerse, getQuestionsForVerseWithResourceData } from "../services/tqService";
+import { getArticlesForLinks } from "../services/twService";
+import { getLinksForVerse, getLinksForVerseWithResourceData } from "../services/twlService";
+// Import catalog service for resource data with ingredients
+import { searchAllResourcesForLanguage } from "../services/catalogService";
+// Note: fetchManifest removed - no longer using manifests
+import {
+  USFMSemanticParser,
+  parseUSFMToHTML,
+} from "../components/ScripturePanelRCL/USFMSemanticParser.js";
+
+const ResourcesContext = createContext();
+
+export const useResourcesContext = () => {
+  const context = useContext(ResourcesContext);
+  if (!context) {
+    throw new Error("useResourcesContext must be used within a ResourcesProvider");
+  }
+  return context;
+};
+
+export function ResourcesProvider({ children }) {
+  const { 
+    reference, 
+    organization, 
+    languageId, 
+    resourceId,
+    advancedMode,
+    mixedResources,
+    getResourceOrganization,
+    getResourceId
+  } = useReferenceContext();
+  
+  const [resources, setResources] = useState({
+    scripture: null,
+    translationNotes: [],
+    translationQuestions: [],
+    translationWords: [],
+    translationWordLinks: [],
+  });
+  const [metadata, setMetadata] = useState(null);
+  const [manifests, setManifests] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Track loading states for different resource types
+  const [resourceLoadingStates, setResourceLoadingStates] = useState({
+    scripture: false,
+    tn: false,
+    tq: false,
+    tw: false,
+    twl: false,
+  });
+
+  // Store actual resource data with ingredients arrays from catalog API
+  const [resourceDataCache, setResourceDataCache] = useState({});
+
+  // 🎯 MASTER RESOURCES REF - Direct access to all loaded resources
+  const resourcesRef = useRef({
+    reference: null,
+    scripture: null,
+    translationNotes: [],
+    translationQuestions: [],
+    translationWords: [],
+    translationWordLinks: [],
+  });
+
+  // Extract current reference values
+  const { bookId, chapter, verse } = reference || {};
+
+  // Update resourcesRef whenever resources or metadata changes
+  useEffect(() => {
+    resourcesRef.current = {
+      reference: metadata ? {
+        bookId: metadata.bookId,
+        chapter: metadata.chapter,
+        verse: metadata.verse,
+        citation: `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`,
+        organization: metadata.organization,
+        languageId: metadata.languageId,
+      } : null,
+      scripture: resources.scripture,
+      translationNotes: resources.translationNotes || [],
+      translationQuestions: resources.translationQuestions || [],
+      translationWords: resources.translationWords || [],
+      translationWordLinks: resources.translationWordLinks || [],
+    };
+    
+    console.log('📦 ResourcesContext: Updated resourcesRef:', {
+      reference: resourcesRef.current.reference?.citation || 'none',
+      scripture: resources.scripture ? 'loaded' : 'empty',
+      tn: resources.translationNotes?.length || 0,
+      tq: resources.translationQuestions?.length || 0,
+      tw: resources.translationWords?.length || 0,
+      twl: resources.translationWordLinks?.length || 0,
+    });
+  }, [resources, metadata]);
+
+  // Get effective resource configuration based on mode
+  const getResourceConfig = useCallback((resourceType) => {
+    if (advancedMode && mixedResources[resourceType]) {
+      return {
+        organization: mixedResources[resourceType].organization,
+        resourceId: mixedResources[resourceType].resourceId,
+        isFromMixedResources: true
+      };
+    }
+    
+    // Fallback to basic mode configuration
+    const typeToResourceIdMap = {
+      scripture: resourceId,
+      tn: 'tn',
+      tq: 'tq',
+      tw: 'tw',
+      twl: 'twl'
+    };
+    
+    return {
+      organization: organization,
+      resourceId: typeToResourceIdMap[resourceType] || resourceId,
+      isFromMixedResources: false
+    };
+  }, [advancedMode, mixedResources, organization, resourceId]);
+
+  // Note: Manifest loading completely removed - services handle resource discovery directly
+
+  // Enhanced resource loading with cross-organization support
+  const loadResources = useCallback(async () => {
+    console.log(`🚀 ResourcesContext: loadResources called for ${bookId} ${chapter}:${verse} (${languageId}, ${organization})`);
+    console.log(`🔍 Loading states:`, { isLoading, advancedMode });
+    
+    if (!bookId || !chapter || !verse) {
+      console.warn(`⚠️ ResourcesContext: Missing required parameters:`, { bookId, chapter, verse });
+      return;
+    }
+    
+    if (isLoading) {
+      console.log(`⏳ ResourcesContext: Already loading, skipping duplicate call`);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    
+    // Reset individual loading states
+    setResourceLoadingStates({
+      scripture: true,
+      tn: true,
+      tq: true,
+      tw: true,
+      twl: true,
+    });
+
+    try {
+      // Note: Manifest loading removed - services handle resource discovery directly
+      
+      // Get resource configurations
+      const scriptureConfig = getResourceConfig('scripture');
+      const tnConfig = getResourceConfig('tn');
+      const tqConfig = getResourceConfig('tq');
+      const twConfig = getResourceConfig('tw');
+      const twlConfig = getResourceConfig('twl');
+
+      console.log('🔄 ResourcesContext: Loading resources with configurations:', {
+        scripture: scriptureConfig,
+        tn: tnConfig,
+        tq: tqConfig,
+        tw: twConfig,
+        twl: twlConfig
+      });
+
+      // Load resources in parallel with individual error handling
+      const resourcePromises = [
+        // Scripture (USFM) - Load for AI context
+        (async () => {
+          try {
+            console.log(`🔄 ResourcesContext: Loading Scripture for ${bookId} from ${scriptureConfig.organization}/${languageId}`);
+            console.log(`🔍 Scripture Config:`, scriptureConfig);
+            
+            // Get resource data with ingredients for correct file paths
+            const scriptureResourceData = await getResourceData('scripture', scriptureConfig);
+            console.log(`🔍 Scripture Resource Data:`, scriptureResourceData ? 'Found' : 'NOT FOUND', scriptureResourceData);
+            
+            let scriptureData;
+            if (scriptureResourceData) {
+              // Use enhanced service with resource data
+              console.log(`✅ Using enhanced Scripture service with resource data`);
+              scriptureData = await fetchBookWithFallback({
+                languageId,
+                resourceId: scriptureConfig.resourceId,
+                bookId,
+                resourceData: scriptureResourceData,
+                organization: scriptureConfig.organization,
+              });
+            } else {
+              // Fallback to enhanced service without resource data (uses naming convention)
+              console.warn(`🔄 ResourcesContext: No resource data for Scripture, using fallback naming`);
+              scriptureData = await fetchBookWithFallback({
+                languageId,
+                resourceId: scriptureConfig.resourceId,
+                bookId,
+                resourceData: null, // Will trigger naming convention fallback
+                organization: scriptureConfig.organization,
+              });
+            }
+            
+            console.log(`✅ ResourcesContext: Scripture loaded - ${scriptureData ? 'Available' : 'Not found'}`, scriptureData ? `${scriptureData.length} chars` : 'null');
+            setResourceLoadingStates(prev => ({ ...prev, scripture: false }));
+            return { type: 'scripture', data: scriptureData, config: scriptureConfig };
+          } catch (err) {
+            console.error('❌ ResourcesContext: Failed to load scripture:', err);
+            console.error('❌ Scripture Error details:', {
+              bookId,
+              config: scriptureConfig,
+              error: err.message,
+              stack: err.stack
+            });
+            setResourceLoadingStates(prev => ({ ...prev, scripture: false }));
+            return { type: 'scripture', data: null, config: scriptureConfig, error: err };
+          }
+        })(),
+
+        // Translation Notes
+        (async () => {
+          try {
+            console.log(`🔄 ResourcesContext: Loading TN for ${bookId} ${chapter}:${verse} from ${tnConfig.organization}/${languageId}`);
+            console.log(`🔍 TN Config:`, tnConfig);
+            
+            // Get resource data with ingredients for correct file paths
+            const tnResourceData = await getResourceData('tn', tnConfig);
+            console.log(`🔍 TN Resource Data:`, tnResourceData ? 'Found' : 'NOT FOUND', tnResourceData);
+            
+            let result;
+            if (tnResourceData) {
+              // Use enhanced service with resource data
+              console.log(`✅ Using enhanced TN service with resource data`);
+              result = await getNotesForVerseWithResourceData(
+                bookId, 
+                chapter, 
+                verse, 
+                tnResourceData,
+                languageId
+              );
+            } else {
+              // Fallback to old service with hardcoded naming
+              console.warn(`🔄 ResourcesContext: No resource data for TN, using fallback naming`);
+              result = await getNotesForVerse(
+                bookId, 
+                chapter, 
+                verse, 
+                tnConfig.organization, 
+                languageId
+              );
+            }
+            
+            console.log(`✅ ResourcesContext: TN loaded - ${result.length} notes found`, result);
+            setResourceLoadingStates(prev => ({ ...prev, tn: false }));
+            return { type: 'tn', data: result, config: tnConfig };
+          } catch (err) {
+            console.error('❌ ResourcesContext: Failed to load translation notes:', err);
+            console.error('❌ TN Error details:', {
+              bookId,
+              chapter,
+              verse,
+              config: tnConfig,
+              error: err.message,
+              stack: err.stack
+            });
+            setResourceLoadingStates(prev => ({ ...prev, tn: false }));
+            return { type: 'tn', data: [], config: tnConfig, error: err };
+          }
+        })(),
+
+        // Translation Questions
+        (async () => {
+          try {
+            console.log(`🔄 ResourcesContext: Loading TQ for ${bookId} ${chapter}:${verse} from ${tqConfig.organization}/${languageId}`);
+            console.log(`🔍 TQ Config:`, tqConfig);
+            
+            // Get resource data with ingredients for correct file paths
+            const tqResourceData = await getResourceData('tq', tqConfig);
+            console.log(`🔍 TQ Resource Data:`, tqResourceData ? 'Found' : 'NOT FOUND', tqResourceData);
+            
+            let result;
+            if (tqResourceData) {
+              // Use enhanced service with resource data
+              console.log(`✅ Using enhanced TQ service with resource data`);
+              result = await getQuestionsForVerseWithResourceData(
+                bookId,
+                chapter,
+                verse,
+                tqResourceData,
+                languageId
+              );
+            } else {
+              // Fallback to old service with hardcoded naming
+              console.warn(`🔄 ResourcesContext: No resource data for TQ, using fallback naming`);
+              result = await getQuestionsForVerse(
+                bookId,
+                chapter,
+                verse,
+                tqConfig.organization,
+                languageId
+              );
+            }
+            
+            console.log(`✅ ResourcesContext: TQ loaded - ${result.length} questions found`, result);
+            setResourceLoadingStates(prev => ({ ...prev, tq: false }));
+            return { type: 'tq', data: result, config: tqConfig };
+          } catch (err) {
+            console.error('❌ ResourcesContext: Failed to load translation questions:', err);
+            console.error('❌ TQ Error details:', {
+              bookId,
+              chapter,
+              verse,
+              config: tqConfig,
+              error: err.message,
+              stack: err.stack
+            });
+            setResourceLoadingStates(prev => ({ ...prev, tq: false }));
+            return { type: 'tq', data: [], config: tqConfig, error: err };
+          }
+        })(),
+
+        // Translation Word Links
+        (async () => {
+          try {
+            console.log(`🔄 ResourcesContext: Loading TWL for ${bookId} ${chapter}:${verse} from ${twlConfig.organization}/${languageId}`);
+            
+            // Get resource data with ingredients for correct file paths
+            const twlResourceData = await getResourceData('twl', twlConfig);
+            
+            let result;
+            if (twlResourceData) {
+              // Use enhanced service with resource data
+              result = await getLinksForVerseWithResourceData(
+                bookId,
+                chapter,
+                verse,
+                twlResourceData,
+                languageId
+              );
+            } else {
+              // Fallback to old service with hardcoded naming
+              console.warn(`🔄 ResourcesContext: No resource data for TWL, using fallback naming`);
+              result = await getLinksForVerse(
+                bookId,
+                chapter,
+                verse,
+                twlConfig.organization,
+                languageId
+              );
+            }
+            
+            console.log(`✅ ResourcesContext: TWL loaded - ${result.length} links found`);
+            setResourceLoadingStates(prev => ({ ...prev, twl: false }));
+            return { type: 'twl', data: result, config: twlConfig };
+          } catch (err) {
+            console.error('❌ ResourcesContext: Failed to load translation word links:', err);
+            setResourceLoadingStates(prev => ({ ...prev, twl: false }));
+            return { type: 'twl', data: [], config: twlConfig, error: err };
+          }
+        })(),
+      ];
+
+      const resourceResults = await Promise.all(resourcePromises);
+      
+      // Process results
+      const processedResults = {};
+      resourceResults.forEach(result => {
+        processedResults[result.type] = result;
+      });
+
+      // Load Translation Words based on TWL links
+      let twResult;
+      try {
+        const twlLinks = processedResults.twl?.data || [];
+        console.log(`🔄 ResourcesContext: Loading TW for ${twlLinks.length} links from ${twConfig.organization}/${languageId}`);
+        const twData = twlLinks.length > 0
+          ? await getArticlesForLinks(twlLinks, languageId, twConfig.organization)
+          : [];
+        console.log(`✅ ResourcesContext: TW loaded - ${twData.length} articles found`);
+        setResourceLoadingStates(prev => ({ ...prev, tw: false }));
+        twResult = { type: 'tw', data: twData, config: twConfig };
+      } catch (err) {
+        console.error('❌ ResourcesContext: Failed to load translation words:', err);
+        setResourceLoadingStates(prev => ({ ...prev, tw: false }));
+        twResult = { type: 'tw', data: [], config: twConfig, error: err };
+      }
+
+      // Process scripture data
+      const usfmData = processedResults.scripture?.data;
+      let chapterUsfm = null;
+      let versesByChapter = {};
+      
+      if (usfmData) {
+        // Extract raw USFM for the current chapter
+        if (process.env.NODE_ENV === "development") {
+          console.log("[ResourcesContext] usfmData (first 200 chars):", usfmData.substring(0, 200));
+        }
+        const chapterKey = String(chapter);
+        const chapterRegex = /\\c\s+(\d+)([\s\S]*?)(?=(\r?\n)\\c\s+\d+|$)/g;
+        let match;
+        while ((match = chapterRegex.exec(usfmData)) !== null) {
+          if (match[1] === chapterKey) {
+            chapterUsfm = (`\\c ${chapterKey}` + match[2]).trim();
+            break;
+          }
+        }
+
+        // Parse verses
+        try {
+          const parser = new USFMSemanticParser();
+          parser.parse(usfmData);
+          const chapterKey = String(chapter);
+          if (parser.chapters && parser.chapters[chapterKey]) {
+            versesByChapter = parser.chapters[chapterKey];
+          }
+        } catch (err) {
+          console.error("Error parsing USFM for verses:", err);
+        }
+      }
+
+      // Build enhanced resource metadata with organization attribution
+      const buildResourceMetadata = (result, resourceType) => {
+        const baseMetadata = {
+          resourceId: result.config.resourceId,
+          organization: result.config.organization,
+          isFromMixedResources: result.config.isFromMixedResources,
+          languageId,
+          loadingError: result.error?.message || null,
+        };
+
+        // Use fallback titles (manifest-based titles removed)
+        const fallbackTitles = {
+          tn: "Translation Notes",
+          tq: "Translation Questions", 
+          tw: "Translation Words",
+          twl: "Translation Word Links"
+        };
+        baseMetadata.title = fallbackTitles[resourceType] || `${result.config.resourceId.toUpperCase()}`;
+
+        return baseMetadata;
+      };
+
+      // Update resources state with cross-organization attribution
+      setResources({
+        scripture: usfmData ? {
+          ...buildResourceMetadata(processedResults.scripture, 'scripture'),
+          usfm: usfmData,
+          verses: versesByChapter,
+          chapterUsfm: chapterUsfm,
+        } : null,
+        
+        translationNotes: (processedResults.tn?.data || []).map((note, index) => ({
+          ...note,
+          ...buildResourceMetadata(processedResults.tn, 'tn'),
+          id: index + 1,
+        })),
+        
+        translationQuestions: (processedResults.tq?.data || []).map((question, index) => ({
+          ...question,
+          ...buildResourceMetadata(processedResults.tq, 'tq'),
+          id: index + 1,
+        })),
+        
+        translationWords: (twResult?.data || []).map((article, index) => ({
+          ...article,
+          ...buildResourceMetadata(twResult, 'tw'),
+          id: index + 1,
+          term: article.title,
+          content: article.content,
+          rcLink: article.rcUri,
+        })),
+        
+        translationWordLinks: (processedResults.twl?.data || []).map((link, index) => ({
+          rcLink: link,
+          ...buildResourceMetadata(processedResults.twl, 'twl'),
+          id: index + 1,
+        })),
+      });
+
+      // Update metadata with cross-organization information
+      console.log(`📊 ResourcesContext: Setting metadata for ${bookId} ${chapter}:${verse}`);
+      setMetadata({
+        organization,
+        languageId,
+        bookId,
+        chapter: parseInt(chapter),
+        verse: parseInt(verse),
+        // manifestInfo removed - no longer using manifests
+        timestamp: new Date().toISOString(),
+        
+        // Enhanced metadata for cross-organization support
+        advancedMode,
+        resourceConfigurations: {
+          scripture: processedResults.scripture?.config,
+          tn: processedResults.tn?.config,
+          tq: processedResults.tq?.config,
+          tw: twResult?.config,
+          twl: processedResults.twl?.config,
+        },
+        crossOrganizationUsage: advancedMode && Object.values({
+          scripture: processedResults.scripture?.config,
+          tn: processedResults.tn?.config,
+          tq: processedResults.tq?.config,
+          tw: twResult?.config,
+          twl: processedResults.twl?.config,
+        }).some(config => config?.isFromMixedResources),
+      });
+
+      console.log('✅ ResourcesContext: Successfully loaded all resources and set metadata');
+      
+    } catch (err) {
+      console.error("Error loading resources:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+      setResourceLoadingStates({
+        scripture: false,
+        tn: false,
+        tq: false,
+        tw: false,
+        twl: false,
+      });
+    }
+  }, [bookId, chapter, verse, languageId, getResourceConfig, advancedMode, organization]);
+
+  // Enhanced context formatting with cross-organization attribution
+  const getFormattedContext = useCallback(() => {
+    // If metadata is not available yet, return a loading context
+    if (!metadata) {
+      console.log(`⏳ ResourcesContext: getFormattedContext called during loading - returning loading context`);
+      return {
+        reference: {
+          book: bookId || 'unknown',
+          chapter: chapter || 1,
+          verse: verse || 1,
+          organization: organization || 'unfoldingWord',
+          language: languageId || 'en',
+          citation: `${bookId || 'unknown'} ${chapter || 1}:${verse || 1}`,
+        },
+        resources: {
+          scriptureText: "",
+          alignmentData: [],
+          scripture: "",
+          translationNotes: [],
+          translationQuestions: [],
+          translationWords: [],
+          translationWordLinks: [],
+        },
+        metadata: {
+          timestamp: new Date().toISOString(),
+          contextSize: 0,
+          loading: true,
+          advancedMode: advancedMode || false,
+          crossOrganizationUsage: false,
+          resourceOrganizations: {},
+          manifestTitles: {},
+          resourceLoadingStatus: {
+            scripture: false,
+            translationNotes: false,
+            translationQuestions: false,
+            translationWords: false,
+            translationWordLinks: false,
+          },
+        },
+      };
+    }
+
+    console.log(`📋 ResourcesContext: getFormattedContext for ${metadata.bookId} ${metadata.chapter}:${metadata.verse} - metadata available`);
+
+    // Debug logging for development
+    if (resources.scripture?.chapterUsfm) {
+      const logKey = `${metadata.bookId}-${metadata.chapter}-${metadata.verse}`;
+      if (!window._logCache) window._logCache = {};
+      if (!window._logCache[logKey] || Date.now() - window._logCache[logKey] > 1000) {
+        console.log(
+          "[ResourcesContext] getFormattedContext: reference",
+          metadata.bookId,
+          metadata.chapter,
+          metadata.verse,
+          "| chapterUsfm:",
+          resources.scripture.chapterUsfm.substring(0, 100)
+        );
+        window._logCache[logKey] = Date.now();
+      }
+    }
+
+    // Enhanced scripture text preprocessing
+    const preprocessUSFMToPlainText = (usfmText, chapter, verse) => {
+      if (!usfmText) return "";
+
+      try {
+        const verseMarker = `\\v ${verse}`;
+        const verseIndex = usfmText.indexOf(verseMarker);
+        
+        if (verseIndex === -1) return "";
+
+        let verseText = usfmText.substring(verseIndex + verseMarker.length);
+        const nextVerseIndex = verseText.indexOf("\\v ");
+        if (nextVerseIndex !== -1) {
+          verseText = verseText.substring(0, nextVerseIndex);
+        }
+
+        verseText = verseText
+          .replace(/\\zaln-s[^\\]*?\\?\*/g, "")
+          .replace(/\\zaln-e\\?\*/g, "")
+          .replace(/\\w\s+([^|]+)\|[^\\]*?\\w\*/g, "$1")
+          .replace(/\\[a-z]+[-\w]*\s*[^\\]*?\*/g, "")
+          .replace(/\\[a-z]+[-\w]*\s*/g, "")
+          .replace(/\|[^|]*?\*/g, "")
+          .replace(/\s*,\s*/g, ", ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        return verseText;
+      } catch (err) {
+        console.error("Error extracting verse text from USFM:", err);
+        return "";
+      }
+    };
+
+    let scriptureText = "";
+    let alignmentDataFormatted = [];
+    
+    if (resources.scripture?.chapterUsfm && metadata) {
+      try {
+        scriptureText = preprocessUSFMToPlainText(
+          resources.scripture.chapterUsfm,
+          metadata.chapter,
+          metadata.verse
+        );
+        scriptureText = `${metadata.bookId} ${metadata.chapter}:${metadata.verse}: ${scriptureText}`;
+
+        // Enhanced scripture text with organization attribution
+        if (resources.scripture.organization !== organization) {
+          scriptureText += ` (from ${resources.scripture.organization})`;
+        }
+
+        // Parse for alignment data
+        const html = parseUSFMToHTML(resources.scripture.chapterUsfm, "preview");
+        if (typeof window !== "undefined" && typeof document !== "undefined") {
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = html;
+          const verseNum = String(metadata.verse);
+          let verseElem = null;
+          const vElems = tempDiv.querySelectorAll("v");
+          for (const v of vElems) {
+            const numberElem = v.querySelector("number");
+            if (numberElem && numberElem.textContent.trim() === verseNum) {
+              verseElem = v;
+              break;
+            }
+          }
+          if (verseElem) {
+            alignmentDataFormatted = Array.from(verseElem.querySelectorAll("word, zaln")).map(
+              (el) => {
+                const attrs = el.getAttributeNames().reduce((acc, name) => {
+                  acc[name] = el.getAttribute(name);
+                  return acc;
+                }, {});
+                let formattedAttrs = "";
+                if (attrs["x-strong"]) formattedAttrs += `Strong's: ${attrs["x-strong"]}, `;
+                if (attrs["x-lemma"]) formattedAttrs += `Lemma: ${attrs["x-lemma"]}, `;
+                if (attrs["x-occurrence"])
+                  formattedAttrs += `Occurrence: ${attrs["x-occurrence"]}/${attrs["x-occurrences"]}, `;
+                if (attrs["x-content"]) formattedAttrs += `Content: ${attrs["x-content"]}, `;
+                formattedAttrs = formattedAttrs.trim().replace(/,$/, "");
+                return `Word: "${el.textContent}"${formattedAttrs ? ` (${formattedAttrs})` : ""}`;
+              }
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Error preprocessing USFM for LLM context:", err);
+        scriptureText = `Error preprocessing Scripture text for ${metadata.bookId} ${metadata.chapter}:${metadata.verse}`;
+      }
+    }
+
+    const formattedContext = {
+      reference: {
+        book: metadata.bookId,
+        chapter: metadata.chapter,
+        verse: metadata.verse,
+        organization: metadata.organization,
+        language: metadata.languageId,
+        citation: `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`,
+      },
+      resources: {
+        scriptureText,
+        alignmentData: alignmentDataFormatted,
+        scripture: scriptureText,
+        translationNotes: resources.translationNotes,
+        translationQuestions: resources.translationQuestions,
+        translationWords: resources.translationWords,
+        translationWordLinks: resources.translationWordLinks,
+      },
+      metadata: {
+        timestamp: metadata.timestamp,
+        contextSize: 0,
+        
+        // Enhanced metadata with cross-organization information
+        advancedMode: metadata.advancedMode,
+        crossOrganizationUsage: metadata.crossOrganizationUsage,
+        resourceOrganizations: {
+          scripture: resources.scripture?.organization,
+          translationNotes: resources.translationNotes[0]?.organization,
+          translationQuestions: resources.translationQuestions[0]?.organization,
+          translationWords: resources.translationWords[0]?.organization,
+          translationWordLinks: resources.translationWordLinks[0]?.organization,
+        },
+        
+        manifestTitles: {
+          scripture: resources.scripture?.title,
+          translationNotes: resources.translationNotes[0]?.title,
+          translationQuestions: resources.translationQuestions[0]?.title,
+          translationWords: resources.translationWords[0]?.title,
+          translationWordLinks: resources.translationWordLinks[0]?.title,
+        },
+        resourceLoadingStatus: {
+          scripture: !isLoading && !!resources.scripture,
+          translationNotes: !isLoading && resources.translationNotes.length > 0,
+          translationQuestions: !isLoading && resources.translationQuestions.length > 0,
+          translationWords: !isLoading && resources.translationWords.length > 0,
+          translationWordLinks: !isLoading && resources.translationWordLinks.length > 0,
+        },
+      },
+    };
+
+    // Debug logging for AI context
+    console.log(`📋 ResourcesContext: getFormattedContext for ${formattedContext.reference.citation}:`);
+    console.log(`  - Scripture: ${formattedContext.resources.scripture ? 'Available' : 'None'}`);
+    console.log(`  - Translation Notes: ${formattedContext.resources.translationNotes.length} notes`);
+    console.log(`  - Translation Questions: ${formattedContext.resources.translationQuestions.length} questions`);
+    console.log(`  - Translation Words: ${formattedContext.resources.translationWords.length} words`);
+    console.log(`  - Translation Word Links: ${formattedContext.resources.translationWordLinks.length} links`);
+
+    return formattedContext;
+  }, [resources, metadata, isLoading, verse, organization]);
+
+  // Enhanced debugging exposure
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window._resourcesContext = {
+        getFormattedContext,
+        resources,
+        metadata,
+        manifests,
+        isLoading,
+        error,
+        resourceLoadingStates,
+        advancedMode,
+        mixedResources,
+      };
+    }
+  }, [getFormattedContext, resources, metadata, manifests, isLoading, error, resourceLoadingStates, advancedMode, mixedResources]);
+
+  // Get resource data with ingredients from catalog API
+  const getResourceData = useCallback(async (resourceType, config) => {
+    const cacheKey = `${config.organization}_${languageId}_${config.resourceId}`;
+    
+    console.log(`🔍 getResourceData called:`, {
+      resourceType,
+      config,
+      cacheKey,
+      languageId
+    });
+    
+    // Check cache first
+    if (resourceDataCache[cacheKey]) {
+      console.log(`✅ Found cached resource data for ${cacheKey}`);
+      return resourceDataCache[cacheKey];
+    }
+
+    try {
+      console.log(`🔍 Getting resource data for ${resourceType}: ${cacheKey}`);
+      
+      // Get all resources for the language and find the specific one we need
+      const { resources } = await searchAllResourcesForLanguage(languageId);
+      console.log(`🔍 searchAllResourcesForLanguage returned:`, resources ? 'Data' : 'NULL', Object.keys(resources || {}).length, 'organizations');
+      
+      // Find the resource in the specified organization
+      const orgResources = resources[config.organization];
+      if (!orgResources) {
+        console.warn(`❌ No resources found for organization ${config.organization}. Available orgs:`, Object.keys(resources || {}));
+        return null;
+      }
+
+      console.log(`🔍 Found ${orgResources.length} resources in ${config.organization}`);
+
+      // Find the specific resource by subject/type
+      const subjectMap = {
+        scripture: ['Bible', 'Aligned Bible'],
+        tn: ['TSV Translation Notes'],
+        tq: ['TSV Translation Questions'], 
+        tw: ['Translation Words'],
+        twl: ['TSV Translation Words Links']
+      };
+
+      const expectedSubjects = subjectMap[resourceType] || [];
+      console.log(`🔍 Looking for resource with subjects:`, expectedSubjects, `and ID containing:`, config.resourceId);
+
+      const resourceData = orgResources.find(res => {
+        const subjects = subjectMap[resourceType] || [];
+        const matchesSubject = subjects.includes(res.subject);
+        const matchesId = res.id === config.resourceId || res.name.includes(config.resourceId);
+        
+        console.log(`🔍 Checking resource:`, {
+          id: res.id,
+          name: res.name,
+          subject: res.subject,
+          matchesSubject,
+          matchesId,
+          overall: matchesSubject && matchesId
+        });
+        
+        return matchesSubject && matchesId;
+      });
+
+      if (resourceData) {
+        // Cache the resource data
+        setResourceDataCache(prev => ({
+          ...prev,
+          [cacheKey]: resourceData
+        }));
+        
+        console.log(`✅ Found resource data for ${resourceType}:`, {
+          id: resourceData.id,
+          name: resourceData.name,
+          subject: resourceData.subject,
+          ingredientsCount: resourceData.ingredients?.length || 0,
+          ingredients: resourceData.ingredients?.map(ing => ({ id: ing.identifier, path: ing.path }))
+        });
+      } else {
+        console.warn(`❌ Resource ${config.resourceId} not found in ${config.organization} for ${resourceType}`);
+        console.warn(`Available resources:`, orgResources.map(res => ({
+          id: res.id,
+          name: res.name,
+          subject: res.subject
+        })));
+      }
+
+      return resourceData;
+    } catch (error) {
+      console.error(`❌ Failed to get resource data for ${resourceType}:`, error);
+      return null;
+    }
+  }, [languageId, resourceDataCache]);
+
+  // Enhanced unified resource loading functions for components to use
+  const loadScriptureData = useCallback(async (bookId, organization, languageId, resourceId) => {
+    console.log(`🔄 ResourcesContext: loadScriptureData called for ${bookId}`);
+    
+    try {
+      const config = { organization, resourceId };
+      const resourceData = await getResourceData('scripture', config);
+      
+      let scriptureData;
+      if (resourceData) {
+        scriptureData = await fetchBookWithFallback({
+          languageId,
+          resourceId,
+          bookId,
+          resourceData,
+          organization,
+        });
+      } else {
+        scriptureData = await fetchBookWithFallback({
+          languageId,
+          resourceId,
+          bookId,
+          resourceData: null,
+          organization,
+        });
+      }
+      
+      // Update the global scripture state
+      setResources(prev => ({
+        ...prev,
+        scripture: scriptureData ? {
+          resourceId,
+          organization,
+          languageId,
+          usfm: scriptureData,
+          chapterUsfm: null, // Will be processed when needed
+          verses: {},
+        } : null
+      }));
+      
+      console.log(`✅ ResourcesContext: Scripture data loaded and cached`);
+      return scriptureData;
+    } catch (error) {
+      console.error(`❌ ResourcesContext: Failed to load scripture:`, error);
+      throw error;
+    }
+  }, [getResourceData]);
+
+  const loadTranslationNotes = useCallback(async (bookId, chapter, verse, organization, languageId) => {
+    console.log(`🔄 ResourcesContext: loadTranslationNotes called for ${bookId} ${chapter}:${verse}`);
+    
+    try {
+      const config = { organization, resourceId: 'tn' };
+      const resourceData = await getResourceData('tn', config);
+      
+      let result;
+      if (resourceData) {
+        result = await getNotesForVerseWithResourceData(bookId, chapter, verse, resourceData, languageId);
+      } else {
+        result = await getNotesForVerse(bookId, chapter, verse, organization, languageId);
+      }
+      
+      // Update the global translation notes state
+      setResources(prev => ({
+        ...prev,
+        translationNotes: result.map((note, index) => ({
+          ...note,
+          organization,
+          languageId,
+          resourceId: 'tn',
+          id: index + 1,
+        }))
+      }));
+      
+      console.log(`✅ ResourcesContext: Translation Notes loaded and cached - ${result.length} notes`);
+      return result;
+    } catch (error) {
+      console.error(`❌ ResourcesContext: Failed to load translation notes:`, error);
+      throw error;
+    }
+  }, [getResourceData]);
+
+  const loadTranslationQuestions = useCallback(async (bookId, chapter, verse, organization, languageId) => {
+    console.log(`🔄 ResourcesContext: loadTranslationQuestions called for ${bookId} ${chapter}:${verse}`);
+    
+    try {
+      const config = { organization, resourceId: 'tq' };
+      const resourceData = await getResourceData('tq', config);
+      
+      let result;
+      if (resourceData) {
+        result = await getQuestionsForVerseWithResourceData(bookId, chapter, verse, resourceData, languageId);
+      } else {
+        result = await getQuestionsForVerse(bookId, chapter, verse, organization, languageId);
+      }
+      
+      // Update the global translation questions state
+      setResources(prev => ({
+        ...prev,
+        translationQuestions: result.map((question, index) => ({
+          ...question,
+          organization,
+          languageId,
+          resourceId: 'tq',
+          id: index + 1,
+        }))
+      }));
+      
+      console.log(`✅ ResourcesContext: Translation Questions loaded and cached - ${result.length} questions`);
+      return result;
+    } catch (error) {
+      console.error(`❌ ResourcesContext: Failed to load translation questions:`, error);
+      throw error;
+    }
+  }, [getResourceData]);
+
+  const loadTranslationWordLinks = useCallback(async (bookId, chapter, verse, organization, languageId) => {
+    console.log(`🔄 ResourcesContext: loadTranslationWordLinks called for ${bookId} ${chapter}:${verse}`);
+    
+    try {
+      const config = { organization, resourceId: 'twl' };
+      const resourceData = await getResourceData('twl', config);
+      
+      let result;
+      if (resourceData) {
+        result = await getLinksForVerseWithResourceData(bookId, chapter, verse, resourceData, languageId);
+      } else {
+        result = await getLinksForVerse(bookId, chapter, verse, organization, languageId);
+      }
+      
+      // Update the global translation word links state
+      setResources(prev => ({
+        ...prev,
+        translationWordLinks: result.map((link, index) => ({
+          rcLink: link,
+          organization,
+          languageId,
+          resourceId: 'twl',
+          id: index + 1,
+        }))
+      }));
+      
+      // Also load translation words based on the links
+      if (result.length > 0) {
+        try {
+          const twData = await getArticlesForLinks(result, languageId, organization);
+          setResources(prev => ({
+            ...prev,
+            translationWords: twData.map((article, index) => ({
+              ...article,
+              organization,
+              languageId,
+              resourceId: 'tw',
+              id: index + 1,
+              term: article.title,
+              content: article.content,
+              rcLink: article.rcUri,
+            }))
+          }));
+          console.log(`✅ ResourcesContext: Translation Words loaded and cached - ${twData.length} articles`);
+        } catch (twError) {
+          console.error(`❌ ResourcesContext: Failed to load translation words:`, twError);
+        }
+      }
+      
+      console.log(`✅ ResourcesContext: Translation Word Links loaded and cached - ${result.length} links`);
+      return result;
+    } catch (error) {
+      console.error(`❌ ResourcesContext: Failed to load translation word links:`, error);
+      throw error;
+    }
+  }, [getResourceData]);
+
+  const value = {
+    resources,
+    metadata,
+    manifests,
+    isLoading,
+    error,
+    getFormattedContext,
+    
+    // 🎯 DIRECT RESOURCE ACCESS - No more event bus!
+    resourcesRef,
+    
+    // Unified resource loading functions for components
+    loadScriptureData,
+    loadTranslationNotes,
+    loadTranslationQuestions,
+    loadTranslationWordLinks,
+    
+    // Enhanced loading states with per-resource granularity
+    loadingStates: {
+      manifests: Object.keys(manifests).length === 0 && isLoading,
+      scripture: resourceLoadingStates.scripture,
+      translationNotes: resourceLoadingStates.tn,
+      translationQuestions: resourceLoadingStates.tq,
+      translationWords: resourceLoadingStates.tw,
+      translationWordLinks: resourceLoadingStates.twl,
+    },
+    
+    // Enhanced diagnostics with cross-organization information
+    diagnostics: {
+      manifestsAvailable: {
+        [resourceId]: true, // Will be validated by service layer
+        // Note: Manifest-based availability removed - using resource data from catalog API
+        tn: true, // Will be validated by service layer
+        tq: true, // Will be validated by service layer
+        tw: true, // Will be validated by service layer
+        twl: true, // Will be validated by service layer
+      },
+      resourceCounts: {
+        scripture: resources.scripture ? 1 : 0,
+        translationNotes: resources.translationNotes.length,
+        translationQuestions: resources.translationQuestions.length,
+        translationWords: resources.translationWords.length,
+        translationWordLinks: resources.translationWordLinks.length,
+      },
+      currentReference: metadata
+        ? `${metadata.bookId} ${metadata.chapter}:${metadata.verse}`
+        : null,
+      currentResourceId: resourceId,
+      
+      // New cross-organization diagnostics
+      advancedMode,
+      crossOrganizationUsage: metadata?.crossOrganizationUsage || false,
+      resourceConfigurations: metadata?.resourceConfigurations || {},
+      organizationBreakdown: {
+        scripture: resources.scripture?.organization,
+        translationNotes: resources.translationNotes[0]?.organization,
+        translationQuestions: resources.translationQuestions[0]?.organization,
+        translationWords: resources.translationWords[0]?.organization,
+        translationWordLinks: resources.translationWordLinks[0]?.organization,
+      },
+    },
+  };
+
+  return <ResourcesContext.Provider value={value}>{children}</ResourcesContext.Provider>;
+}
+
+export { ResourcesContext };
+
+// Custom hook for components to easily access and load resources
+export const useResourcesData = () => {
+  const context = useContext(ResourcesContext);
+  if (!context) {
+    throw new Error('useResourcesData must be used within a ResourcesProvider');
+  }
+  
+  return {
+    // Current resource data
+    scripture: context.resources.scripture,
+    translationNotes: context.resources.translationNotes,
+    translationQuestions: context.resources.translationQuestions,
+    translationWords: context.resources.translationWords,
+    translationWordLinks: context.resources.translationWordLinks,
+    
+    // Loading functions
+    loadScriptureData: context.loadScriptureData,
+    loadTranslationNotes: context.loadTranslationNotes,
+    loadTranslationQuestions: context.loadTranslationQuestions,
+    loadTranslationWordLinks: context.loadTranslationWordLinks,
+    
+    // Loading states
+    isLoading: context.isLoading,
+    loadingStates: context.loadingStates,
+    error: context.error,
+    
+    // Formatted context for AI
+    getFormattedContext: context.getFormattedContext,
+  };
+};
+
+// Auto-loading hook that ensures resources are loaded when reference changes
+export const useAutoLoadResources = () => {
+  console.log(`🔄 useAutoLoadResources: Hook called`);
+  
+  const { 
+    loadScriptureData, 
+    loadTranslationNotes, 
+    loadTranslationQuestions, 
+    loadTranslationWordLinks 
+  } = useResourcesData();
+  
+  const { reference, organization, languageId, resourceId } = useReferenceContext();
+  const { bookId, chapter, verse } = reference || {};
+
+  console.log(`🔍 useAutoLoadResources: Context values:`, {
+    bookId,
+    chapter,
+    verse,
+    organization,
+    languageId,
+    resourceId,
+    hasReference: !!reference,
+    hasLoadFunctions: !!(loadScriptureData && loadTranslationNotes && loadTranslationQuestions && loadTranslationWordLinks)
+  });
+
+  useEffect(() => {
+    console.log(`🔄 useAutoLoadResources: useEffect triggered`);
+    
+    async function autoLoadResources() {
+      if (!bookId || !chapter || !verse || !organization || !languageId) {
+        console.log(`⏭️ AutoLoad: Skipping - missing required data:`, { bookId, chapter, verse, organization, languageId });
+        return;
+      }
+
+      console.log(`🚀 AutoLoad: Loading all resources for ${bookId} ${chapter}:${verse}`);
+
+      try {
+        // Load all resources in parallel to populate global context
+        await Promise.all([
+          loadScriptureData(bookId, organization, languageId, resourceId || 'ult'),
+          loadTranslationNotes(bookId, chapter, verse, organization, languageId),
+          loadTranslationQuestions(bookId, chapter, verse, organization, languageId),
+          loadTranslationWordLinks(bookId, chapter, verse, organization, languageId), // This also loads TW
+        ]);
+
+        console.log(`✅ AutoLoad: All resources loaded for AI Assistant context`);
+      } catch (error) {
+        console.error(`❌ AutoLoad: Failed to load resources:`, error);
+      }
+    }
+
+    autoLoadResources();
+  }, [bookId, chapter, verse, organization, languageId, resourceId, loadScriptureData, loadTranslationNotes, loadTranslationQuestions, loadTranslationWordLinks]);
+};

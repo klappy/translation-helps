@@ -1,10 +1,11 @@
 /**
  * ResourceCard.jsx
  * Unified resource card component that works in both narrow (listing) and wide (header) modes
+ * Updated with cleaner design and progressive disclosure
  */
 
 import React, { useState, useEffect } from "react";
-import { fetchResourceManifest } from "../../../services/manifestService";
+// Note: manifestService removed after manifest elimination
 import styles from "./ResourceCard.module.css";
 
 // Helper function to extract and format metadata from manifest
@@ -70,7 +71,7 @@ export function ResourceCard({
   // Layout props
   isDesktop = false,
   layout = "narrow", // narrow (for listing) or wide (for header)
-  showMetadata = true,
+  showMetadata = false, // Changed default to false for cleaner look
 
   // Test props
   "data-testid": testId,
@@ -79,45 +80,10 @@ export function ResourceCard({
   const [metadata, setMetadata] = useState(null);
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
 
-  // Fetch manifest data when in wide layout or when showMetadata is true
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadManifest = async () => {
-      if (!showMetadata || !organization || !languageId || !resourceId) {
-        return;
-      }
-
-      try {
-        setMetadataLoading(true);
-        setMetadataError(null);
-
-        const manifestData = await fetchResourceManifest(organization, languageId, resourceId);
-
-        if (isMounted && manifestData) {
-          setManifest(manifestData);
-          const resourceMetadata = getResourceMetadata(manifestData, resourceId);
-          setMetadata(resourceMetadata);
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.warn("Failed to load resource manifest:", err);
-          setMetadataError(err.message);
-        }
-      } finally {
-        if (isMounted) {
-          setMetadataLoading(false);
-        }
-      }
-    };
-
-    loadManifest();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [organization, languageId, resourceId, showMetadata]);
+  // Note: Manifest loading removed after manifest elimination
+  // Metadata is now passed as props or derived from resource data
 
   const handleClick = () => {
     if (!disabled && !loading && onClick) {
@@ -149,7 +115,7 @@ export function ResourceCard({
     .filter(Boolean)
     .join(" ");
 
-  // Render icon/avatar
+  // Render icon/avatar with priority: avatar URL > emoji avatar > icon > default
   const renderIcon = () => {
     if (loading) {
       return (
@@ -159,7 +125,7 @@ export function ResourceCard({
       );
     }
 
-    // Check if avatar is a URL (image) or emoji/text
+    // Priority: avatar URL > emoji avatar > icon > default
     if (avatar) {
       if (avatar.startsWith("http") || avatar.startsWith("/") || avatar.includes(".")) {
         // It's an image URL
@@ -187,13 +153,27 @@ export function ResourceCard({
       return <div className={styles.fallbackIcon}>{icon}</div>;
     }
 
-    // Default placeholder
+    // Default placeholder based on resource type
     return <div className={styles.fallbackIcon}>📄</div>;
   };
 
-  // Render metadata details (now shown in both layouts)
+  // Get resource type for badge display
+  const getResourceTypeBadge = () => {
+    if (badge) return badge;
+    
+    // Derive type from resourceId
+    const id = resourceId?.toLowerCase() || "";
+    if (id.includes("ult") || id.includes("bible")) return "Bible";
+    if (id.includes("tn") || id.includes("notes")) return "Notes";
+    if (id.includes("tq") || id.includes("questions")) return "Q&A";
+    if (id.includes("tw") || id.includes("words")) return "Words";
+    if (id.includes("ta") || id.includes("academy")) return "Guide";
+    return null;
+  };
+
+  // Render metadata details (progressive disclosure)
   const renderMetadata = () => {
-    if (!showMetadata) return null;
+    if (!showMetadata && !showDetails) return null;
     if (metadataLoading || !metadata) return null;
 
     const metadataItems = [
@@ -206,16 +186,10 @@ export function ResourceCard({
     if (metadataItems.length === 0) return null;
 
     return (
-      <div
-        className={`${styles.metadata} ${isDesktop ? styles.desktop : ""} ${
-          layout === "narrow" ? styles.metadataNarrow : styles.metadataWide
-        }`}
-      >
+      <div className={`${styles.metadata} ${isDesktop ? styles.desktop : ""}`}>
         {metadataItems.map((item, index) => (
           <div key={index} className={`${styles.metadataItem} ${isDesktop ? styles.desktop : ""}`}>
-            <span className={`${styles.metadataIcon} ${isDesktop ? styles.desktop : ""}`}>
-              {item.icon}
-            </span>
+            <span className={styles.metadataIcon}>{item.icon}</span>
             <span className={styles.metadataLabel}>{item.label}:</span>
             <span className={styles.metadataValue}>{item.value}</span>
           </div>
@@ -224,11 +198,15 @@ export function ResourceCard({
     );
   };
 
+  const typeBadge = getResourceTypeBadge();
+
   return (
     <div
       className={cardClasses}
       onClick={onClick ? handleClick : undefined}
       onKeyDown={onClick ? handleKeyDown : undefined}
+      onMouseEnter={() => setShowDetails(true)}
+      onMouseLeave={() => setShowDetails(false)}
       role={onClick ? "button" : undefined}
       tabIndex={onClick && !disabled && !loading ? 0 : -1}
       aria-pressed={onClick ? selected : undefined}
@@ -240,7 +218,7 @@ export function ResourceCard({
       <div className={`${styles.iconContainer} ${isDesktop ? styles.desktop : ""}`}>
         {renderIcon()}
         {/* Fallback icon (hidden by default, shown if image fails) */}
-        {avatar && (
+        {avatar && avatar.startsWith("http") && (
           <div className={styles.fallbackIcon} style={{ display: "none" }}>
             {icon || "📄"}
           </div>
@@ -252,48 +230,27 @@ export function ResourceCard({
         <div className={`${styles.mainContent} ${isDesktop ? styles.desktop : ""}`}>
           <h4 className={`${styles.title} ${isDesktop ? styles.desktop : ""}`}>{displayTitle}</h4>
 
-          {/* Show metadata description in wide layout */}
-          {layout === "wide" && metadata?.description && (
-            <p className={`${styles.description} ${isDesktop ? styles.desktop : ""}`}>
-              {metadata.description}
-            </p>
+          {/* Resource type badge - subtle */}
+          {typeBadge && (
+            <span className={`${styles.typeBadge} ${isDesktop ? styles.desktop : ""}`}>
+              {typeof typeBadge === "string" ? typeBadge : typeBadge.label || typeBadge.text}
+            </span>
           )}
 
-          {/* Show provided description in narrow layout */}
-          {layout === "narrow" && displayDescription && (
+          {/* Description - only show in wide layout or on hover */}
+          {(layout === "wide" || showDetails) && displayDescription && (
             <p className={`${styles.description} ${isDesktop ? styles.desktop : ""}`}>
               {displayDescription}
             </p>
           )}
-
-          {/* Show resource identifier in wide layout */}
-          {layout === "wide" && metadata?.identifier && (
-            <div className={`${styles.resourceId} ${isDesktop ? styles.desktop : ""}`}>
-              {metadata.identifier.toUpperCase()}
-            </div>
-          )}
-
-          {/* Badge (if provided) */}
-          {badge && (
-            <div className={`${styles.badge} ${isDesktop ? styles.desktop : ""}`}>
-              {typeof badge === "string" ? badge : badge.label || badge.text}
-            </div>
-          )}
-
-          {/* Resource ID for narrow layout */}
-          {layout === "narrow" && resourceId && (
-            <div className={`${styles.resourceId} ${isDesktop ? styles.desktop : ""}`}>
-              {resourceId.toUpperCase()}
-            </div>
-          )}
         </div>
 
-        {/* Metadata (shown in both layouts) */}
+        {/* Metadata - progressive disclosure */}
         {renderMetadata()}
       </div>
 
-      {/* Selection indicator (only for clickable cards) */}
-      {onClick && (
+      {/* Selection indicator - minimal and clean */}
+      {onClick && selected && (
         <div className={`${styles.selectionIndicator} ${isDesktop ? styles.desktop : ""}`}>
           <span className={styles.checkIcon}>✓</span>
         </div>

@@ -50,6 +50,6 @@ This document explains the layout and function of each major area of the user in
 - `TranslationNotesPanel`, `TranslationWordsPanel`, `TranslationQuestionsPanel`, `TWLPanel` → individual help type displays
 - `VerseTabs` → verse-specific navigation
 - `VerseView` → individual verse display component
-- `ReferenceContext`, `ManifestsContext`, `ResourcesContext` → React context providers for state management
+- `ReferenceContext`, `ResourcesContext` → React context providers for state management (ManifestsContext REMOVED)
 
 The application is built with React 18, React Context + Hooks, and follows modern component patterns with comprehensive test coverage.
