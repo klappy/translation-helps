@@ -1,669 +1,496 @@
-# FIA Integration Master Plan
+# FIA Integration Master Plan (DCS-BASED)
 
-## 🎯 Project Overview
+## 🎯 Project Overview - DCS-BASED APPROACH
 
-**Goal**: Integrate FIA Project's multimedia Bible resources into Translation Helps application
-**Timeline**: 8 weeks (6 weeks development + 2 weeks testing/polish)
-**Impact**: Transform Translation Helps into a comprehensive multimedia Bible study platform
+**Goal**: Integrate FIA Project's multimedia Bible resources from DCS into Translation Helps application
+**Timeline**: 1 week (using existing DCS patterns)
+**Impact**: Add multimedia Bible study features while maintaining app simplicity
+**Philosophy**: Simple > Complex, Reuse > Rebuild, Proven Patterns > New Complexity
 
-## 📋 Epic Breakdown
+### Key Discovery
+FIA resources are already available on DCS as Scripture Burrito format:
+- **Images**: https://git.door43.org/BurritoTruck/en_fiaimages
+- **Maps**: https://git.door43.org/BurritoTruck/en_fiamaps
+- **Format**: TSV files (same as TN/TQ/TW)
+- **Access**: Standard DCS API (no authentication needed)
 
-### Epic 1: Foundation & Core Services (Weeks 1-2)
-**Goal**: Establish FIA GraphQL integration and basic service layer
+## 📋 Epic Breakdown - ULTRA-SIMPLIFIED
+
+### Epic 1: Core FIA Integration (Days 1-3)
+**Goal**: Get FIA content displaying using existing TSV patterns
 **Dependencies**: None
-**Deliverables**: Working FIA service, authentication, basic queries
+**Deliverables**: Working FIA service, self-activating panel, TSV parsing
 
-### Epic 2: UI Components & Navigation (Weeks 3-4)
-**Goal**: Create user interface components for FIA resources
+### Epic 2: Media Enhancement (Days 4-5)
+**Goal**: Display media referenced in TSV files
 **Dependencies**: Epic 1 complete
-**Deliverables**: FIA panel, step navigation, basic media display
+**Deliverables**: Image display with fallbacks, lazy loading
 
-### Epic 3: Media Integration (Weeks 5-6)
-**Goal**: Full multimedia support with Google Drive and YouTube
+### Epic 3: Polish & Testing (Days 6-7)
+**Goal**: Production readiness
 **Dependencies**: Epic 2 complete
-**Deliverables**: Media gallery, video player, offline caching
-
-### Epic 4: Testing & Polish (Weeks 7-8)
-**Goal**: Comprehensive testing, performance optimization, documentation
-**Dependencies**: Epic 3 complete
-**Deliverables**: Full test coverage, optimized performance, user documentation
+**Deliverables**: Error boundaries, tests, documentation
 
 ---
 
-## 📊 Epic 1: Foundation & Core Services
+## 📊 Epic 1: Core FIA Integration (Days 1-3)
 
-### Issue 1.1: Create FIA GraphQL Service
+### Issue 1.1: Add FIA Resources to ResourcesContext
 **Priority**: Critical
-**Estimate**: 3 days
-**Labels**: `feature`, `service`, `semver:minor`, `changelog:added`
+**Estimate**: 4 hours
+**Labels**: `feature`, `context`, `semver:minor`, `changelog:added`
 
 #### Acceptance Criteria
-- [ ] Create `src/services/fiaService.js` with Apollo Client setup
-- [ ] Implement authentication flow with token management
-- [ ] Add basic GraphQL queries for pericopes, steps, and media
-- [ ] Include error handling and retry logic
-- [ ] Add service to ResourcesContext activation patterns
-- [ ] Write unit tests with 90%+ coverage
+- [ ] Add 'fiaimages' and 'fiamaps' cases to `loadResourceForType`
+- [ ] Update ResourcesContext state structure for FIA
+- [ ] Follow existing TSV resource patterns exactly
+- [ ] No breaking changes to existing code
 
 #### Technical Requirements
 ```javascript
-// Required queries
-- getPericope(book, chapter, verse, language)
-- getStepRenderings(pericopeId, language)
-- getMediaAssets(pericopeId)
-- getTerms(pericopeId, language)
+// In loadResourceForType (following TN/TQ pattern)
+case 'fiaimages':
+  return await getVerseFiaImages(bookId, chapter, verse, language);
+case 'fiamaps':
+  return await getVerseFiaMaps(bookId, chapter, verse, language);
+
+// ResourcesContext state addition
+resources: {
+  // ... existing resources
+  fiaimages: null,  // Array of TSV rows or null
+  fiamaps: null     // Array of TSV rows or null
+}
 ```
 
 #### Definition of Done
-- [ ] All acceptance criteria met
-- [ ] Unit tests passing
-- [ ] Code review approved
-- [ ] Documentation updated
+- [ ] FIA resources activate like TN/TQ
+- [ ] No regression in existing functionality
+- [ ] Integration tests passing
 
 ---
 
-### Issue 1.2: Authentication Manager
-**Priority**: High
-**Estimate**: 2 days
-**Labels**: `feature`, `security`, `semver:minor`, `changelog:added`
-
-#### Acceptance Criteria
-- [ ] Create `src/services/authManager.js` for multi-provider auth
-- [ ] Implement FIA token-based authentication
-- [ ] Add token refresh and expiration handling
-- [ ] Secure token storage (localStorage with encryption)
-- [ ] Add authentication state to ResourcesContext
-- [ ] Handle authentication errors gracefully
-
-#### Technical Requirements
-- Token validation before API calls
-- Automatic token refresh
-- Logout functionality
-- Auth state persistence
-
-#### Definition of Done
-- [ ] Authentication flow working end-to-end
-- [ ] Security review passed
-- [ ] Error scenarios tested
-- [ ] Documentation complete
-
----
-
-### Issue 1.3: Update ResourcesContext for FIA
+### Issue 1.2: Create DCS-Based FIA Service
 **Priority**: Critical
-**Estimate**: 2 days
-**Labels**: `feature`, `context`, `semver:minor`, `changelog:changed`
+**Estimate**: 4 hours
+**Labels**: `feature`, `service`, `semver:minor`, `changelog:added`
 
 #### Acceptance Criteria
-- [ ] Add FIA resource type to ResourcesContext
-- [ ] Implement `activateResource('fia')` functionality
-- [ ] Add FIA data structure to resources state
-- [ ] Handle loading states and errors for FIA resources
-- [ ] Maintain existing resource patterns and compatibility
-- [ ] Add FIA-specific resource metadata
+- [ ] Create `src/services/fiaService.js` following tnService.js pattern
+- [ ] Fetch TSV files from DCS repositories
+- [ ] Parse TSV data using existing parseTsv utility
+- [ ] Return verse-specific rows
+- [ ] Graceful error handling with null returns
 
 #### Technical Requirements
 ```javascript
-// ResourcesContext additions
-resources: {
-  // ... existing resources
-  fia: {
-    pericope: null,
-    steps: [],
-    mediaAssets: [],
-    terms: [],
-    loading: false,
-    error: null
+// fiaService.js - Following existing TSV patterns
+import { parseTsv } from '../utils/parseTsv';
+
+const DCS_BASE_URL = 'https://git.door43.org';
+
+export async function getVerseFiaImages(bookId, chapter, verse, language = 'en') {
+  try {
+    // Build URL following DCS patterns
+    const url = `${DCS_BASE_URL}/BurritoTruck/${language}_fiaimages/raw/branch/master/ingredients/${bookId}.tsv`;
+    
+    // Fetch TSV data
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    
+    const tsvText = await response.text();
+    const rows = parseTsv(tsvText);
+    
+    // Filter for specific verse
+    const verseRef = `${chapter}:${verse}`;
+    return rows.filter(row => row.REF === verseRef);
+    
+  } catch (error) {
+    console.warn('FIA images not available:', error);
+    return null; // Graceful degradation
+  }
+}
+
+export async function getVerseFiaMaps(bookId, chapter, verse, language = 'en') {
+  // Same pattern for maps
+  try {
+    const url = `${DCS_BASE_URL}/BurritoTruck/${language}_fiamaps/raw/branch/master/ingredients/${bookId}.tsv`;
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    
+    const tsvText = await response.text();
+    const rows = parseTsv(tsvText);
+    
+    const verseRef = `${chapter}:${verse}`;
+    return rows.filter(row => row.REF === verseRef);
+    
+  } catch (error) {
+    console.warn('FIA maps not available:', error);
+    return null;
   }
 }
 ```
 
 #### Definition of Done
-- [ ] FIA resources load correctly
-- [ ] No regression in existing functionality
-- [ ] Integration tests passing
-- [ ] Context documentation updated
+- [ ] Service fetches TSV data correctly
+- [ ] Follows existing service patterns
+- [ ] Unit tests with mocked responses
+- [ ] No external dependencies added
 
 ---
 
-## 📊 Epic 2: UI Components & Navigation
-
-### Issue 2.1: Create FIA Panel Component
+### Issue 1.3: Basic FIA Panel Component
 **Priority**: Critical
-**Estimate**: 3 days
+**Estimate**: 8 hours
 **Labels**: `feature`, `ui`, `component`, `semver:minor`, `changelog:added`
 
 #### Acceptance Criteria
-- [ ] Create `src/components/FiaPanel.jsx` following existing patterns
-- [ ] Implement ResourcesContext integration
-- [ ] Add loading states and error handling UI
-- [ ] Create responsive layout for different screen sizes
-- [ ] Add accessibility features (ARIA labels, keyboard navigation)
+- [ ] Create `src/components/FiaPanel.jsx` following panel patterns
+- [ ] Self-activating for both fiaimages and fiamaps
+- [ ] Display TSV data in readable format
+- [ ] Show appropriate loading and empty states
 - [ ] Follow existing CSS module patterns
 
 #### Technical Requirements
-- Must use `useResourcesContext()` hook
-- Follow Simple Verse-Loading Pattern
-- Include proper error boundaries
-- Support URL-driven state
-
-#### Definition of Done
-- [ ] Component renders correctly
-- [ ] Accessibility audit passed
-- [ ] Responsive design verified
-- [ ] Unit tests written
-
----
-
-### Issue 2.2: Step Navigation Component
-**Priority**: High
-**Estimate**: 2 days
-**Labels**: `feature`, `ui`, `component`, `semver:minor`, `changelog:added`
-
-#### Acceptance Criteria
-- [ ] Create `src/components/StepNavigator.jsx`
-- [ ] Display 6-step progress indicator
-- [ ] Allow navigation between steps
-- [ ] Show current step highlighting
-- [ ] Add keyboard navigation support
-- [ ] Include step titles and descriptions
-
-#### Technical Requirements
 ```javascript
-<StepNavigator
-  currentStep={1}
-  totalSteps={6}
-  steps={stepData}
-  onStepChange={handleStepChange}
-/>
+// FiaPanel.jsx - Following existing panel patterns
+import React, { useEffect } from 'react';
+import { useResourcesContext } from '../context/ResourcesContext';
+import styles from './FiaPanel.module.css';
+
+export function FiaPanel() {
+  const { resources, activateResource } = useResourcesContext();
+  
+  // Self-activate both FIA resources
+  useEffect(() => {
+    activateResource('fiaimages');
+    activateResource('fiamaps');
+  }, [activateResource]);
+
+  const hasImages = resources.fiaimages && resources.fiaimages.length > 0;
+  const hasMaps = resources.fiamaps && resources.fiamaps.length > 0;
+
+  if (!hasImages && !hasMaps) {
+    return (
+      <div className={styles.fiaPanel}>
+        <p>No FIA content available for this verse</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.fiaPanel}>
+      {hasImages && (
+        <div className={styles.section}>
+          <h3>FIA Images</h3>
+          {resources.fiaimages.map((row, index) => (
+            <div key={index} className={styles.fiaItem}>
+              <span className={styles.reference}>{row.REF}</span>
+              <span className={styles.href}>{row.HREF}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {hasMaps && (
+        <div className={styles.section}>
+          <h3>FIA Maps</h3>
+          {resources.fiamaps.map((row, index) => (
+            <div key={index} className={styles.fiaItem}>
+              <span className={styles.reference}>{row.REF}</span>
+              <span className={styles.href}>{row.HREF}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 ```
 
 #### Definition of Done
-- [ ] Navigation works smoothly
-- [ ] Visual design approved
-- [ ] Keyboard accessibility verified
+- [ ] Panel renders TSV data correctly
+- [ ] Self-activation works
+- [ ] Follows component patterns
 - [ ] Component tests passing
 
 ---
 
-### Issue 2.3: Add FIA Tab to HelpsTabs
+### Issue 1.4: Add FIA Tab to Navigation
 **Priority**: Medium
-**Estimate**: 1 day
+**Estimate**: 2 hours
 **Labels**: `feature`, `ui`, `semver:minor`, `changelog:added`
 
 #### Acceptance Criteria
 - [ ] Add FIA tab to `src/components/HelpsTabs.jsx`
-- [ ] Include appropriate icon for FIA tab
-- [ ] Ensure tab ordering makes sense
-- [ ] Add conditional rendering based on FIA resource availability
+- [ ] Tab appears when FIA resources available
+- [ ] Use appropriate icon (image/photo icon)
 - [ ] Maintain existing tab functionality
 
 #### Technical Requirements
-- Tab should only appear when FIA resources are available
-- Icon should be consistent with other tabs
-- Loading state handling
+```javascript
+// In HelpsTabs.jsx
+const tabs = [
+  // ... existing tabs
+  ...(resources.fiaimages || resources.fiamaps ? [{
+    id: 'fia',
+    label: 'FIA',
+    icon: '🖼️', // or use proper icon component
+    component: FiaPanel
+  }] : [])
+];
+```
 
 #### Definition of Done
-- [ ] Tab appears and functions correctly
+- [ ] Tab appears conditionally
 - [ ] No regression in existing tabs
 - [ ] Visual consistency maintained
 
 ---
 
-### Issue 2.4: Basic Media Display Component
-**Priority**: Medium
-**Estimate**: 2 days
-**Labels**: `feature`, `ui`, `component`, `semver:minor`, `changelog:added`
+## 📊 Epic 2: Media Enhancement (Days 4-5)
+
+### Issue 2.1: Media URL Resolution
+**Priority**: High
+**Estimate**: 4 hours
+**Labels**: `feature`, `media`, `semver:minor`, `changelog:added`
 
 #### Acceptance Criteria
-- [ ] Create `src/components/MediaDisplay.jsx`
-- [ ] Display images with lazy loading
-- [ ] Show media metadata (title, description)
-- [ ] Add thumbnail view for multiple images
-- [ ] Include loading placeholders
-- [ ] Handle media loading errors gracefully
+- [ ] Convert TSV HREF paths to actual media URLs
+- [ ] Support multiple CDN/hosting patterns
+- [ ] Graceful fallbacks for missing media
+- [ ] No external API dependencies
 
 #### Technical Requirements
-- Lazy loading for performance
-- Responsive image sizing
-- Error fallback images
-- Accessibility alt text
+```javascript
+// In fiaService.js or new mediaUrlResolver.js
+export function resolveFiaMediaUrl(href, type = 'image') {
+  // TSV contains: ./payload/t/tar-pit-wide
+  // Need to resolve to actual CDN URL
+  
+  // Start with simple direct mapping
+  const FIA_MEDIA_BASE = 'https://fia-media.example.com'; // TBD: Actual CDN
+  
+  // Remove ./payload/ prefix
+  const mediaPath = href.replace('./payload/', '');
+  
+  // Build full URL
+  return `${FIA_MEDIA_BASE}/${type}s/${mediaPath}.jpg`; // Adjust extension as needed
+}
+```
+
+#### Definition of Done
+- [ ] URLs resolve correctly
+- [ ] Fallback strategy implemented
+- [ ] Unit tests for URL patterns
+
+---
+
+### Issue 2.2: Image Display Component
+**Priority**: High
+**Estimate**: 4 hours
+**Labels**: `feature`, `ui`, `media`, `semver:minor`, `changelog:added`
+
+#### Acceptance Criteria
+- [ ] Create reusable image display component
+- [ ] Lazy loading for performance
+- [ ] Error states with fallbacks
+- [ ] Responsive sizing
+- [ ] Alt text from TSV data
+
+#### Technical Requirements
+```javascript
+// FiaImageDisplay.jsx
+export function FiaImageDisplay({ fiaRow }) {
+  const [imgError, setImgError] = useState(false);
+  const imageUrl = resolveFiaMediaUrl(fiaRow.HREF);
+  
+  if (imgError) {
+    return <div className={styles.imagePlaceholder}>Image unavailable</div>;
+  }
+  
+  return (
+    <img
+      src={imageUrl}
+      alt={`FIA content for ${fiaRow.REF}`}
+      loading="lazy"
+      onError={() => setImgError(true)}
+      className={styles.fiaImage}
+    />
+  );
+}
+```
 
 #### Definition of Done
 - [ ] Images display correctly
+- [ ] Graceful error handling
 - [ ] Performance optimized
-- [ ] Error handling verified
 - [ ] Accessibility compliant
 
 ---
 
-## 📊 Epic 3: Media Integration
+## 📊 Epic 3: Polish & Testing (Days 6-7)
 
-### Issue 3.1: Google Drive Media Service
+### Issue 3.1: Comprehensive Error Handling
 **Priority**: High
-**Estimate**: 3 days
-**Labels**: `feature`, `service`, `media`, `semver:minor`, `changelog:added`
+**Estimate**: 3 hours
+**Labels**: `quality`, `error-handling`, `semver:patch`
 
 #### Acceptance Criteria
-- [ ] Create `src/services/mediaService.js`
-- [ ] Implement Google Drive API integration
-- [ ] Add file discovery and URL generation
-- [ ] Support different quality levels (xsmall, small, medium, large)
-- [ ] Add caching layer for media URLs
-- [ ] Handle API rate limiting
+- [ ] Add error boundaries around FIA components
+- [ ] Handle network failures gracefully
+- [ ] Provide user-friendly error messages
+- [ ] Log errors for debugging
+
+#### Technical Requirements
+- Wrap FiaPanel in error boundary
+- Add try-catch blocks in all async operations
+- Implement retry logic for failed requests
+- Clear error messaging
+
+#### Definition of Done
+- [ ] No uncaught errors
+- [ ] User experience remains smooth
+- [ ] Errors logged appropriately
+
+---
+
+### Issue 3.2: Unit and Integration Tests
+**Priority**: High
+**Estimate**: 4 hours
+**Labels**: `test`, `quality`, `semver:patch`
+
+#### Acceptance Criteria
+- [ ] Unit tests for fiaService.js
+- [ ] Component tests for FiaPanel
+- [ ] Integration tests with ResourcesContext
+- [ ] Mock DCS responses appropriately
 
 #### Technical Requirements
 ```javascript
-// Media service methods
-- getMediaUrl(fileId, quality)
-- discoverMediaFiles(pericopeId)
-- cacheMediaMetadata(metadata)
-- getOptimalQuality(deviceType)
+// fiaService.test.js
+describe('FIA Service', () => {
+  it('fetches and parses FIA images TSV', async () => {
+    // Mock fetch
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        text: () => Promise.resolve('REF\tID\tHREF\n1:1\tabc\t./payload/test')
+      })
+    );
+    
+    const result = await getVerseFiaImages('GEN', 1, 1);
+    expect(result).toHaveLength(1);
+    expect(result[0].HREF).toBe('./payload/test');
+  });
+});
 ```
-
-#### Definition of Done
-- [ ] Media URLs resolve correctly
-- [ ] Caching improves performance
-- [ ] Rate limiting handled
-- [ ] Error scenarios covered
-
----
-
-### Issue 3.2: Audio/Video Player Component
-**Priority**: High
-**Estimate**: 4 days
-**Labels**: `feature`, `ui`, `component`, `media`, `semver:minor`, `changelog:added`
-
-#### Acceptance Criteria
-- [ ] Create `src/components/MediaPlayer.jsx`
-- [ ] Support both audio and video playback
-- [ ] Add playback controls (play, pause, seek, volume)
-- [ ] Include transcript display (if available)
-- [ ] Add keyboard shortcuts for accessibility
-- [ ] Support multiple audio formats
-
-#### Technical Requirements
-- HTML5 audio/video elements
-- Custom controls for consistency
-- Keyboard navigation support
-- Mobile-friendly touch controls
-
-#### Definition of Done
-- [ ] Playback works across browsers
-- [ ] Controls are intuitive
-- [ ] Accessibility verified
-- [ ] Mobile testing complete
-
----
-
-### Issue 3.3: Media Gallery Component
-**Priority**: Medium
-**Estimate**: 3 days
-**Labels**: `feature`, `ui`, `component`, `media`, `semver:minor`, `changelog:added`
-
-#### Acceptance Criteria
-- [ ] Create `src/components/MediaGallery.jsx`
-- [ ] Display media assets in grid layout
-- [ ] Add lightbox/modal for full-size viewing
-- [ ] Include filtering by media type
-- [ ] Support lazy loading for performance
-- [ ] Add download functionality
-
-#### Technical Requirements
-- Responsive grid layout
-- Modal overlay for full-size images
-- Keyboard navigation in gallery
-- Download with proper attribution
-
-#### Definition of Done
-- [ ] Gallery displays correctly
-- [ ] Modal functionality works
-- [ ] Performance optimized
-- [ ] Download feature tested
-
----
-
-### Issue 3.4: YouTube Integration Service
-**Priority**: Medium
-**Estimate**: 2 days
-**Labels**: `feature`, `service`, `media`, `semver:minor`, `changelog:added`
-
-#### Acceptance Criteria
-- [ ] Create `src/services/youtubeService.js`
-- [ ] Implement YouTube Data API integration
-- [ ] Add video search by biblical terms
-- [ ] Filter results to Visual Bible Dictionary channel
-- [ ] Add video metadata extraction
-- [ ] Handle API quotas and errors
-
-#### Technical Requirements
-```javascript
-// YouTube service methods
-- searchVideos(term, channelId)
-- getVideoMetadata(videoId)
-- getRelatedVideos(currentVideo)
-- handleQuotaExceeded()
-```
-
-#### Definition of Done
-- [ ] Video search works correctly
-- [ ] API quotas managed
-- [ ] Error handling robust
-- [ ] Results relevant to content
-
----
-
-### Issue 3.5: Offline Media Caching
-**Priority**: Low
-**Estimate**: 3 days
-**Labels**: `feature`, `performance`, `pwa`, `semver:minor`, `changelog:added`
-
-#### Acceptance Criteria
-- [ ] Implement Service Worker for media caching
-- [ ] Add selective download for offline use
-- [ ] Create cache management UI
-- [ ] Add storage quota monitoring
-- [ ] Implement cache cleanup strategies
-- [ ] Support progressive web app features
-
-#### Technical Requirements
-- Service Worker registration
-- IndexedDB for metadata
-- Cache API for media files
-- Storage quota management
-
-#### Definition of Done
-- [ ] Offline playback works
-- [ ] Storage managed efficiently
-- [ ] Cache UI functional
-- [ ] PWA features verified
-
----
-
-## �� Epic 4: Testing & Polish
-
-### Issue 4.1: Comprehensive Unit Testing
-**Priority**: High
-**Estimate**: 3 days
-**Labels**: `test`, `quality`, `semver:patch`, `changelog:fixed`
-
-#### Acceptance Criteria
-- [ ] Write unit tests for all FIA services
-- [ ] Add component tests for FIA UI components
-- [ ] Achieve 90%+ code coverage for new code
-- [ ] Add integration tests for ResourcesContext changes
-- [ ] Mock external API calls appropriately
-- [ ] Add performance benchmarks
-
-#### Technical Requirements
-- Jest and React Testing Library
-- MSW for API mocking
-- Coverage reports
-- Performance metrics
 
 #### Definition of Done
 - [ ] All tests passing
-- [ ] Coverage target met
-- [ ] CI/CD integration complete
-- [ ] Test documentation updated
+- [ ] Good test coverage
+- [ ] CI/CD integration
 
 ---
 
-### Issue 4.2: End-to-End Testing
-**Priority**: High
-**Estimate**: 2 days
-**Labels**: `test`, `e2e`, `semver:patch`, `changelog:fixed`
-
-#### Acceptance Criteria
-- [ ] Add Playwright tests for FIA integration
-- [ ] Test complete user workflows
-- [ ] Add visual regression testing
-- [ ] Test cross-browser compatibility
-- [ ] Add mobile device testing
-- [ ] Test offline functionality
-
-#### Technical Requirements
-```javascript
-// E2E test scenarios
-- Load FIA tab and navigate steps
-- Play audio/video content
-- View media gallery
-- Handle authentication flow
-- Test offline mode
-```
-
-#### Definition of Done
-- [ ] E2E tests passing
-- [ ] Cross-browser verified
-- [ ] Mobile testing complete
-- [ ] Visual regressions caught
-
----
-
-### Issue 4.3: Performance Optimization
+### Issue 3.3: Documentation and Examples
 **Priority**: Medium
-**Estimate**: 3 days
-**Labels**: `performance`, `optimization`, `semver:patch`, `changelog:changed`
+**Estimate**: 2 hours
+**Labels**: `documentation`, `semver:patch`
 
 #### Acceptance Criteria
-- [ ] Optimize media loading and caching
-- [ ] Implement code splitting for FIA components
-- [ ] Add performance monitoring
-- [ ] Optimize GraphQL queries
-- [ ] Reduce bundle size impact
-- [ ] Add loading state optimizations
-
-#### Technical Requirements
-- Webpack bundle analysis
-- React.lazy for code splitting
-- Performance API monitoring
-- GraphQL query optimization
-
-#### Definition of Done
-- [ ] Load times improved
-- [ ] Bundle size acceptable
-- [ ] Performance metrics tracked
-- [ ] User experience smooth
-
----
-
-### Issue 4.4: Documentation and User Guide
-**Priority**: Medium
-**Estimate**: 2 days
-**Labels**: `documentation`, `semver:patch`, `changelog:added`
-
-#### Acceptance Criteria
-- [ ] Update component documentation
-- [ ] Create user guide for FIA features
-- [ ] Add developer integration docs
-- [ ] Update API documentation
-- [ ] Create troubleshooting guide
-- [ ] Add accessibility documentation
-
-#### Technical Requirements
-- JSDoc comments for all new functions
-- Markdown documentation
-- Screenshot/video guides
-- API reference updates
+- [ ] Update README with FIA feature
+- [ ] Add inline code documentation
+- [ ] Create usage examples
+- [ ] Document media URL patterns
 
 #### Definition of Done
 - [ ] Documentation complete
-- [ ] User guide tested
-- [ ] Developer docs accurate
-- [ ] Screenshots current
+- [ ] Examples working
+- [ ] Code well-commented
 
 ---
 
 ## 🎯 Success Metrics
 
-### Technical Metrics
-- [ ] **Load Time**: FIA resources load in < 3 seconds
-- [ ] **Code Coverage**: 90%+ for new FIA code
-- [ ] **Bundle Size**: < 10% increase in total bundle size
-- [ ] **API Response**: GraphQL queries respond in < 1 second
-- [ ] **Error Rate**: < 1% for FIA-related errors
+### Simplicity Achieved
+- **Total LOC**: <200 lines (vs 1000+ in original plan)
+- **New Dependencies**: 0 (vs 5+ in original plan)
+- **New Patterns**: 0 (reuses existing TSV pattern)
+- **Time to Ship**: 1 week (vs 8 weeks originally)
 
-### User Experience Metrics
-- [ ] **Accessibility**: WCAG 2.1 AA compliance
-- [ ] **Mobile Support**: Full functionality on mobile devices
-- [ ] **Cross-browser**: Works in Chrome, Firefox, Safari, Edge
-- [ ] **Offline**: Core functionality available offline
-- [ ] **Performance**: Lighthouse score > 90
+### Risk Mitigation
+- **No Authentication**: Public DCS resources
+- **No API Limits**: Static TSV files
+- **No Complex State**: Simple resource activation
+- **Proven Patterns**: Exactly like TN/TQ/TW
 
-### Feature Completeness
-- [ ] **6-Step Process**: All steps navigable and functional
-- [ ] **Media Assets**: Images and videos display correctly
-- [ ] **Audio Playback**: Works across all supported browsers
-- [ ] **YouTube Integration**: Related videos discoverable
-- [ ] **Multi-language**: Supports all 14 FIA languages
+### Maintainability
+- **Onboarding Time**: <30 minutes (uses familiar patterns)
+- **Debugging**: Standard DCS/TSV issues only
+- **Enhancement Path**: Clear and incremental
 
 ---
 
-## 🚨 Risk Mitigation
+## 🚀 Implementation Notes
 
-### Technical Risks
-1. **API Reliability**: FIA API downtime or changes
-   - *Mitigation*: Implement robust caching and fallback mechanisms
+### Day 1-3 Focus
+1. Get TSV data loading and displaying
+2. Follow TN/TQ patterns exactly
+3. Basic panel with text display only
 
-2. **Performance Impact**: Large media files slow app
-   - *Mitigation*: Progressive loading, quality selection, compression
+### Day 4-5 Enhancement
+1. Resolve media URLs (coordinate with FIA team if needed)
+2. Add image display with fallbacks
+3. Optimize performance
 
-3. **Authentication Complexity**: Token management issues
-   - *Mitigation*: Comprehensive auth testing, token refresh logic
+### Day 6-7 Polish
+1. Comprehensive testing
+2. Error handling
+3. Documentation
 
-### Timeline Risks
-1. **Scope Creep**: Additional features requested
-   - *Mitigation*: Clear acceptance criteria, change control process
-
-2. **External Dependencies**: Third-party API issues
-   - *Mitigation*: Early integration testing, backup plans
-
-3. **Testing Delays**: Complex multimedia testing
-   - *Mitigation*: Parallel testing, automated test suites
-
----
-
-## 📅 Detailed Timeline
-
-### Week 1: Foundation Setup
-- **Days 1-3**: Issue 1.1 - FIA GraphQL Service
-- **Days 4-5**: Issue 1.2 - Authentication Manager
-
-### Week 2: Core Integration
-- **Days 1-2**: Issue 1.3 - ResourcesContext Updates
-- **Days 3-5**: Issue 2.1 - FIA Panel Component
-
-### Week 3: UI Components
-- **Days 1-2**: Issue 2.2 - Step Navigation
-- **Day 3**: Issue 2.3 - HelpsTabs Integration
-- **Days 4-5**: Issue 2.4 - Basic Media Display
-
-### Week 4: Media Foundation
-- **Days 1-3**: Issue 3.1 - Google Drive Service
-- **Days 4-5**: Issue 3.2 - Media Player (Part 1)
-
-### Week 5: Advanced Media
-- **Days 1-2**: Issue 3.2 - Media Player (Part 2)
-- **Days 3-5**: Issue 3.3 - Media Gallery
-
-### Week 6: External Integrations
-- **Days 1-2**: Issue 3.4 - YouTube Integration
-- **Days 3-5**: Issue 3.5 - Offline Caching
-
-### Week 7: Testing
-- **Days 1-3**: Issue 4.1 - Unit Testing
-- **Days 4-5**: Issue 4.2 - E2E Testing
-
-### Week 8: Polish & Launch
-- **Days 1-3**: Issue 4.3 - Performance Optimization
-- **Days 4-5**: Issue 4.4 - Documentation
+### Future Enhancements (Post-MVP)
+- Add caching for TSV files
+- Support for audio/video if available in TSV
+- Enhanced media gallery view
+- Offline support
 
 ---
 
-## 🔄 Issue Dependencies
+## ✅ Why This Approach Wins
 
-```
-Epic 1 (Foundation)
-├── 1.1 FIA Service → 1.3 ResourcesContext
-├── 1.2 Auth Manager → 1.3 ResourcesContext
-└── 1.3 ResourcesContext → Epic 2
+1. **Leverages Existing Infrastructure**: TSV parsing, DCS fetching, panel patterns all exist
+2. **Zero New Dependencies**: No GraphQL, no auth libraries, no media APIs
+3. **Proven Patterns**: Developers already know how TN/TQ work
+4. **Fast Delivery**: 1 week vs 8 weeks
+5. **Low Risk**: Using battle-tested code paths
+6. **Easy Maintenance**: Just another TSV resource
 
-Epic 2 (UI Components)
-├── 2.1 FIA Panel → 2.2 Step Navigator
-├── 2.1 FIA Panel → 2.3 HelpsTabs
-├── 2.1 FIA Panel → 2.4 Media Display
-└── All Epic 2 → Epic 3
-
-Epic 3 (Media Integration)
-├── 3.1 Google Drive → 3.2 Media Player
-├── 3.1 Google Drive → 3.3 Media Gallery
-├── 3.2 Media Player → 3.4 YouTube
-├── 3.3 Media Gallery → 3.5 Offline Caching
-└── All Epic 3 → Epic 4
-
-Epic 4 (Testing & Polish)
-├── 4.1 Unit Testing → 4.2 E2E Testing
-├── 4.2 E2E Testing → 4.3 Performance
-└── 4.3 Performance → 4.4 Documentation
-```
+The DCS-based approach transforms FIA integration from a complex multi-month project into a straightforward one-week enhancement that fits perfectly into the app's existing architecture.
 
 ---
 
-## 📋 Quality Gates
+## 📋 Appendix: Complete FIA Process
 
-### Gate 1: Foundation Complete (End of Week 2)
-- [ ] FIA service functional with authentication
-- [ ] ResourcesContext integration working
-- [ ] Basic FIA panel renders
-- [ ] All unit tests passing
+### What's Available on DCS
+- ✅ **FIA Images** - Visual aids for passages
+- ✅ **FIA Maps** - Geographical context
 
-### Gate 2: UI Complete (End of Week 4)
-- [ ] All FIA UI components functional
-- [ ] Navigation between steps works
-- [ ] Basic media display working
-- [ ] Responsive design verified
+### What's NOT on DCS (Yet)
+- ❌ **Audio Narrations** - Step 1 listening component
+- ❌ **Background Info** - Step 2 understanding materials  
+- ❌ **Discussion Guides** - Step 3 group interaction
+- ❌ **Activity Instructions** - Steps 4-6 (dramatize, story, apply)
 
-### Gate 3: Media Complete (End of Week 6)
-- [ ] Full media integration working
-- [ ] Audio/video playback functional
-- [ ] Gallery and YouTube integration complete
-- [ ] Offline caching implemented
+### Progressive Enhancement Strategy
+1. **Week 1**: Ship with maps and images (immediate value)
+2. **Future**: Add components as they become available
+3. **UI Design**: Build framework to accommodate all 6 steps
+4. **No Blocking**: Don't wait for complete resources
 
-### Gate 4: Production Ready (End of Week 8)
-- [ ] All tests passing (unit, integration, E2E)
-- [ ] Performance optimized
-- [ ] Documentation complete
-- [ ] Ready for deployment
+This approach aligns with the app's philosophy:
+- Ship early with partial value
+- Enhance progressively
+- No complex dependencies
+- Graceful degradation
 
----
-
-## 🎉 Definition of Done (Project Level)
-
-### Technical Completion
-- [ ] All 16 issues completed and tested
-- [ ] Code coverage > 90% for new features
-- [ ] No critical or high-priority bugs
-- [ ] Performance metrics met
-- [ ] Cross-browser compatibility verified
-
-### User Experience
-- [ ] All user workflows tested and documented
-- [ ] Accessibility requirements met
-- [ ] Mobile experience optimized
-- [ ] Error handling graceful and informative
-
-### Documentation
-- [ ] Developer documentation complete
-- [ ] User guide created and tested
-- [ ] API documentation updated
-- [ ] Troubleshooting guide available
-
-### Deployment
-- [ ] CI/CD pipeline updated
-- [ ] Production deployment successful
-- [ ] Monitoring and alerting configured
-- [ ] Rollback plan tested
-
----
-
-This master plan provides a comprehensive roadmap for integrating FIA Project resources into Translation Helps, with clear milestones, dependencies, and success criteria. Each issue includes detailed acceptance criteria and can be tracked through GitHub Issues for complete project visibility.
+Even with just maps and images, users get valuable visual context for Bible study. The complete FIA experience can be added incrementally without breaking changes.

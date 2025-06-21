@@ -10,6 +10,7 @@ import { TranslationQuestionsPanel } from "./TranslationQuestionsPanel";
 import { TranslationWordsPanel } from "./TranslationWordsPanel";
 import { ArticlePanel } from "./ArticlePanel";
 import { LLMChatPanel } from "./LLMChatPanel";
+import { FiaPanel } from "./FiaPanel";
 
 const STATIC_TABS = [
   { id: "tn", label: "Translation Notes", component: TranslationNotesPanel, isStatic: true },
@@ -20,6 +21,7 @@ const STATIC_TABS = [
     isStatic: true,
   },
   { id: "tw", label: "Translation Words", component: TranslationWordsPanel, isStatic: true },
+  { id: "fia", label: "FIA Resources", component: FiaPanel, isStatic: true },
   { id: "chat", label: "AI Assistant", component: LLMChatPanel, isStatic: true },
 ];
 
@@ -194,6 +196,13 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
           style={{ display: activeTab === 'tw' ? 'block' : 'none' }}
         >
           <TranslationWordsPanel reference={reference} />
+        </div>
+        
+        <div 
+          data-testid="tab-content-fia"
+          style={{ display: activeTab === 'fia' ? 'block' : 'none' }}
+        >
+          <FiaPanel reference={reference} />
         </div>
         
         <div 

@@ -13,6 +13,7 @@ import { getQuestionsForVerse, getQuestionsForVerseWithResourceData } from "../s
 import { getLinksForVerse, getLinksForVerseWithResourceData } from "../services/twlService";
 import { getArticlesForLinks } from "../services/twService";
 import { searchAllResourcesForLanguage } from "../services/catalogService";
+import { getVerseFiaImages, getVerseFiaMaps, getVerseFiaContent } from "../services/fiaService";
 
 /**
  * Loads a specific resource type for a given verse reference
@@ -151,6 +152,15 @@ export async function loadResourceForType(resourceType, reference, resourceConfi
           console.error(`Error loading words for ${bookId} ${chapter}:${verse}:`, error);
           return [];
         }
+
+      case 'fiaimages':
+        return await getVerseFiaImages(bookId, chapter, verse, languageId);
+
+      case 'fiamaps':
+        return await getVerseFiaMaps(bookId, chapter, verse, languageId);
+
+      case 'fia':
+        return await getVerseFiaContent(bookId, chapter, verse, languageId);
 
       default:
         console.warn(`Unknown resource type: ${resourceType}`);

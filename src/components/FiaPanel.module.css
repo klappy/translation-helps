@@ -1,0 +1,232 @@
+/* FIA Panel Styles - Following existing component patterns */
+
+.fiaPanel {
+  padding: 1rem;
+  background: var(--background-color);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.header {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.header h3 {
+  margin: 0 0 0.25rem 0;
+  color: var(--text-color);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-color-secondary);
+  font-size: 0.875rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-color-secondary);
+}
+
+.emptyState p {
+  margin: 0;
+  font-style: italic;
+}
+
+/* Section styling */
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  margin: 0 0 1rem 0;
+  color: var(--text-color);
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Items grid */
+.itemsGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Individual FIA item */
+.fiaItem {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--card-background);
+  transition: box-shadow 0.2s ease;
+}
+
+.fiaItem:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--header-background);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.reference {
+  font-weight: 600;
+  color: var(--text-color);
+  font-family: monospace;
+}
+
+.toggleButton {
+  background: none;
+  border: none;
+  color: var(--text-color-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.toggleButton:hover {
+  background: var(--hover-background);
+  color: var(--text-color);
+}
+
+/* Media display */
+.mediaContainer {
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--media-background, #f8f9fa);
+}
+
+.mediaImage {
+  max-width: 100%;
+  max-height: 300px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.mediaFallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--text-color-secondary);
+}
+
+.fallbackIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.mediaFallback p {
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.mediaFallback small {
+  font-family: monospace;
+  opacity: 0.7;
+  word-break: break-all;
+}
+
+/* Item details */
+.itemDetails {
+  padding: 0.75rem;
+  background: var(--details-background, #f8f9fa);
+  border-top: 1px solid var(--border-color);
+  font-size: 0.875rem;
+}
+
+.detailRow {
+  margin-bottom: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.detailRow:last-child {
+  margin-bottom: 0;
+}
+
+.detailRow strong {
+  color: var(--text-color);
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .itemsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .fiaPanel {
+    padding: 0.75rem;
+  }
+  
+  .mediaContainer {
+    min-height: 150px;
+  }
+  
+  .mediaImage {
+    max-height: 200px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mediaContainer {
+    background: var(--media-background, #2a2a2a);
+  }
+  
+  .itemDetails {
+    background: var(--details-background, #2a2a2a);
+  }
+}
+
+/* Loading state (for future enhancement) */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-color-secondary);
+}
+
+.loading::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color);
+  border-top: 2px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 0.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} 

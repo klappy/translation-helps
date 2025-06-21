@@ -1,221 +1,197 @@
-# FIA Integration Quick Start Guide
+# FIA Integration Quick Start Guide (DCS-Based)
 
-## 🚀 Quick Overview
+## 🚀 Overview
 
-The FIA Project provides multimedia Bible resources through a GraphQL API:
-- **6-step internalization process** for every Bible passage
-- **Audio/video content** in 14 languages (including ASL)
-- **Media assets** (photos, illustrations, maps)
-- **Biblical terms** with definitions
+FIA (Familiarization, Internalization, Application) resources are available on DCS as Scripture Burrito format. This guide shows how to integrate them using existing TSV patterns.
 
-## 🔧 Implementation Checklist
+## 📦 Resources Available
 
-### Step 1: Add FIA Service
+- **FIA Images**: `https://git.door43.org/BurritoTruck/en_fiaimages`
+- **FIA Maps**: `https://git.door43.org/BurritoTruck/en_fiamaps`
+
+## 🛠️ Implementation Steps
+
+### Step 1: Add to ResourcesContext (30 min)
+
+In `src/context/ResourcesContext.jsx`, update `loadResourceForType`:
+
 ```javascript
-// src/services/fiaService.js
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
-
-const client = new ApolloClient({
-  uri: 'https://api.fiaproject.org/graphql',
-  cache: new InMemoryCache()
-});
-
-export const fiaService = {
-  async getPericope(book, chapter, verse) {
-    const { data } = await client.query({
-      query: GET_PERICOPE,
-      variables: { book, chapter, verse }
-    });
-    return data.pericopes.edges[0]?.node;
-  }
-};
+// Add new cases
+case 'fiaimages':
+  return await getVerseFiaImages(bookId, chapter, verse, language);
+case 'fiamaps':
+  return await getVerseFiaMaps(bookId, chapter, verse, language);
 ```
 
-### Step 2: Update ResourcesContext
+Add to initial state:
 ```javascript
-// In src/context/ResourcesContext.jsx
-import { fiaService } from '../services/fiaService';
-
-// Add to activateResource function
-if (type === 'fia') {
-  const fiaData = await fiaService.getPericope(book, chapter, verse);
-  setResources(prev => ({ ...prev, fia: fiaData }));
+resources: {
+  // ... existing
+  fiaimages: null,
+  fiamaps: null
 }
 ```
 
-### Step 3: Create FIA Panel
+### Step 2: Create FIA Service (1 hour)
+
+Create `src/services/fiaService.js`:
+
 ```javascript
-// src/components/FiaPanel.jsx
+import { parseTsv } from '../utils/parseTsv';
+
+const DCS_BASE_URL = 'https://git.door43.org';
+
+export async function getVerseFiaImages(bookId, chapter, verse, language = 'en') {
+  try {
+    const url = `${DCS_BASE_URL}/BurritoTruck/${language}_fiaimages/raw/branch/master/ingredients/${bookId}.tsv`;
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    
+    const tsvText = await response.text();
+    const rows = parseTsv(tsvText);
+    
+    const verseRef = `${chapter}:${verse}`;
+    return rows.filter(row => row.REF === verseRef);
+  } catch (error) {
+    console.warn('FIA images not available:', error);
+    return null;
+  }
+}
+
+// Similar function for getVerseFiaMaps
+```
+
+### Step 3: Create FIA Panel (2 hours)
+
+Create `src/components/FiaPanel.jsx`:
+
+```javascript
+import React, { useEffect } from 'react';
+import { useResourcesContext } from '../context/ResourcesContext';
+import styles from './FiaPanel.module.css';
+
 export function FiaPanel() {
   const { resources, activateResource } = useResourcesContext();
   
   useEffect(() => {
-    activateResource('fia');
-  }, []);
+    activateResource('fiaimages');
+    activateResource('fiamaps');
+  }, [activateResource]);
 
-  return <div>{/* Render FIA content */}</div>;
+  // Display logic here
 }
 ```
 
-### Step 4: Add to Tabs
+### Step 4: Add to Navigation (30 min)
+
+In `src/components/HelpsTabs.jsx`, add FIA tab:
+
 ```javascript
-// In src/components/HelpsTabs.jsx
-tabs.push({
-  id: 'fia',
-  label: 'FIA Steps',
-  component: FiaPanel
-});
+const tabs = [
+  // ... existing tabs
+  ...(resources.fiaimages || resources.fiamaps ? [{
+    id: 'fia',
+    label: 'FIA',
+    icon: '🖼️',
+    component: FiaPanel
+  }] : [])
+];
 ```
 
-## 📊 Key GraphQL Queries
+## 📝 TSV Data Format
 
-### Get Pericope
-```graphql
-query GetPericope($book: String!, $chapter: Int!, $verse: Int!) {
-  pericopes(filter: {
-    book: { code: { eq: $book } }
-    startChapter: { lte: $chapter }
-    endChapter: { gte: $chapter }
-  }) {
-    edges {
-      node {
-        id
-        pericopeTranslations {
-          edges {
-            node {
-              title
-              description
-            }
-          }
-        }
-      }
-    }
-  }
-}
+FIA TSV files contain:
+```
+REF     ID      TAGS    SUPPORT QUOTE   OCCURENCES      HREF
+14:1    ea9004e                                 ./payload/t/tar-pit-wide
 ```
 
-### Get Step Renderings
-```graphql
-query GetSteps($pericopeId: ID!) {
-  stepRenderings(filter: {
-    step: { pericope: { id: { eq: $pericopeId } } }
-  }) {
-    edges {
-      node {
-        step { number }
-        audioUrl
-        videoUrl
-      }
-    }
-  }
-}
-```
+- **REF**: Bible reference (chapter:verse)
+- **ID**: Unique identifier
+- **HREF**: Path to media resource
 
-## 🎨 UI Components Needed
+## 🖼️ Media Display (Enhancement)
 
-1. **StepNavigator** - Navigate through 6 steps
-2. **MediaPlayer** - Audio/video playback
-3. **AssetGallery** - Display images/illustrations
-4. **TermsGlossary** - Show biblical terms
+To display actual images/maps:
 
-## 🔗 Media Access
-
-### Google Drive Structure
-```
-https://drive.google.com/drive/folders/[LANGUAGE_FOLDER_ID]/
-├── xsmall/  (thumbnails)
-├── small/   (mobile)
-├── medium/  (standard)
-└── large/   (high quality)
-```
-
-### YouTube Videos
-- Channel: https://www.youtube.com/@VideoBibleDictionary
-- Use YouTube Data API v3
-- Search by biblical terms
-
-## ⚡ Performance Tips
-
-1. **Cache Aggressively**
-   ```javascript
-   const cache = new InMemoryCache({
-     typePolicies: {
-       Pericope: {
-         keyFields: ["id"],
-         merge: true
-       }
-     }
-   });
-   ```
-
-2. **Lazy Load Media**
-   ```javascript
-   const LazyImage = ({ src, alt }) => (
-     <img loading="lazy" src={src} alt={alt} />
-   );
-   ```
-
-3. **Progressive Enhancement**
-   - Load text first
-   - Add media as available
-   - Provide fallbacks
-
-## 🧪 Testing
-
-### Basic Test
 ```javascript
-test('FIA panel loads pericope', async () => {
-  render(<FiaPanel />);
-  await waitFor(() => {
-    expect(screen.getByText(/Step 1/)).toBeInTheDocument();
+// Convert HREF to actual URL
+export function resolveFiaMediaUrl(href) {
+  // Remove ./payload/ prefix
+  const mediaPath = href.replace('./payload/', '');
+  
+  // Return CDN URL (coordinate with FIA team for actual CDN)
+  return `https://fia-media-cdn.example.com/${mediaPath}.jpg`;
+}
+
+// Image component with fallback
+export function FiaImage({ fiaRow }) {
+  const [error, setError] = useState(false);
+  const url = resolveFiaMediaUrl(fiaRow.HREF);
+  
+  if (error) {
+    return <div>Image unavailable</div>;
+  }
+  
+  return (
+    <img 
+      src={url}
+      alt={`FIA content for ${fiaRow.REF}`}
+      onError={() => setError(true)}
+      loading="lazy"
+    />
+  );
+}
+```
+
+## �� Testing
+
+```javascript
+// Test service
+describe('FIA Service', () => {
+  it('fetches and parses TSV data', async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        text: () => Promise.resolve('REF\tID\tHREF\n1:1\tabc\t./payload/test')
+      })
+    );
+    
+    const result = await getVerseFiaImages('GEN', 1, 1);
+    expect(result).toHaveLength(1);
+    expect(result[0].REF).toBe('1:1');
   });
 });
 ```
 
-### E2E Test
-```javascript
-test('Navigate FIA steps', async ({ page }) => {
-  await page.goto('/?book=GEN&chapter=1&verse=1');
-  await page.click('[data-testid="fia-tab"]');
-  await page.click('[data-testid="next-step"]');
-  await expect(page.locator('.step-indicator')).toContainText('2');
-});
-```
+## ✅ Checklist
 
-## 🚨 Common Issues
+- [ ] ResourcesContext updated with FIA cases
+- [ ] FIA service created following TSV patterns
+- [ ] FIA panel component self-activates
+- [ ] Tab appears in navigation
+- [ ] TSV data displays correctly
+- [ ] Error handling implemented
+- [ ] Tests written and passing
 
-1. **CORS Errors**
-   - Use proxy in development
-   - Ensure proper headers in production
+## 🎯 Next Steps
 
-2. **Large Media Files**
-   - Implement quality selection
-   - Use appropriate CDN endpoints
+1. **Coordinate with FIA team** for actual media CDN URLs
+2. **Add image display** once URLs are confirmed
+3. **Enhance UI** based on user feedback
+4. **Add caching** if performance needs improvement
 
-3. **Authentication**
-   - Store tokens securely
-   - Implement token refresh
+## 💡 Tips
+
+- Follow existing TN/TQ patterns exactly
+- Use `parseTsv` utility - don't reinvent
+- Keep it simple - text first, media later
+- Test with verses that have FIA content
+- Check browser console for fetch errors
 
 ## 📚 Resources
 
-- [FIA API Docs](https://api.fiaproject.org/docs)
-- [Apollo Client](https://www.apollographql.com/docs/react/)
-- [Full Integration Guide](./fia-project-api-integration-guide.md)
-- [Comparison Document](./multi-resource-api-comparison.md)
-
-## 🎯 MVP Goals
-
-**Week 1-2:**
-- [ ] Basic FIA service implementation
-- [ ] Simple pericope display
-- [ ] Step navigation UI
-
-**Week 3-4:**
-- [ ] Media gallery
-- [ ] Audio player
-- [ ] Caching layer
-
-**Future:**
-- [ ] Offline support
-- [ ] Video player
-- [ ] YouTube integration
+- [DCS API Documentation](https://git.door43.org/api/swagger)
+- [Scripture Burrito Spec](https://docs.burrito.bible/)
+- [App Architecture Guide](./ARCHITECTURE.md)
+- [Similar TSV Services](../src/services/tnService.js)
