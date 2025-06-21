@@ -94,12 +94,11 @@ export function ResourcesProvider({ children }) {
   // Single useEffect - loads ONLY active resources for current verse
   useEffect(() => {
     if (!reference?.bookId || !reference?.chapter || !reference?.verse) {
-      console.log('🎯 ResourcesContext: No reference, skipping load');
+      // No reference, skipping load
       return;
     }
     
-    console.log(`🎯 ResourcesContext: Loading resources for ${reference.bookId} ${reference.chapter}:${reference.verse}`);
-    console.log(`🎯 Active resources:`, Array.from(activeResources));
+      // Loading resources for verse with active resources
     
     const resourcesToLoad = Array.from(activeResources);
     
@@ -107,7 +106,7 @@ export function ResourcesProvider({ children }) {
     Promise.allSettled(
       resourcesToLoad.map(type => {
         const config = resourceConfigs[type] || { organization: 'unfoldingWord', languageId: 'en' };
-        console.log(`🎯 Loading ${type} with config:`, config);
+        // Loading resource with config
         return loadResourceForType(type, reference, config);
       })
     ).then(results => {
@@ -117,7 +116,7 @@ export function ResourcesProvider({ children }) {
         const result = results[index];
         if (result.status === 'fulfilled') {
           newResources[type] = result.value;
-          console.log(`✅ ${type} loaded:`, result.value ? 'Success' : 'Empty');
+          // Resource loaded
         } else {
           newResources[type] = null;
           console.error(`❌ ${type} failed:`, result.reason);
@@ -132,7 +131,7 @@ export function ResourcesProvider({ children }) {
         citation: `${reference.bookId} ${reference.chapter}:${reference.verse}`
       };
       
-      console.log('🎯 ResourcesContext: Setting new resources:', Object.keys(newResources));
+      // Setting new resources
       setResources(newResources);
     }).catch(error => {
       console.error('❌ ResourcesContext: Failed to load resources:', error);
@@ -141,11 +140,11 @@ export function ResourcesProvider({ children }) {
   
   // Panel self-activation: Panels can request resources they need
   const activateResource = useCallback((resourceType) => {
-    console.log(`🎯 ResourcesContext: Activating resource type: ${resourceType}`);
+    // Activating resource type
     setActiveResources(prev => {
       // Only trigger update if the resource isn't already active
       if (prev.has(resourceType)) {
-        console.log(`🎯 ResourcesContext: ${resourceType} already active, skipping`);
+        // Resource already active, skipping
         return prev; // No change, won't trigger useEffect
       }
       

@@ -42,7 +42,6 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
 
   // Self-activate scripture resource
   useEffect(() => {
-    console.log('🎯 ScripturePanelRCL: Self-activating scripture resource');
     activateResource('scripture');
   }, [activateResource]);
 
@@ -62,18 +61,7 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
     })
   }));
 
-  // Debug: Log render
-  console.log("[ScripturePanelRCL] Rendering with:", {
-    reference,
-    organization,
-    languageId,
-    resourceId,
-    resourceOrganization: getResourceOrganization ? getResourceOrganization('scripture') : 'NO_FUNC',
-    hasResourceData: !!currentResourceData,
-    availableBooks: currentResourceData?.books?.length || 0,
-    usfmContentLength: usfmContent?.length,
-    resourcesScriptureLength: resources.scripture?.length || 0,
-  });
+
 
   // Simple Verse-Loading Pattern: Scripture loading now handled by ResourcesContext
 
@@ -97,7 +85,7 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
   };
 
   const handleOrganizationChange = async (resourceType, organization) => {
-    console.log(`🔄 Changing ${resourceType} organization to:`, organization);
+    // Changing organization for resource type
     
     // Update the mixed resources with the new organization selection
     const newMixedResources = {
@@ -167,14 +155,7 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
     );
   }
 
-  // Debug: Log before rendering provider
-  console.log("[ScripturePanelRCL] About to render provider with:", {
-    usfmContentLength: usfmContent?.length,
-    usfmFirst100: usfmContent?.substring(0, 100),
-    hasResourceData: !!currentResourceData,
-    resourceTitle: currentResourceData?.title || 'Unknown',
-    fromResourcesContext: true
-  });
+
 
   return (
     <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
@@ -225,7 +206,14 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
             mode={showDebugMode ? 'debug' : 'preview'}
             showModeToggle={false}
             resourceDetails={{
-              organization: (getResourceOrganization ? getResourceOrganization('scripture') : organization) || "Door43-Catalog",
+              organization: (() => {
+                const org = getResourceOrganization ? getResourceOrganization('scripture') : organization;
+                console.warn(`🏢 ScripturePanelRCL: Displaying organization as: ${org}`);
+                console.warn(`🔍 ScripturePanelRCL: getResourceOrganization('scripture') returned: ${getResourceOrganization ? getResourceOrganization('scripture') : 'N/A'}`);
+                console.warn(`🔍 ScripturePanelRCL: Fallback organization: ${organization}`);
+                console.warn(`🔍 ScripturePanelRCL: currentResourceData.organization: ${currentResourceData?.organization || 'N/A'}`);
+                return org;
+              })(),
               title: currentResourceData?.title || currentResourceData?.description || resourceId?.toUpperCase() || "",
               version: currentResourceData?.version,
               rights: "CC BY-SA 4.0" // Default rights, could be enhanced with API data

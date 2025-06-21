@@ -134,7 +134,7 @@ useEffect(() => {
 ```
 
 ### Bug 3: unfoldingWord Default Everywhere
-Changed default organization from "unfoldingWord" to "Door43-Catalog" throughout the codebase to better reflect the multi-organization nature of the catalog.
+**Note**: This documentation is outdated. As of version 3.1.1, the default organization was changed back to "unfoldingWord" to fix organization display override issues where users would see "Door43-Catalog" even when selecting other organizations.
 
 ### Combined Impact
 - **Before**: User selects MVHS resource → Scripture loads from unfoldingWord → URL shows `owner=unfoldingWord` → Error message

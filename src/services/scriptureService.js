@@ -62,13 +62,13 @@ export async function fetchBookWithFallback({
   organization = "unfoldingWord",
 }) {
   try {
-    console.log(`🔄 Scripture Service: Loading with fallback for ${bookId} from ${organization}/${languageId}_${resourceId}`);
+    console.warn(`🔄 Scripture Service: Loading with fallback for ${bookId} from ${organization}/${languageId}_${resourceId}`);
 
     let actualResourceData = resourceData;
     
     // If no resourceData provided, fetch it from catalog API (API-direct pattern)
     if (!actualResourceData) {
-      console.log(`📡 Scripture Service: Fetching resource metadata for ${organization}/${languageId}/${resourceId}`);
+      console.warn(`📡 Scripture Service: Fetching resource metadata for ${organization}/${languageId}/${resourceId}`);
       try {
         const catalogResult = await searchAllResourcesForLanguage(languageId);
         
@@ -76,9 +76,13 @@ export async function fetchBookWithFallback({
         actualResourceData = catalogResult.resources[organization]?.find(r => r.id === resourceId);
         
         if (actualResourceData) {
-          console.log(`✅ Scripture Service: Found resource metadata with ${actualResourceData.ingredients?.length || 0} ingredients`);
+          console.warn(`✅ Scripture Service: Found resource metadata with ${actualResourceData.ingredients?.length || 0} ingredients`);
         } else {
-          console.warn(`⚠️ Scripture Service: No resource metadata found for ${organization}/${languageId}/${resourceId}`);
+          console.error(`❌ Scripture Service: No resource metadata found for ${organization}/${languageId}/${resourceId}`);
+          console.warn(`Available organizations:`, Object.keys(catalogResult.resources || {}));
+          if (catalogResult.resources[organization]) {
+            console.warn(`Available resources in ${organization}:`, catalogResult.resources[organization].map(r => r.id));
+          }
         }
       } catch (catalogError) {
         console.error(`❌ Scripture Service: Failed to fetch catalog data:`, catalogError);
@@ -92,31 +96,35 @@ export async function fetchBookWithFallback({
       const ingredient = actualResourceData.ingredients.find(ing => ing.identifier === bookId);
       if (ingredient && ingredient.path) {
         filePath = ingredient.path.replace("./", "");
-        console.log(`✅ Scripture Service: Found file path in ingredients: ${filePath}`);
+        console.warn(`✅ Scripture Service: Found file path in ingredients: ${filePath}`);
       } else {
-        console.warn(`Scripture Service: Book ${bookId} not found in ingredients, falling back to naming convention`);
+        console.warn(`⚠️ Scripture Service: Book ${bookId} not found in ingredients, falling back to naming convention`);
         filePath = `${bookId.toUpperCase()}.usfm`;
       }
     } 
     // TIER 2: Use naming convention fallback (Secondary)
     else {
-      console.warn(`Scripture Service: No ingredients array, using naming convention`);
+      console.warn(`⚠️ Scripture Service: No ingredients array, using naming convention`);
       filePath = `${bookId.toUpperCase()}.usfm`;
     }
 
     // TIER 3: Fetch with error handling (Tertiary)
     try {
-      console.log(`📖 Scripture Service: Fetching ${filePath} from ${organization}/${languageId}_${resourceId}`);
+      console.warn(`📖 Scripture Service: Fetching ${filePath} from ${organization}/${languageId}_${resourceId}`);
       
       const usfm = await fetchResourceFile(languageId, resourceId, filePath, organization);
 
       if (!usfm) {
-        throw new Error(`No USFM content returned for ${bookId}`);
+        const errorMsg = `No USFM content returned for ${bookId}`;
+        console.error(`❌ Scripture Service: ${errorMsg}`);
+        throw new Error(errorMsg);
       }
 
-      console.log(`✅ Scripture Service: Successfully fetched ${filePath} (${usfm.length} characters)`);
+      console.warn(`✅ Scripture Service: Successfully fetched ${filePath} (${usfm.length} characters)`);
       return usfm;
     } catch (fetchError) {
+      console.error(`❌ Scripture Service: Failed to fetch ${filePath} from ${organization}/${languageId}_${resourceId}:`, fetchError);
+      
       // If ingredients path failed, try naming convention as final fallback
       if (actualResourceData?.ingredients && filePath !== `${bookId.toUpperCase()}.usfm`) {
         console.warn(`⚠️ Scripture Service: Ingredients path failed, trying naming convention as final fallback`);
@@ -125,7 +133,7 @@ export async function fetchBookWithFallback({
         try {
           const fallbackUsfm = await fetchResourceFile(languageId, resourceId, fallbackPath, organization);
           if (fallbackUsfm) {
-            console.log(`✅ Scripture Service: Fallback successful with ${fallbackPath}`);
+            console.warn(`✅ Scripture Service: Fallback successful with ${fallbackPath}`);
             return fallbackUsfm;
           }
         } catch (fallbackError) {

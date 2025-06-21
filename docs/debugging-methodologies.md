@@ -4,6 +4,8 @@
 
 This document outlines systematic debugging approaches used to resolve complex issues in the translation-helps application. These methodologies were proven effective during the resolution of organization avatar display issues and API integration problems in version 2.12.1.
 
+**Note**: As of version 3.1.1, the application uses a centralized logger utility (`src/utils/logger.js`) set to WARN level by default to reduce console noise. When debugging, you may need to temporarily adjust the log level to INFO or DEBUG for detailed output.
+
 ## Systematic Debugging Approach
 
 ### 1. Issue Isolation Methodology

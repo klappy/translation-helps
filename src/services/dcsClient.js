@@ -56,13 +56,29 @@ export async function fetchResourceFile(
   organization = "unfoldingWord"
 ) {
   const url = `${rawBaseUrl(organization, languageId, resourceId)}/${filePath}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(
-      `Failed to load ${filePath} for ${languageId}_${resourceId}: ${res.statusText}`
-    );
+  
+  console.warn(`🌐 DCS Client: Fetching ${url}`);
+  
+  try {
+    const res = await fetch(url);
+    
+    console.warn(`🌐 DCS Client: Response ${res.status} ${res.statusText} for ${url}`);
+    
+    if (!res.ok) {
+      const errorMsg = `Failed to load ${filePath} for ${languageId}_${resourceId}: ${res.status} ${res.statusText}`;
+      console.error(`❌ DCS Client: ${errorMsg}`);
+      console.error(`❌ DCS Client: Full URL was: ${url}`);
+      throw new Error(errorMsg);
+    }
+    
+    const text = await res.text();
+    console.warn(`✅ DCS Client: Successfully fetched ${filePath} (${text.length} chars) from ${organization}`);
+    
+    return text;
+  } catch (error) {
+    console.error(`❌ DCS Client: Network error fetching ${url}:`, error);
+    throw error;
   }
-  return res.text();
 }
 
 export default { fetchManifest, fetchResourceFile };

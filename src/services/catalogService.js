@@ -65,7 +65,6 @@ async function fetchWithCache(url, cacheKey) {
 
   // Check if there's already a pending request for this cache key
   if (pendingRequests.has(cacheKey)) {
-    console.log(`🔄 Deduplicating request for ${cacheKey} - using existing promise`);
     return await pendingRequests.get(cacheKey);
   }
 
@@ -219,9 +218,7 @@ export async function fetchLanguages(owner) {
       const languages = data.data
         .filter((lang) => lang && lang.lc)
         .map((lang) => {
-          // Debug logging to identify language ID corruption
-          console.log("🔍 Raw language from API:", lang);
-          console.log("🔍 Extracted lang.lc:", lang.lc);
+
 
           return {
             code: lang.lc,
@@ -232,8 +229,7 @@ export async function fetchLanguages(owner) {
         })
         .sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code));
 
-      // Log the final transformed languages
-      console.log("🔍 Final languages array:", languages);
+
 
       return languages.length > 0 ? languages : fallbackLanguages;
     }
@@ -434,7 +430,7 @@ export const searchAllResourcesForLanguage = createOptimizedSearch(
     const cacheKey = `all_resources_${languageCode}_${stage}`;
 
     try {
-      console.log(`🌟 Fetching ALL resources for ${languageCode} in single API call: ${url}`);
+
       const data = await fetchWithCache(url, cacheKey);
 
       // Initialize comprehensive result structure
@@ -621,8 +617,7 @@ export const searchAllResourcesForLanguage = createOptimizedSearch(
           timestamp: new Date().toISOString()
         };
 
-        console.log(`🌟 Single API call returned ${finalMetadata.totalResources} resources from ${finalMetadata.organizations.length} organizations`);
-        console.log(`📊 Subject breakdown:`, finalMetadata.subjectBreakdown);
+
 
         return {
           resources: comprehensiveResult.resources,

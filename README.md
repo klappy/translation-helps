@@ -1,6 +1,6 @@
 # ETEN Innovation Lab Translation Helps
 
-## Version 2.1.0 (2025-06-14)
+## Version 3.1.1 (2025-01-30)
 
 - Reference and resources context now always sync with the URL, ensuring correct context/resources on navigation and fresh load.
 - LLM chat context always receives the exact raw USFM for the current chapter, matching what is rendered in the scripture pane.

@@ -47,12 +47,14 @@ export async function loadResourceForType(resourceType, reference, resourceConfi
     resourceData = null
   } = resourceConfig;
 
-  console.log(`🎯 loadResourceForType: Loading ${resourceType} for ${bookId} ${chapter}:${verse} from ${organization}/${languageId}`);
+  console.warn(`🎯 loadResourceForType: Loading ${resourceType} for ${bookId} ${chapter}:${verse} from ${organization}/${languageId}/${resourceId}`);
 
   try {
     switch (resourceType) {
       case 'scripture':
         try {
+          console.warn(`🔍 Scripture: Attempting primary load from ${organization}/${languageId}/${resourceId}`);
+          
           // Try primary organization first - KEEP RAW USFM AS SINGLE SOURCE OF TRUTH
           const rawUsfm = await fetchBookWithFallback({
             bookId,
@@ -63,20 +65,19 @@ export async function loadResourceForType(resourceType, reference, resourceConfi
           });
           
           if (rawUsfm) {
-            console.log(`🔍 Scripture: Loaded raw USFM (${rawUsfm.length} chars) - keeping as single source of truth`);
-            console.log(`🔍 Scripture: Raw USFM preview: "${rawUsfm.substring(0, 200)}${rawUsfm.length > 200 ? '...' : ''}"`);
-            
-            // Return raw USFM as the single source of truth
-            // UI components will render it directly
-            // LLM context will extract clean text at runtime
+            console.warn(`✅ Scripture: Primary load SUCCESSFUL from ${organization} (${rawUsfm.length} chars)`);
             return rawUsfm;
+          } else {
+            console.error(`❌ Scripture: Primary load from ${organization} returned null/empty`);
           }
           
           return null;
         } catch (primaryError) {
+          console.error(`❌ Scripture: Primary load from ${organization} FAILED with error:`, primaryError);
+          
           // If primary organization fails and it's not unfoldingWord, try unfoldingWord as fallback
           if (organization !== 'unfoldingWord') {
-            console.warn(`⚠️ Scripture loading failed for ${organization}, trying unfoldingWord fallback`);
+            console.warn(`🔄 Scripture: Attempting unfoldingWord fallback due to ${organization} failure`);
             try {
               const fallbackUsfm = await fetchBookWithFallback({
                 bookId,
@@ -87,16 +88,20 @@ export async function loadResourceForType(resourceType, reference, resourceConfi
               });
               
               if (fallbackUsfm) {
-                console.log(`🔍 Scripture (Fallback): Loaded raw USFM (${fallbackUsfm.length} chars) from unfoldingWord`);
+                console.warn(`⚠️ Scripture (FALLBACK): Loaded from unfoldingWord instead of ${organization} (${fallbackUsfm.length} chars)`);
+                console.error(`🚨 THIS IS THE PROBLEM! User selected ${organization} but got unfoldingWord fallback!`);
                 return fallbackUsfm;
+              } else {
+                console.error(`❌ Scripture: unfoldingWord fallback also returned null/empty`);
               }
               
               return null;
             } catch (fallbackError) {
-              console.error(`❌ Both ${organization} and unfoldingWord failed for scripture:`, fallbackError);
+              console.error(`❌ Scripture: Both ${organization} and unfoldingWord failed:`, { primaryError, fallbackError });
               throw primaryError; // Throw original error
             }
           } else {
+            console.error(`❌ Scripture: unfoldingWord primary load failed, no fallback available`);
             throw primaryError;
           }
         }

@@ -297,7 +297,7 @@ export function mergeContext(currentContext, updates) {
  */
 export function getDefaultContext() {
   return {
-    organization: "Door43-Catalog",
+    organization: "unfoldingWord",
     languageId: "en",
     resourceId: null,
     reference: {

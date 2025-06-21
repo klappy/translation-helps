@@ -7,6 +7,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { DEFAULT_REFERENCE } from "../utils/defaultReference";
 import { updateQueryFromContext, contextFromQuery, buildResourcePath } from "../utils/contextHelpers";
+import logger from '../utils/logger';
 import { searchResourcesAcrossOrgs } from "../services/catalogService";
 // Event bus removed - using direct ref access in ResourcesContext
 
@@ -23,7 +24,7 @@ export const useReferenceContext = () => {
 export function ReferenceProvider({ children }) {
   // Basic reference state
   const [reference, setReference] = useState(DEFAULT_REFERENCE);
-  const [organization, setOrganization] = useState("Door43-Catalog");
+  const [organization, setOrganization] = useState("unfoldingWord");
   const [languageId, setLanguageId] = useState("en");
   const [resourceId, setResourceId] = useState("ult");
 
@@ -64,12 +65,12 @@ export function ReferenceProvider({ children }) {
     function syncContextFromUrl() {
       try {
         const urlContext = contextFromQuery();
-        console.log('🔗 Parsing URL context:', urlContext);
+        // Parsing URL context
 
         if (urlContext && urlContext.hasUrlParams) {
           if (urlContext.isNewFormat) {
             // New format: scriptures/resources arrays
-            console.log('🆕 Using new URL format');
+            // Using new URL format
             setScriptures(urlContext.scriptures || []);
             setResources(urlContext.resources || []);
             
@@ -96,7 +97,7 @@ export function ReferenceProvider({ children }) {
             
           } else {
             // Legacy format: owner & rc parameters
-            console.log('🔄 Using legacy URL format');
+            // Using legacy URL format
             if (urlContext.organization) setOrganization(urlContext.organization);
             if (urlContext.languageId) setLanguageId(urlContext.languageId);
             if (urlContext.resourceId) setResourceId(urlContext.resourceId);
@@ -119,16 +120,10 @@ export function ReferenceProvider({ children }) {
             }
           }
           
-          console.log('✅ URL context applied:', {
-            organization: urlContext.organization,
-            languageId: urlContext.languageId,
-            resourceId: urlContext.resourceId,
-            reference: urlContext.reference,
-            isNewFormat: urlContext.isNewFormat
-          });
+          // URL context applied successfully
         } else {
           // Case 1: Fresh open with no URI parameters - use defaults and create new format
-          const defaultOrg = "Door43-Catalog";
+          const defaultOrg = "unfoldingWord";
           const defaultLang = "en";
           const defaultResource = "ult";
           const defaultRef = DEFAULT_REFERENCE;
@@ -150,12 +145,12 @@ export function ReferenceProvider({ children }) {
           
           setScriptures([defaultScripture]);
           setResources([]);
-          console.log('🏠 Using default context with new format:', defaultScripture);
+          // Using default context with new format
         }
 
         setIsInitialized(true);
       } catch (e) {
-        console.error("Failed to parse URL context:", e);
+        logger.error("Failed to parse URL context:", e);
         setIsInitialized(true);
       }
     }
@@ -214,87 +209,48 @@ export function ReferenceProvider({ children }) {
         (currentResourceData.id !== resourceId) ||
         (currentResourceData.languageId !== languageId);
       
-      console.log('🔍 Resource fetch check:', {
-        needsNewData,
-        hasCurrentData: !!currentResourceData,
-        currentDataId: currentResourceData?.id,
-        requestedResourceId: resourceId,
-        currentDataLang: currentResourceData?.languageId,
-        requestedLang: languageId
-      });
-      
       if (!needsNewData) {
-        console.log('📋 Skipping fetch - resource data is current');
         return;
       }
 
-      console.log('🔗 Auto-fetching resource data for URL parameters:', { languageId, resourceId, organization });
-
       try {
+        const targetOrg = resourceOrganization || organization;
+        console.warn(`🔍 ReferenceContext: Fetching resource metadata for ${targetOrg}/${languageId}/${resourceId}`);
+        
         // Fetch all resources for this language to find the specific resource
         const result = await searchResourcesAcrossOrgs(languageId, 'Aligned Bible,Bible');
         const { resources } = result;
 
-        // Find the specific resource across all organizations
+        // Find the specific resource ONLY in the user's selected organization
         let foundResource = null;
-        let foundOrganization = null;
-
-        // First, try to find it in the specified organization
-        const targetOrg = resourceOrganization || organization;
+        
         if (resources[targetOrg]) {
           foundResource = resources[targetOrg].find(res => res.id === resourceId);
           if (foundResource) {
-            foundOrganization = targetOrg;
-          }
-        }
-
-        // If not found in target org, search across all organizations
-        if (!foundResource) {
-          for (const [org, orgResources] of Object.entries(resources)) {
-            const resource = orgResources.find(res => res.id === resourceId);
-            if (resource) {
-              foundResource = resource;
-              foundOrganization = org;
-              break;
-            }
-          }
-        }
-
-        if (foundResource && foundOrganization) {
-          console.log('✅ Found resource data for URL:', { 
-            resourceId, 
-            organization: foundOrganization,
-            availableBooks: foundResource.books?.length || 0,
-            ingredientsCount: foundResource.ingredients?.length || 0
-          });
-
-          // Update context with the found resource data
-          console.log('📋 Setting currentResourceData:', {
-            id: foundResource.id,
-            languageId: foundResource.languageId || languageId,
-            booksCount: foundResource.books?.length || 0,
-            ingredientsCount: foundResource.ingredients?.length || 0
-          });
-          
-          // Ensure the resource data has the correct languageId for comparison
-          const enrichedResourceData = {
-            ...foundResource,
-            languageId: foundResource.languageId || languageId
-          };
-          
-          setCurrentResourceData(enrichedResourceData);
-          
-          // Update resource organization if it's different from what we expected
-          if (foundOrganization !== (resourceOrganization || organization)) {
-            console.log(`📍 Resource ${resourceId} found in ${foundOrganization}, updating organization`);
-            setResourceOrganization(foundOrganization);
+            console.warn(`✅ ReferenceContext: Found ${resourceId} metadata in ${targetOrg}`);
+            
+            // Ensure the resource data has the correct languageId for comparison
+            const enrichedResourceData = {
+              ...foundResource,
+              languageId: foundResource.languageId || languageId,
+              organization: targetOrg // Make sure organization is correctly set
+            };
+            
+            setCurrentResourceData(enrichedResourceData);
+          } else {
+            console.error(`❌ ReferenceContext: Resource ${resourceId} NOT found in ${targetOrg}`);
+            console.warn(`Available resources in ${targetOrg}:`, resources[targetOrg]?.map(r => r.id) || 'none');
+            // Clear currentResourceData so it doesn't show wrong organization
+            setCurrentResourceData(null);
           }
         } else {
-          console.warn(`⚠️ Resource ${resourceId} not found for language ${languageId}`);
-          // Don't set an error here - let the ScripturePanelRCL handle it
+          console.error(`❌ ReferenceContext: Organization ${targetOrg} not found in search results`);
+          console.warn(`Available organizations:`, Object.keys(resources));
+          setCurrentResourceData(null);
         }
       } catch (error) {
-        console.error('❌ Failed to auto-fetch resource data for URL:', error);
+        console.error('❌ ReferenceContext: Failed to fetch resource metadata:', error);
+        setCurrentResourceData(null);
       }
     }
 
@@ -356,14 +312,11 @@ export function ReferenceProvider({ children }) {
 
   // Update context with backward compatibility
   const updateContext = (updates) => {
-    console.log("🔄 ReferenceContext.updateContext called with:", updates);
 
     if (updates.reference !== undefined) {
       setReference(updates.reference);
       
-      // Emit reference change event for antifragile AI context
       // Event emission removed - ResourcesContext handles reference changes directly
-      console.log(`📦 ReferenceContext: Reference changed (handled by ResourcesContext)`, updates.reference);
     }
     if (updates.organization !== undefined) {
       setOrganization(updates.organization);
@@ -527,25 +480,6 @@ export function ReferenceProvider({ children }) {
     return orgs.size > 1;
   };
 
-  // Debug logging for development
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📍 ReferenceContext state:', {
-        reference,
-        organization,
-        languageId,
-        resourceId,
-        advancedMode,
-        resourceOrganization,
-        mixedResources,
-        isUsingMixedOrgs: isUsingMixedOrganizations()
-      });
-      
-      // Expose context to window for testing
-      window.ReferenceContext = value;
-    }
-  }, [reference, organization, languageId, resourceId, advancedMode, resourceOrganization, mixedResources]);
-
   const value = {
     // Basic state
     reference,
@@ -582,6 +516,14 @@ export function ReferenceProvider({ children }) {
     setLanguageId,
     setResourceId,
   };
+
+  // Expose context to window for testing in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      // Expose context to window for testing
+      window.ReferenceContext = value;
+    }
+  }, [value]);
 
   return <ReferenceContext.Provider value={value}>{children}</ReferenceContext.Provider>;
 }

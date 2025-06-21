@@ -25,7 +25,7 @@ export function LLMChatPanel() {
 
   // Ensure all resources are active for comprehensive AI context
   useEffect(() => {
-    console.log('🎯 LLMChatPanel: Self-activating ALL resources for comprehensive AI context');
+    // Self-activating ALL resources for comprehensive AI context
     ['scripture', 'notes', 'questions', 'words', 'links'].forEach(activateResource);
   }, [activateResource]);
 
@@ -44,7 +44,7 @@ export function LLMChatPanel() {
 
   // Activate AI tab when component mounts
   useEffect(() => {
-    console.log('[LLMChatPanel] Component mounted - activating AI tab');
+    // Component mounted - activating AI tab
     activateAITab();
   }, [activateAITab]);
 
@@ -72,18 +72,10 @@ export function LLMChatPanel() {
     if (resources.scripture && resources.reference) {
       // Raw USFM is the single source of truth - extract clean text at runtime
       const rawUsfm = resources.scripture;
-      console.log('🔍 LLM Context: Extracting clean text from raw USFM at runtime');
-      console.log('🔍 LLM Context: Raw USFM length:', rawUsfm.length);
+          // Extracting clean text from raw USFM at runtime
       
       try {
-        // Debug the extraction parameters
-        console.log('🔍 LLM Context: Extraction parameters:', {
-          reference: resources.reference,
-          chapter: resources.reference.chapter,
-          verse: resources.reference.verse,
-          usfmLength: rawUsfm.length,
-          usfmPreview: rawUsfm.substring(0, 200) + '...'
-        });
+
         
         // Extract clean text - try chapter first for broader context, then specific verse
         let cleanText;
@@ -93,19 +85,14 @@ export function LLMChatPanel() {
           // PRIMARY: Extract entire chapter with verse numbers for comprehensive LLM context
           cleanText = extractChapterText(rawUsfm, resources.reference.chapter);
           extractionMethod = 'chapter';
-          console.log('🔍 LLM Context: Successfully extracted FULL CHAPTER with verse numbers for optimal LLM context');
         } catch (chapterError) {
           console.warn('🔍 LLM Context: Chapter extraction failed, trying single verse:', chapterError.message);
-          // Fallback: Extract specific verse with verse number
-          cleanText = extractVerseText(rawUsfm, resources.reference.chapter, resources.reference.verse);
-          extractionMethod = 'verse';
-          console.log('🔍 LLM Context: Successfully extracted single verse with verse number');
+                      // Fallback: Extract specific verse with verse number
+            cleanText = extractVerseText(rawUsfm, resources.reference.chapter, resources.reference.verse);
+            extractionMethod = 'verse';
         }
         
-        console.log('🔍 LLM Context: Raw extraction result:', {
-          extractedLength: cleanText?.length || 0,
-          extractedPreview: cleanText?.substring(0, 200) + '...'
-        });
+
         
         const isClean = validateCleanText(cleanText);
         
@@ -116,7 +103,6 @@ export function LLMChatPanel() {
         
         if (!isClean) {
           console.warn('⚠️ LLM Context: Extracted text contains markup patterns!');
-          console.warn('⚠️ LLM Context: Extracted text preview:', cleanText.substring(0, 500));
         }
         
         scriptureForLLM = cleanText;
@@ -129,9 +115,7 @@ export function LLMChatPanel() {
           extractionMethod: extractionMethod
         };
         
-        console.log('🔍 LLM Context: Extracted clean text successfully');
-        console.log('🔍 LLM Context: Clean text preview:', cleanText.substring(0, 100) + '...');
-        console.log('🔍 LLM Context: Text is clean:', isClean);
+
         
       } catch (error) {
         console.error('❌ LLM Context: Failed to extract clean text from USFM:', error);
@@ -141,10 +125,9 @@ export function LLMChatPanel() {
         // Fallback: use raw USFM (better than nothing, but will cause issues)
         scriptureForLLM = rawUsfm;
         console.warn('⚠️ LLM Context: Using raw USFM as fallback - AI may be confused by markup');
-        console.warn('⚠️ LLM Context: Raw USFM length:', rawUsfm.length);
       }
     } else {
-      console.log('🔍 LLM Context: No scripture data or reference available');
+      // No scripture data or reference available
     }
     
     const formattedContext = {
@@ -170,9 +153,7 @@ export function LLMChatPanel() {
       },
     };
     
-    // Log context size for auditing
-    const contextSizeBytes = JSON.stringify(formattedContext).length;
-    console.log(`🔍 LLM Context: Total context size: ${(contextSizeBytes / 1024).toFixed(1)}KB`);
+
     
     return formattedContext;
   }, [resources]);
@@ -196,19 +177,8 @@ export function LLMChatPanel() {
       // Context is ALWAYS ready and consistent
       const formattedContext = getFormattedContext();
       
-      console.log('🎯 LLMChatPanel: Sending message with context:', {
-        reference: formattedContext.reference?.citation,
-        resourcesAvailable: Object.keys(formattedContext.resources).filter(key => 
-          Array.isArray(formattedContext.resources[key]) 
-            ? formattedContext.resources[key].length > 0 
-            : !!formattedContext.resources[key]
-        )
-      });
-      
-      // Send to LLM service
+      // Send to LLM service with context
       const response = await sendChatMessage(message, formattedContext);
-      
-      console.log('🎯 LLMChatPanel: Received response:', response);
       
       // Handle response properly
       if (response.success) {
@@ -337,7 +307,7 @@ export function LLMChatPanel() {
                 maxEmojisPerResponse: 6,
                 excludeCategories: [],
               }), (rcLink) => {
-                console.log("RC link clicked in chat:", rcLink);
+                // RC link clicked in chat
               })
             ) : (
               message.content
@@ -398,48 +368,7 @@ export function LLMChatPanel() {
             </div>
           )}
           
-          <button onClick={() => {
-            const context = getFormattedContext();
-            console.log('🔍 SCRIPTURE AUDIT - Full Context:', context);
-            console.log('🔍 SCRIPTURE AUDIT - Scripture Text for LLM:', context.resources.scripture);
-            console.log('🔍 SCRIPTURE AUDIT - Raw Context Size:', JSON.stringify(context).length);
-            
-            // Audit the antifragile pattern: raw USFM in context vs clean text for LLM
-            if (resources.scripture) {
-              console.log('🔍 SCRIPTURE AUDIT - ANTIFRAGILE PATTERN CHECK:');
-              console.log('🔍 SCRIPTURE AUDIT - Context stores raw USFM:', typeof resources.scripture === 'string');
-              console.log('🔍 SCRIPTURE AUDIT - Raw USFM Length:', resources.scripture.length);
-              console.log('🔍 SCRIPTURE AUDIT - Raw USFM Preview:', resources.scripture.substring(0, 500) + '...');
-              
-              // Show what LLM actually receives
-              console.log('🔍 SCRIPTURE AUDIT - LLM receives clean text:', typeof context.resources.scripture === 'string');
-              console.log('🔍 SCRIPTURE AUDIT - Clean Text Length:', context.resources.scripture?.length || 0);
-              console.log('🔍 SCRIPTURE AUDIT - Clean Text Preview:', context.resources.scripture?.substring(0, 500) + '...');
-              
-              // Metadata audit
-              if (context.metadata?.scriptureMetadata) {
-                console.log('🔍 SCRIPTURE AUDIT - Extraction Metadata:', context.metadata.scriptureMetadata);
-                console.log('🔍 SCRIPTURE AUDIT - Text cleanliness verified:', context.metadata.scriptureMetadata.isClean);
-              }
-              
-              // Validate the separation of concerns
-              const rawHasMarkup = resources.scripture.includes('\\zaln-s') || resources.scripture.includes('\\w ');
-              const cleanHasMarkup = context.resources.scripture?.includes('\\zaln-s') || context.resources.scripture?.includes('\\w ');
-              
-              console.log('🔍 SCRIPTURE AUDIT - Raw USFM contains markup (expected):', rawHasMarkup);
-              console.log('🔍 SCRIPTURE AUDIT - Clean text contains markup (should be false):', cleanHasMarkup);
-              
-              if (rawHasMarkup && !cleanHasMarkup) {
-                console.log('✅ SCRIPTURE AUDIT - ANTIFRAGILE PATTERN WORKING CORRECTLY');
-              } else {
-                console.warn('⚠️ SCRIPTURE AUDIT - PATTERN MAY HAVE ISSUES');
-              }
-            } else {
-              console.log('🔍 SCRIPTURE AUDIT - No Scripture Data Available');
-            }
-            
-            alert('Scripture audit complete! Check console for antifragile pattern analysis - raw USFM in context vs clean text for LLM.');
-          }} className={styles.debugButton} title="Audit scripture context">📖</button>
+
           
           <button onClick={clearMessages} className={styles.clearButton} title='Clear conversation' disabled={messages.length === 0}>🗑️</button>
         </div>

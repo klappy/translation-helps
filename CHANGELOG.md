@@ -2,6 +2,45 @@
 
 ## [Unreleased]
 
+## [3.1.1] - 2025-01-30
+
+### Fixed
+
+- **Organization Display Override Issue - RESOLVED**
+  - ✅ Fixed Door43-Catalog being displayed as organization even when unfoldingWord or other organizations were selected
+  - ✅ Removed hardcoded "Door43-Catalog" fallback in ScripturePanelRCL that was overriding user selections
+  - ✅ Updated ReferenceContext to respect user organization choices instead of automatically overriding them
+  - ✅ Organization display now correctly shows the selected organization (unfoldingWord, STR, WA, etc.)
+  - ✅ Fixed resource discovery logic that was changing organization selection without user consent
+  - ✅ Updated default organization context from "Door43-Catalog" to "unfoldingWord" in ReferenceContext, contextHelpers, and useAppState
+  - ✅ Enhanced resource metadata fetching to search only within user's selected organization
+  - ✅ Fixed cross-organization resource metadata pollution that showed incorrect organization info
+
+### Changed
+
+- **Logging System Cleanup - Reduced Console Noise**
+  - ✅ Updated logger utility (src/utils/logger.js) to default to WARN level instead of INFO for cleaner console output
+  - ✅ Replaced numerous console.log statements with logger calls or comments across the codebase
+  - ✅ Removed excessive debug logging from catalogService.js that was flooding console in development
+  - ✅ Cleaned up verbose LLM context extraction logging in LLMChatPanel.jsx
+  - ✅ Removed redundant debug logging from ScripturePanelRCL.jsx and ReferenceContext.jsx
+  - ✅ Streamlined BookSelector.jsx logging to only show warnings and errors
+  - ✅ Console now shows only essential information, warnings, and errors
+  - ✅ Improved development experience with cleaner console output
+
+- **Enhanced Debugging Infrastructure**
+  - ✅ Added comprehensive error logging throughout scripture loading chain in loadResourceForType.js
+  - ✅ Enhanced HTTP request/response logging in scriptureService.js and dcsClient.js
+  - ✅ Added organization display debugging in ScripturePanelRCL.jsx
+  - ✅ Improved error visibility while reducing routine operation noise
+
+### Removed
+
+- **Debug Features Cleanup**
+  - ✅ Removed audit scripture context button from LLM Chat Panel that was no longer needed
+  - ✅ Eliminated redundant debug buttons and development-only UI elements
+  - ✅ Cleaned up temporary debugging code that was left in production builds
+
 ### Added
 
 - **USFM Text Extraction - Comprehensive Documentation and Test Audit (2025)**

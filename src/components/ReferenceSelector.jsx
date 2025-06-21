@@ -28,26 +28,8 @@ export function ReferenceSelector() {
   const availableBooks = resourceId ? AVAILABLE_BOOKS : [];
   const availableChapters = reference.bookId ? chapters : [];
 
-  // Debug logging with actual values
+  // Debug info available in console if needed - reduced verbosity
   const dropdownDisabled = !organization || !languageId || resourcesLoading;
-  console.log("🎯 Organization:", organization);
-  console.log("🎯 LanguageId:", languageId);
-  console.log("🎯 ResourceId:", resourceId);
-  console.log("🎯 Resources count:", resources?.length || 0);
-  console.log("🎯 Resources loading:", resourcesLoading);
-  console.log("🎯 Dropdown disabled:", dropdownDisabled);
-  console.log("🎯 Org check (!organization):", !organization);
-  console.log("🎯 Lang check (!languageId):", !languageId);
-  console.log("🎯 Loading check (resourcesLoading):", resourcesLoading);
-
-  if (resources?.length > 0) {
-    console.log(
-      "📋 Available resources:",
-      resources.map((r) => `${r.id}: ${r.name} - ${r.description}`)
-    );
-    // Log the actual structure
-    console.log("🔍 Resource structure:", JSON.stringify(resources[0], null, 2));
-  }
 
   // Update chapters when book changes
   useEffect(() => {
@@ -243,7 +225,7 @@ export function ReferenceSelector() {
             <>
               <option value=''>Select Bible Resource</option>
               {availableResources.map((resource) => {
-                console.log("🎨 Mapping resource:", resource);
+                // Mapping resource for display
                 return (
                   <option key={resource.id} value={resource.id}>
                     {resource.id.toUpperCase()} - {resource.description}

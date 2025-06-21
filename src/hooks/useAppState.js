@@ -49,7 +49,7 @@ export function useAppState() {
 
   // Additional coordination state
   const [resourceId, setResourceId] = useState(null);
-  const [organization] = useState("door43-catalog");
+  const [organization] = useState("unfoldingWord");
   const [languageId] = useState("en");
 
   // Initialize from URL on mount

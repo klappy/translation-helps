@@ -39,7 +39,7 @@ export function BookSelector({ onSelect, onBack }) {
   // Get available books from resource data or fallback to all books
   const availableBooks = useMemo(() => {
     if (currentResourceData && currentResourceData.books) {
-      console.log(`📚 Found ${currentResourceData.books.length} books in resource data for ${currentResourceId}`);
+      // Found books in resource data
       
       // Map the books from resource data to our standard format
       return currentResourceData.books
@@ -65,7 +65,7 @@ export function BookSelector({ onSelect, onBack }) {
     }
     
     // Fallback to all books if no resource data
-    console.log(`📚 No resource data for ${currentResourceId}, showing all books`);
+    // No resource data, showing all books
     return AVAILABLE_BOOKS.map(book => ({
       ...book,
       // Chapter count determined dynamically via getMaxChaptersForBook
