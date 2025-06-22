@@ -150,6 +150,55 @@ export async function discoverFiaResources(language = 'en') {
 }
 
 /**
+ * Collapse contiguous verse ranges into readable format
+ * @param {string[]} verses - Array of verse references (e.g., ["13:23", "13:24", "13:25", "13:41"])
+ * @returns {string} Collapsed verse range (e.g., "13:23-25, 13:41")
+ */
+function collapseVerseRanges(verses) {
+  if (!verses || verses.length === 0) return '';
+  if (verses.length === 1) return verses[0];
+
+  // Parse verses into chapter:verse pairs and sort
+  const parsedVerses = verses
+    .map(ref => {
+      const [chapter, verse] = ref.split(':').map(Number);
+      return { chapter, verse, original: ref };
+    })
+    .sort((a, b) => a.chapter - b.chapter || a.verse - b.verse);
+
+  const ranges = [];
+  let currentRange = [parsedVerses[0]];
+
+  for (let i = 1; i < parsedVerses.length; i++) {
+    const current = parsedVerses[i];
+    const previous = parsedVerses[i - 1];
+
+    // Check if current verse is contiguous with previous
+    if (current.chapter === previous.chapter && current.verse === previous.verse + 1) {
+      currentRange.push(current);
+    } else {
+      // End current range and start new one
+      ranges.push(currentRange);
+      currentRange = [current];
+    }
+  }
+  
+  // Add the last range
+  ranges.push(currentRange);
+
+  // Format ranges
+  return ranges.map(range => {
+    if (range.length === 1) {
+      return range[0].original;
+    } else if (range.length === 2) {
+      return `${range[0].original}, ${range[1].original}`;
+    } else {
+      return `${range[0].original}-${range[range.length - 1].verse}`;
+    }
+  }).join(', ');
+}
+
+/**
  * Get available books from FIA metadata
  * @param {Object} metadata - Scripture Burrito metadata
  * @returns {string[]} Array of available book IDs
@@ -417,7 +466,9 @@ export async function getChapterFiaMaps(bookId, chapter, language = 'en') {
       if (!uniqueMaps.has(row.HREF)) {
         // Convert filename to proper title
         const filename = row.HREF.replace('./payload/', '').replace(/\.(jpg|png)$/, '');
-        const title = filename
+        // Remove directory prefix (e.g., "J/jerusalem" becomes "jerusalem")
+        const cleanFilename = filename.includes('/') ? filename.split('/').pop() : filename;
+        const title = cleanFilename
           .split(/[-_]/)
           .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
           .join(' ');
@@ -437,7 +488,10 @@ export async function getChapterFiaMaps(bookId, chapter, language = 'en') {
       }
     });
     
-    const deduplicatedMaps = Array.from(uniqueMaps.values());
+    const deduplicatedMaps = Array.from(uniqueMaps.values()).map(map => ({
+      ...map,
+      versesFormatted: collapseVerseRanges(map.verses) // Add formatted verse ranges
+    }));
     
     console.log(`✅ FIA Maps: Found ${deduplicatedMaps.length} unique maps for ${upperBookId} chapter ${chapter} (${chapterData.length} total references)`);
     

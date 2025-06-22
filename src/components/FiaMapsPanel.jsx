@@ -197,7 +197,7 @@ export function FiaMapsPanel() {
                           {map.verses.length} verse{map.verses.length !== 1 ? 's' : ''}
                         </span>
                         <span className={styles.verseList}>
-                          {map.verses.join(', ')}
+                          {map.versesFormatted || map.verses.join(', ')}
                         </span>
                       </div>
                       {map.TAGS && (
@@ -226,7 +226,7 @@ export function FiaMapsPanel() {
               <h3>{selectedMap.title}</h3>
               <div className={styles.mapMetadata}>
                 <span className={styles.verseRefs}>
-                  Verses: {selectedMap.verses.join(', ')}
+                  Verses: {selectedMap.versesFormatted || selectedMap.verses.join(', ')}
                 </span>
                 {selectedMap.TAGS && (
                   <span className={styles.tags}>{selectedMap.TAGS}</span>
