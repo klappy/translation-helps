@@ -17,12 +17,12 @@ import { FiaMapsPanel } from "./FiaMapsPanel";
 import styles from "./HelpsTabs.module.css";
 
 const STATIC_TABS = [
-  { id: "tn", label: "Notes", icon: "notes", component: TranslationNotesPanel, isStatic: true },
-  { id: "tq", label: "Questions", icon: "questions", component: TranslationQuestionsPanel, isStatic: true },
-  { id: "tw", label: "Words", icon: "words", component: TranslationWordsPanel, isStatic: true },
-  { id: "fia-images", label: "Images", icon: "images", component: FiaImagesPanel, isStatic: true },
-  { id: "fia-maps", label: "Maps", icon: "maps", component: FiaMapsPanel, isStatic: true },
-  { id: "chat", label: "AI Assistant", icon: "chat", component: LLMChatPanel, isStatic: true },
+  { id: "tn", label: "Notes", mobileLabel: "Notes", icon: "notes", component: TranslationNotesPanel, isStatic: true },
+  { id: "tq", label: "Questions", mobileLabel: "Q&A", icon: "questions", component: TranslationQuestionsPanel, isStatic: true },
+  { id: "tw", label: "Words", mobileLabel: "Words", icon: "words", component: TranslationWordsPanel, isStatic: true },
+  { id: "fia-images", label: "Images", mobileLabel: "Pics", icon: "images", component: FiaImagesPanel, isStatic: true },
+  { id: "fia-maps", label: "Maps", mobileLabel: "Maps", icon: "maps", component: FiaMapsPanel, isStatic: true },
+  { id: "chat", label: "AI Assistant", mobileLabel: "AI", icon: "chat", component: LLMChatPanel, isStatic: true },
 ];
 
 export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
@@ -181,7 +181,8 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
                 <span className={styles.tabLabel}>
                   <span className={styles.iconTextContent}>
                     {tab.icon && <TabIcon type={tab.icon} />}
-                    <span>{tab.label}</span>
+                    <span className={styles.desktopLabel}>{tab.label}</span>
+                    <span className={styles.mobileLabel}>{tab.mobileLabel || tab.label}</span>
                   </span>
                   {count !== null && (
                     <span 

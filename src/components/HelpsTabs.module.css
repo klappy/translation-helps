@@ -11,9 +11,19 @@
   display: flex;
   border-bottom: 2px solid var(--color-border);
   margin-bottom: var(--spacing-4);
-  flex-wrap: wrap;
-  gap: var(--spacing-1);
   background-color: var(--color-surface);
+  /* Enable horizontal scrolling on mobile */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabsHeader::-webkit-scrollbar {
+  display: none;
 }
 
 /* Tab Button Container */
@@ -21,6 +31,7 @@
   display: flex;
   align-items: center;
   position: relative;
+  flex-shrink: 0; /* Prevent tabs from shrinking */
 }
 
 /* Tab Button */
@@ -41,6 +52,8 @@
   position: relative;
   white-space: nowrap;
   min-height: var(--touch-target-min);
+  /* Ensure minimum touch target on mobile */
+  min-width: var(--touch-target-min);
 }
 
 .tabButton:hover {
@@ -138,29 +151,67 @@
   flex: 1;
   overflow: hidden;
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .tabPanel {
   height: 100%;
+  width: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
 }
 
-/* Responsive Design */
+/* Icon and text content layout */
+.iconTextContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+/* Desktop and mobile label switching */
+.desktopLabel {
+  display: block;
+}
+
+.mobileLabel {
+  display: none;
+}
+
+/* MOBILE RESPONSIVE DESIGN - COMPLETELY REWRITTEN */
+
+/* Tablet and smaller - 768px and below */
 @media (max-width: 768px) {
   .tabsHeader {
     gap: 0;
     margin-bottom: var(--spacing-3);
+    /* Ensure tabs scroll horizontally instead of wrapping */
+    flex-wrap: nowrap;
+    padding-right: var(--spacing-2);
   }
 
   .tabButton {
+    /* Smaller padding but maintain touch targets */
     padding: var(--spacing-2) var(--spacing-3);
-    font-size: var(--font-size-xs);
-    flex: 1;
-    justify-content: center;
+    font-size: var(--font-size-sm);
+    /* Ensure minimum touch target */
+    min-width: 60px;
+    min-height: var(--touch-target-min);
   }
 
-  /* Hide labels on mobile, show only icons/badges */
-  .tabLabel span {
+  .iconTextContent {
+    gap: var(--spacing-1);
+  }
+
+  /* Keep both icon and text visible on tablet */
+  .iconTextContent .desktopLabel {
+    display: block;
+    font-size: var(--font-size-xs);
+  }
+
+  .iconTextContent .mobileLabel {
     display: none;
   }
 
@@ -168,6 +219,66 @@
     font-size: 10px;
     min-width: 18px;
     height: 18px;
+  }
+}
+
+/* Mobile phones - 480px and below */
+@media (max-width: 480px) {
+  .tabButton {
+    /* Even more compact but still usable */
+    padding: var(--spacing-2);
+    min-width: 50px;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .tabLabel {
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+  }
+
+  .iconTextContent {
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+  }
+
+  /* Switch to mobile labels on very small screens */
+  .iconTextContent .desktopLabel {
+    display: none !important;
+  }
+
+  .iconTextContent .mobileLabel {
+    display: block !important;
+    font-size: 10px;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .countBadge {
+    font-size: 9px;
+    min-width: 16px;
+    height: 16px;
+    margin-top: 1px;
+  }
+}
+
+/* Very small screens - 360px and below */
+@media (max-width: 360px) {
+  .tabButton {
+    min-width: 45px;
+    padding: var(--spacing-1);
+  }
+
+  .iconTextContent .mobileLabel {
+    font-size: 9px;
+  }
+
+  .countBadge {
+    font-size: 8px;
+    min-width: 14px;
+    height: 14px;
   }
 }
 
@@ -204,6 +315,10 @@
   .closeButton,
   .countBadge {
     transition: none;
+  }
+
+  .tabsHeader {
+    scroll-behavior: auto;
   }
 }
 
@@ -315,12 +430,6 @@
   transition: all 0.3s ease-in-out;
 }
 
-/* Loading tab content area */
-.tabPanel {
-  position: relative;
-  min-height: 200px;
-}
-
 /* Reduced motion support for loading states */
 @media (prefers-reduced-motion: reduce) {
   .tabButton.loading::before {
@@ -334,110 +443,84 @@
   .tabButton.loading::before {
     display: none;
   }
+
+  .countBadge.loading {
+    animation: none;
+  }
 }
 
-/* Tab content with icon layout */
-.mainTabContent {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
+/* Mobile scroll indicators - subtle visual cues for horizontal scrolling */
+.tabsHeader::before,
+.tabsHeader::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-/* Ensure proper spacing between icon and text */
-.tabLabel .mainTabContent {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-
-/* Icon hover effects */
-.tabButton:hover .iconTextContent svg {
-  transform: scale(1.1);
-}
-
-.tabButton.active .iconTextContent svg {
-  color: var(--color-background);
-}
-
-/* Mobile adjustments for icons */
 @media (max-width: 768px) {
-  .mainTabContent {
-    gap: var(--spacing-1);
+  .tabsHeader {
+    position: relative;
   }
-  
-  /* Show only icons on very small screens */
-  @media (max-width: 480px) {
-    .iconTextContent span:last-child {
-      display: none;
-    }
+
+  /* Left scroll indicator */
+  .tabsHeader::before {
+    left: 0;
+    background: linear-gradient(to right, var(--color-surface), transparent);
+  }
+
+  /* Right scroll indicator */
+  .tabsHeader::after {
+    right: 0;
+    background: linear-gradient(to left, var(--color-surface), transparent);
+  }
+
+  /* Show indicators when content overflows */
+  .tabsHeader:not(:hover)::before,
+  .tabsHeader:not(:hover)::after {
+    opacity: 0.7;
   }
 }
 
-/* Fix spacing consistency between icon, text, and badge */
-.tabLabel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: var(--spacing-2);
+/* Ensure proper touch scrolling on iOS */
+@supports (-webkit-overflow-scrolling: touch) {
+  .tabsHeader {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
-.mainTabContent {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  flex-shrink: 0;
+/* Focus management for keyboard navigation */
+.tabButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  z-index: 2;
 }
 
-.countBadge {
-  margin-left: auto;
-  flex-shrink: 0;
+/* Ensure active tab is always visible when focused */
+.tabButton.active:focus-visible {
+  outline-color: var(--color-text-on-primary);
 }
 
-/* Fix main tab content area to fill full width */
-.mainTabContent {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-/* Ensure tab panels fill the full available space */
-.tabPanel {
-  height: 100%;
-  width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  position: relative;
-}
-
-/* Remove any padding/margin that might constrain width */
-.helpsTabs {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Ensure proper icon+text layout without affecting main content */
-.iconTextContent {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  flex-shrink: 0;
-}
-
-/* Mobile adjustments for icon content only */
+/* Mobile accessibility improvements */
 @media (max-width: 768px) {
-  .iconTextContent {
-    gap: var(--spacing-1);
+  .tabButton {
+    /* Ensure sufficient contrast on mobile */
+    border: 1px solid transparent;
   }
-  
-  /* Show only icons on very small screens */
-  @media (max-width: 480px) {
-    .iconTextContent span:last-child {
-      display: none;
-    }
+
+  .tabButton:focus-visible {
+    border-color: var(--color-primary);
+    outline: none;
+    background-color: var(--color-surface-hover);
+  }
+
+  .tabButton.active:focus-visible {
+    border-color: var(--color-text-on-primary);
+    background-color: var(--color-primary-hover);
   }
 }
