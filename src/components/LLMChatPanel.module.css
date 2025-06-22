@@ -1145,3 +1145,18 @@
 .debugButton:hover {
   background: #e68900;
 }
+
+/* Ensure chat panel fills full width and has proper scrolling */
+.chatPanel {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.messagesContainer {
+  width: 100%;
+  max-width: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+}

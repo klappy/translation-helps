@@ -314,7 +314,31 @@ export function ReferenceProvider({ children }) {
   const updateContext = (updates) => {
 
     if (updates.reference !== undefined) {
+      console.log('🔄 ReferenceContext: Updating reference from', reference, 'to', updates.reference);
       setReference(updates.reference);
+      
+      // CRITICAL FIX: Update scriptures array when reference changes
+      // This ensures URL stays in sync with the reference
+      if (scriptures.length > 0) {
+        const updatedScriptures = scriptures.map(scripture => {
+          // Update the primary scripture (first one) with new reference
+          if (scripture === scriptures[0]) {
+            const newScripturePath = buildResourcePath({
+              organization,
+              languageId,
+              resourceId,
+              bookId: updates.reference.bookId,
+              chapter: updates.reference.chapter,
+              verse: updates.reference.verse
+            }, true);
+            console.log('🔄 ReferenceContext: Updating scripture path from', scripture, 'to', newScripturePath);
+            return newScripturePath;
+          }
+          return scripture;
+        });
+        setScriptures(updatedScriptures);
+        console.log('✅ ReferenceContext: Updated scriptures array for URL sync');
+      }
       
       // Event emission removed - ResourcesContext handles reference changes directly
     }

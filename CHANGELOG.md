@@ -2,6 +2,275 @@
 
 ## [Unreleased]
 
+## [3.5.0] - 2024-12-19
+
+### Added
+- **FIA Integration Complete**: Full implementation of FIA (Familiarization, Internalization, Application) resources
+  - FIA Images panel with multimedia content from Scripture Burrito format
+  - FIA Maps panel with geographical context for Bible study
+  - Scripture Burrito metadata discovery and validation
+  - Dynamic resource loading from DCS repositories
+- **Enhanced Loading System**: Beautiful loading indicators across all panels
+  - Resource-specific loading states with count badges
+  - Loading overlays and spinners with accessibility support
+  - Book-level loading indicators in main navigation
+- **Tab Count Badges**: Real-time resource counts displayed on help tabs
+  - Visual indicators showing available content before clicking
+  - Professional styling with theme compatibility
+  - Accessibility-compliant design with proper ARIA labels
+
+### Changed
+- **Consistent Empty States**: Complete redesign using existing styled components
+  - Empty states now look identical to regular content with proper cards
+  - Preserved breadcrumb navigation and resource metadata in empty states
+  - Added helpful tip sections matching existing design patterns
+- **URL Synchronization**: Fixed critical bug where URL didn't update with navigation changes
+  - Reference context now properly updates scriptures array
+  - URL bar stays synchronized with language/organization/book/chapter/verse changes
+- **Enhanced Panel Headers**: Shortened titles for better mobile experience
+  - "Translation Notes" → "Notes", "Translation Questions" → "Questions", etc.
+- **Improved Resource Discovery**: Enhanced Scripture Burrito support in catalog service
+  - Better handling of metadata.json discovery
+  - Graceful fallbacks for missing resources
+
+### Technical
+- **FIA Service Implementation**: Complete service layer for FIA resources
+  - TSV parsing and media URL resolution
+  - Repository discovery through DCS API
+  - Error handling and fallback states
+- **Loading Infrastructure**: Comprehensive loading state management
+  - LoadingSpinner component family with multiple variants
+  - Context-aware loading states across ResourcesContext
+  - Reduced motion and accessibility support
+- **Documentation Audit**: Comprehensive cleanup and organization
+  - Removed temporary and debug files
+  - Updated documentation to reflect FIA integration
+  - Organized docs for better maintainability
+
+### Fixed
+- **URL Update Bug**: Critical fix for reference synchronization
+- **FIA Media Loading**: Resolved 404 errors with proper repository URLs
+- **Empty State UX**: Eliminated confusing navigation selectors in empty states
+
+## [3.4.3] - 2024-12-19
+
+### Changed
+- **Consistent Empty States**: Redesigned empty verse states to use existing styled components instead of custom EmptyVerseState component
+- **Improved UX Consistency**: Empty states now look identical to regular content with proper breadcrumbs, headers, and tip sections
+- **Reused Existing Patterns**: Notes, Questions, and Words panels now display empty states as actual note/question/word cards for visual consistency
+- **Maintained Navigation**: Empty states preserve breadcrumb navigation and resource metadata cards for seamless user experience
+
+### Removed
+- **EmptyVerseState Component**: Removed custom component in favor of reusing existing styled elements
+- **Duplicate Styling**: Eliminated redundant CSS by leveraging existing card, tip, and panel styles
+
+### Technical
+- Updated all resource panels to use existing card components for empty states
+- Added tip section styles to Notes and Questions panel CSS modules
+- Enhanced FiaPanel to accept reference prop and show consistent empty state
+- Cleaned up unused imports and exports
+
+## [3.4.2] - 2024-12-19
+
+### Added
+- **EmptyVerseState Component**: New reusable component for displaying clear messages when resources exist for a book but nothing is available for the current verse
+- **Enhanced UX for Empty States**: Translation Notes, Questions, Words, and FIA panels now show informative messages instead of navigation when no content exists for the specific verse
+- **Better User Feedback**: Users now understand the difference between "no resources available" and "resources exist but nothing for this verse"
+
+### Changed
+- **Translation Panels Empty States**: All resource panels (Notes, Questions, Words, FIA) now use consistent empty state messaging
+- **Improved Panel Headers**: Shortened panel headers from "Translation Notes" to "Notes" for better mobile experience
+- **Loading State Logic**: Enhanced loading state tracking to properly distinguish between loading and empty states
+
+### Technical
+- Added `EmptyVerseState` component with full accessibility support and theming
+- Added `hasTriedLoading` state tracking to resource panels
+- Created comprehensive test suite for EmptyVerseState component
+- Updated shared components exports
+
+## [3.4.1] - 2024-12-31
+
+### Fixed
+- **Tab Content Width Issues**: Resolved layout problems where tab content was not filling full width
+  - Fixed conflicting CSS class names between main tab content area and icon layout
+  - Separated `.tabContent` (main area) from `.iconTextContent` (icon+text layout)
+  - Ensured all tab panels fill 100% width and height of available space
+  - Restored proper scrolling behavior for AI Assistant and other content-heavy tabs
+  - Fixed FIA Images and Maps panels to use full available width
+
+### Enhanced
+- **Layout Consistency**: All tab content now properly fills the available space like before
+- **Scrolling Behavior**: Restored proper vertical scrolling in chat and other panels
+- **Responsive Design**: Maintained mobile responsiveness while fixing width constraints
+
+### Technical
+- Renamed conflicting CSS classes to prevent layout conflicts
+- Added explicit width and overflow properties to ensure proper space utilization
+- Updated component class references to match new CSS structure
+- Added box-sizing: border-box for consistent width calculations
+
+## [3.4.0] - 2024-12-31
+
+### Added
+- **Enhanced Maps Experience**: Revolutionary chapter-wide map discovery for better UX
+  - **Chapter-Wide Loading**: Maps panel now shows all maps for the entire chapter instead of just current verse
+  - **Smart Deduplication**: Automatically removes duplicate maps while tracking which verses reference each map
+  - **Professional Titles**: Converts filenames (e.g., "tar-pit-wide") to proper titles ("Tar Pit Wide")
+  - **Verse Reference Tracking**: Shows which verses in the chapter reference each map
+  - **Rich Metadata Display**: Enhanced map cards with verse counts, reference lists, and tags
+  - **Contextual Headers**: Panel header shows current book and chapter for clarity
+
+### Enhanced
+- **Better Map Discovery**: Users can now see all available maps for a chapter at once
+- **Reduced Empty States**: Chapter-wide loading means more maps are typically available
+- **Improved Navigation**: Clear indication of which verses are covered by each map
+- **Professional Presentation**: Clean, readable map titles instead of technical filenames
+
+### Technical
+- Added `getChapterFiaMaps()` function to FIA service for chapter-wide loading
+- Implemented smart deduplication algorithm based on HREF values
+- Added filename-to-title conversion with proper capitalization
+- Enhanced FiaMapsPanel component with chapter-aware loading
+- Added verse reference tracking and display
+- Improved error handling and loading states
+
+### UI/UX
+- **Richer Content**: More maps visible per chapter reduces empty states
+- **Better Context**: Users understand which verses each map covers
+- **Professional Polish**: Proper titles make maps more discoverable and understandable
+- **Enhanced Metadata**: Verse counts and reference lists provide valuable context
+
+## [3.3.3] - 2024-12-31
+
+### Fixed
+- **Tab Icon Contrast**: Fixed green-on-green visibility issue - active tab icons now use background color for proper contrast
+- **Tab Spacing Consistency**: Evened out spacing between icon, text, and badge for better visual alignment
+- **AI Assistant Badge**: Now shows total items loaded across all resources instead of null
+- **FIA Panel Z-Index**: Images and Maps panels now properly appear above scripture panel with correct layering
+- **Scripture Loading Optimization**: Scripture panel no longer reloads on verse changes - only highlights selection for better UX
+- **Redundant Loading Indicator**: Removed excessive global loading spinner below header for cleaner interface
+
+### Enhanced
+- **Performance**: Reduced unnecessary scripture reloading improves responsiveness
+- **Visual Hierarchy**: Better z-index management ensures proper panel layering
+- **User Experience**: Smoother verse navigation without disruptive reloading
+- **Interface Polish**: Consistent spacing and contrast across all tab elements
+
+### Technical
+- Modified ResourcesContext dependency array to only reload on book/chapter changes
+- Added proper z-index values to FIA panel CSS
+- Updated tab CSS for consistent spacing and contrast
+- Cleaned up unused loading indicator code
+- Enhanced AI Assistant badge to show meaningful count
+
+## [3.3.2] - 2024-12-31
+
+### Added
+- **Professional Icon System**: Replaced emojis with monochrome SVG icons for consistent theming
+  - 📝 Notes icon (document with lines)
+  - ❓ Questions icon (circle with question mark)
+  - 📖 Words icon (open book)
+  - 🖼️ Images icon (picture frame)
+  - 🗺️ Maps icon (folded map)
+  - 🤖 AI Assistant icon (chat bubble with smile)
+  - Created reusable `TabIcon` component with proper scaling and hover effects
+
+### Enhanced
+- **Theme Consistency**: Icons now properly inherit theme colors and work in light/dark modes
+- **Responsive Design**: Icons scale appropriately and can show icon-only on very small screens
+- **Accessibility**: Proper color contrast and scalable vector graphics
+- **Performance**: Lightweight SVG icons instead of emoji rendering
+
+### Technical
+- Created `TabIcon.jsx` component with comprehensive icon set
+- Added `TabIcon.module.css` with proper scaling and transitions
+- Updated `HelpsTabs.jsx` to use icon system with clean layout
+- Enhanced CSS with icon-specific hover and active states
+
+### UI/UX
+- **Professional Appearance**: Clean, monochrome icons that match design system
+- **Better Visual Hierarchy**: Icons help users quickly identify tab types
+- **Consistent Branding**: No more mixed emoji/text inconsistencies
+
+## [3.3.1] - 2024-12-31
+
+### Enhanced
+- **Streamlined Tab Labels**: Removed redundant "Translation" prefix from tab names for better space efficiency
+  - "Translation Notes" → "Notes"
+  - "Translation Questions" → "Questions"
+  - "Translation Words" → "Words"
+  - Provides more room for new FIA tabs while maintaining clarity
+  - Updated loading overlay text to match streamlined naming
+
+### UI/UX
+- **Improved Tab Bar Real Estate**: More space for tabs with cleaner, more concise labels
+- **Consistent Naming**: Aligned tab labels with loading states and UI messaging
+## [3.3.0] - 2024-12-31
+
+### Added
+- **🎨 FIA Resources Redesign**: Complete 2025 modernization of biblical context resources
+  - **Separate Images & Maps Tabs**: Split FIA into dedicated 📸 Images and ��️ Maps tabs for focused browsing
+  - **Modern Image Gallery**: Pinterest-style masonry grid with smooth hover effects and loading animations
+  - **Interactive Lightbox**: Full-screen image viewing with keyboard navigation (arrow keys, escape)
+  - **Interactive Map Viewer**: Pan/zoom functionality with mouse wheel and drag controls
+  - **Fullscreen Map Mode**: Dedicated fullscreen experience for detailed map exploration
+  - **Smart Loading States**: Beautiful loading animations for both images and maps
+  - **Metadata Display**: Rich overlay information with tags, references, and support text
+  - **Mobile Optimized**: Touch-friendly interactions and responsive design
+  - **Accessibility Enhanced**: Full keyboard navigation and screen reader support
+
+### Enhanced
+- **Tab Navigation**: Updated to support separate FIA resource types with individual count badges
+- **Loading System**: Extended loading indicators to cover new FIA panels
+- **Resource Context**: Improved FIA resource activation and state management
+
+### Technical
+- Created `FiaImagesPanel.jsx` with masonry grid layout and lightbox functionality
+- Created `FiaMapsPanel.jsx` with interactive pan/zoom and fullscreen capabilities
+- Added comprehensive CSS modules with 2025 design patterns
+- Implemented smooth animations and transitions throughout
+- Added keyboard shortcuts and touch gesture support
+- Enhanced accessibility with proper ARIA labels and focus management
+
+### UI/UX
+- Modern card-based layouts with subtle shadows and hover effects
+- Smooth loading animations with staggered reveals
+- Interactive controls with visual feedback
+- Professional typography and spacing
+- Dark theme support for all new components
+
+
+### Added
+
+## [3.2.1] - 2024-12-31
+
+### Added
+- **Beautiful Loading System**: Comprehensive loading indicators for book changes and resource loading
+  - Global loading indicator in MainView showing current book being loaded
+  - Loading overlays for individual resource tabs (Notes, Questions, Words, FIA)
+  - Loading spinners in count badges when resources are being fetched
+  - Shimmer effects on loading tab buttons
+  - LoadingSpinner component with multiple sizes (small, medium, large, xlarge) and variants (primary, secondary, white)
+  - LoadingOverlay component for content overlays with backdrop blur
+  - LoadingCard component for standalone loading states
+  - Full accessibility support with ARIA labels and screen reader compatibility
+  - Reduced motion support for users with motion sensitivity
+  - Dark theme support for all loading components
+  - Smooth animations and transitions for professional UX
+
+### Enhanced
+- **ResourcesContext**: Added loading state tracking with `isLoading` and `loadingResources` states
+- **HelpsTabs**: Enhanced with loading state visualization and per-resource loading feedback
+- **ScripturePanel**: Added loading overlay for scripture content
+- **CSS Animations**: Professional loading animations with cubic-bezier easing and staggered delays
+
+### Technical
+- Created comprehensive loading component system in `src/components/shared/`
+- Added CSS modules with responsive design and accessibility features
+- Implemented loading state management at context level
+- Added proper TypeScript support for loading components
+- Created test suite for loading components (8/10 tests passing)
+
 ### Added
 
 - **FIA (Familiarization, Internalization, Application) Integration - Phase 1**

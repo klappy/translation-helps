@@ -1,9 +1,6 @@
 /**
  * TranslationNotesPanel.jsx - Self-Activating Display Component
- * Follows Simple Verse-Loading Pattern from docs/SIMPLE-VERSE-LOADING-PATTERN.md
- * 
- * TRANSFORMATION: Reduced from 213 lines to ~40 lines
- * PATTERN: Self-activating display component (no loading logic)
+ * Enhanced with proper empty verse state messaging
  */
 
 import React, { useContext, useEffect, useState } from "react";
@@ -17,12 +14,14 @@ import styles from "./TranslationNotesPanel.module.css";
 export function TranslationNotesPanel({ reference }) {
   const { resources, activateResource } = useResourcesContext();
   const [forceNavigation, setForceNavigation] = useState(null);
+  const [hasTriedLoading, setHasTriedLoading] = useState(false);
   const { handleRcLinkClick } = useContext(RcLinkContext) || {};
 
   // Self-activate this resource type
   useEffect(() => {
     console.log('🎯 TranslationNotesPanel: Self-activating notes resource');
     activateResource('notes');
+    setHasTriedLoading(true);
   }, [activateResource]);
 
   const notes = resources.notes || [];
@@ -36,8 +35,76 @@ export function TranslationNotesPanel({ reference }) {
     setForceNavigation(step);
   };
 
-  // Show navigation if no notes available or forced navigation
-  if (!hasNotes || forceNavigation) {
+  // Show navigation if forced navigation is active
+  if (forceNavigation) {
+    return (
+      <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
+        <InlineHelpsNavigation
+          resourceType="tn"
+          currentReference={reference}
+          onResourceSelect={handleRcLinkClick}
+          isResourceAvailable={hasNotes}
+          forceNavigation={forceNavigation}
+          onNavigationComplete={() => setForceNavigation(null)}
+        />
+      </section>
+    );
+  }
+
+  // Show empty verse state if we've tried loading and have no notes for this verse
+  if (hasTriedLoading && !hasNotes && reference?.verse) {
+    // Get default metadata for consistent styling
+    const organization = 'unfoldingWord';
+    const languageId = 'en';
+
+    return (
+      <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
+        {/* Breadcrumbs */}
+        <HelpsBreadcrumbs
+          resourceType="tn"
+          languageId={languageId}
+          organization={organization}
+          onStartNavigation={handleStartNavigation}
+        />
+
+        {/* Resource Metadata Card */}
+        <ResourceMetadataCard
+          organization={organization}
+          title="Translation Notes"
+          languageId={languageId}
+          resourceType="tn"
+        />
+
+        <h3 className={styles.panelHeader}>
+          Notes
+          {organization !== 'unfoldingWord' && (
+            <span className={styles.orgBadge}>from {organization}</span>
+          )}
+        </h3>
+
+        <ul className={styles.notesList}>
+          <li className={styles.noteCard}>
+            <div className={styles.noteText}>
+              No translation notes available for this verse.
+            </div>
+            <div className={styles.noteTags}>
+              Current verse: <strong>{reference.bookId} {reference.chapter}:{reference.verse}</strong>
+            </div>
+          </li>
+        </ul>
+
+        <div className={styles.tipSection}>
+          <p className={styles.tipText}>
+            <span className={styles.tipIcon}>💡</span>
+            <span className={styles.tipBold}>Tip:</span> Try navigating to a different verse that may have more content.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  // Show navigation if no notes available and haven't tried loading yet
+  if (!hasNotes) {
     return (
       <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
         <InlineHelpsNavigation
@@ -76,7 +143,7 @@ export function TranslationNotesPanel({ reference }) {
       />
 
       <h3 className={styles.panelHeader}>
-        Translation Notes
+        Notes
         {organization !== 'unfoldingWord' && (
           <span className={styles.orgBadge}>from {organization}</span>
         )}

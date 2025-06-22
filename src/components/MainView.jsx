@@ -5,6 +5,7 @@
 
 import React, { useContext, useState, createContext } from "react";
 import { ReferenceContext } from "../context/ReferenceContext";
+import { useResourcesContext } from "../context/ResourcesContext";
 // Simple Verse-Loading Pattern: ResourcesProvider handles all resource loading
 // Panels self-activate via ResourcesContext - no refs needed
 
@@ -15,11 +16,13 @@ import { getArticle } from "../services/twService";
 import { getArticle as getTaArticle } from "../services/taService";
 import styles from "./MainView.module.css";
 
+
 // Context for rc:// link handling
 export const RcLinkContext = createContext();
 
 export function MainView() {
   const { reference, organization, languageId, updateContext, updateResourceInArray } = useContext(ReferenceContext);
+  const { isLoading } = useResourcesContext();
   // Simple Verse-Loading Pattern: No refs needed - ResourcesContext handles everything
   const [activeHelpsTab, setActiveHelpsTab] = useState("tn");
   const [activeMobileTab, setActiveMobileTab] = useState("scripture");
@@ -144,6 +147,7 @@ export function MainView() {
 
   return (
     <main data-testid='main-view' className={styles.mainView}>
+      
       {/* Mobile Tab Navigation */}
       <div className={styles.mobileTabNav}>
         <button
@@ -163,7 +167,7 @@ export function MainView() {
           Resources
         </button>
       </div>
-
+      
       {/* Main Content Area */}
       <div className={styles.contentArea}>
         {/* Scripture Panel */}

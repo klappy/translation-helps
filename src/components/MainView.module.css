@@ -10,6 +10,24 @@
   background-color: var(--color-background);
 }
 
+/* Global loading indicator */
+
+[data-theme="dark"] .globalLoadingIndicator {
+  background: var(--color-surface-secondary, #1f2937);
+  border-color: var(--color-border, #374151);
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Mobile Tab Navigation */
 .mobileTabNav {
   display: flex;
@@ -95,6 +113,10 @@
     display: none;
   }
 
+  .globalLoadingIndicator {
+    margin: 0 var(--spacing-6) var(--spacing-4) var(--spacing-6);
+  }
+
   /* Two-panel desktop layout */
   .contentArea {
     display: flex;
@@ -132,6 +154,15 @@
   }
 }
 
+/* Mobile responsiveness for loading indicator */
+@media (max-width: 768px) {
+  .globalLoadingIndicator {
+    margin: 0 var(--spacing-2) var(--spacing-2) var(--spacing-2);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
 /* Touch gesture support for mobile */
 @media (max-width: 767px) {
   .contentArea {
@@ -159,6 +190,14 @@
   .helpsPanel {
     border: 2px solid var(--color-border);
   }
+
+  .globalLoadingIndicator {
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  [data-theme="dark"] .globalLoadingIndicator {
+    background: rgba(0, 0, 0, 0.95);
+  }
 }
 
 /* Reduced motion support */
@@ -170,6 +209,10 @@
   .scripturePanel,
   .helpsPanel {
     transition: none;
+  }
+
+  .globalLoadingIndicator {
+    animation: none;
   }
 }
 

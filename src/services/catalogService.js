@@ -1197,6 +1197,120 @@ export async function fetchResourcesLazy(owner, language, offset = 0, limit = 50
   return await fetchWithCache(url, cacheKey);
 }
 
+/**
+ * Search for Scripture Burrito resources (like FIA) across organizations
+ * Uses metadataType: "sb" instead of "rc" to find Scripture Burrito format resources
+ * @param {string} languageCode - The language code to search for
+ * @param {string} stage - Release stage filter (prod, pre-prod, draft, latest)
+ * @returns {Promise<Object>} Scripture Burrito resources grouped by organization
+ */
+export async function searchScriptureBurritoResources(languageCode, stage = "prod") {
+  if (!languageCode) {
+    return { resources: {}, metadata: {} };
+  }
+
+  // Search for Scripture Burrito format resources
+  const searchParams = new URLSearchParams({
+    metadataType: "sb", // Scripture Burrito instead of RC
+    lang: languageCode,
+    stage: stage,
+    limit: "50"
+  });
+
+  const url = `${CATALOG_SEARCH_URL}?${searchParams}`;
+  const cacheKey = `sb_resources_${languageCode}_${stage}`;
+
+  try {
+    console.log(`🔍 Searching Scripture Burrito resources: ${url}`);
+    const data = await fetchWithCache(url, cacheKey);
+
+    const result = {
+      resources: {},
+      metadata: {
+        organizations: new Map(),
+        resourceTypes: new Set()
+      }
+    };
+
+    // Handle different response structures
+    let resourcesArray = null;
+    if (data && Array.isArray(data)) {
+      resourcesArray = data;
+    } else if (data && data.data && Array.isArray(data.data)) {
+      resourcesArray = data.data;
+    }
+
+    if (resourcesArray && resourcesArray.length > 0) {
+      console.log(`✅ Found ${resourcesArray.length} Scripture Burrito resources`);
+      
+      resourcesArray.forEach((resource) => {
+        // Extract organization
+        let org = "unknown";
+        if (typeof resource.owner === 'string') {
+          org = resource.owner;
+        } else if (resource.owner?.login) {
+          org = resource.owner.login;
+        } else if (resource.full_name) {
+          org = resource.full_name.split("/")[0];
+        }
+
+        // Initialize organization array if needed
+        if (!result.resources[org]) {
+          result.resources[org] = [];
+        }
+
+        // Extract resource ID from name (e.g., "en_fiaimages" -> "fiaimages")
+        let resourceId = resource.name || resource.id || "unknown";
+        const languagePrefixPattern = new RegExp(`^${languageCode}_`);
+        if (languagePrefixPattern.test(resourceId)) {
+          resourceId = resourceId.replace(languagePrefixPattern, "");
+        }
+
+        // Add resource to organization
+        const resourceInfo = {
+          id: resourceId,
+          name: resource.name,
+          fullName: resource.full_name,
+          description: resource.description || resource.title || resourceId,
+          subject: resource.subject || "Scripture Burrito",
+          format: "sb", // Mark as Scripture Burrito
+          repoUrl: resource.html_url || resource.repo_url,
+          metadataUrl: `${resource.html_url || resource.repo_url}/raw/branch/master/metadata.json`,
+          languageId: languageCode,
+          organization: org,
+          // FIA-specific detection
+          isFia: resourceId.toLowerCase().includes('fia'),
+          fiaType: resourceId.toLowerCase().includes('fiaimages') ? 'images' : 
+                   resourceId.toLowerCase().includes('fiamaps') ? 'maps' : null
+        };
+
+        result.resources[org].push(resourceInfo);
+        result.metadata.resourceTypes.add(resourceId);
+
+        // Store organization metadata
+        if (!result.metadata.organizations.has(org)) {
+          result.metadata.organizations.set(org, {
+            login: org,
+            resourceCount: 0,
+            scriptureBurritoResources: []
+          });
+        }
+        
+        const orgMeta = result.metadata.organizations.get(org);
+        orgMeta.resourceCount++;
+        orgMeta.scriptureBurritoResources.push(resourceId);
+      });
+    } else {
+      console.warn(`No Scripture Burrito resources found for ${languageCode}`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error(`Failed to search Scripture Burrito resources for ${languageCode}:`, error);
+    return { resources: {}, metadata: {} };
+  }
+}
+
 export default {
   fetchOrganizations,
   fetchLanguages,
@@ -1209,4 +1323,5 @@ export default {
   fetchAllLanguages,
   analyzeResourceCompatibility,
   fetchOrganizationDetails,
+  searchScriptureBurritoResources,
 };

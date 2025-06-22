@@ -229,4 +229,50 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Panel header styles (consistent with other panels) */
+.panelHeader {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-3) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.orgBadge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-muted);
+  padding: 0.125rem 0.5rem;
+  background: var(--color-surface);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+}
+
+/* Tip section styles (for empty state) */
+.tipSection {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-3);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.tipText {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.tipIcon {
+  margin-right: var(--spacing-1);
+  color: var(--color-primary);
+}
+
+.tipBold {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
 } 

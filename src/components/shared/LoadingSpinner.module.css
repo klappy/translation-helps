@@ -1,0 +1,249 @@
+/**
+ * LoadingSpinner.module.css
+ * Beautiful loading animations following ETEN Lab design system
+ * Supports multiple sizes, variants, and accessibility features
+ */
+
+/* Container */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* Base spinner styles */
+.spinner {
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+/* Size variants */
+.small {
+  width: 24px;
+  height: 24px;
+}
+
+.medium {
+  width: 40px;
+  height: 40px;
+}
+
+.large {
+  width: 60px;
+  height: 60px;
+}
+
+.xlarge {
+  width: 80px;
+  height: 80px;
+}
+
+/* Ring animation elements */
+.ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  animation: spinRing 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+.ring:nth-child(1) {
+  animation-delay: 0s;
+  border-top-color: var(--color-primary, #22c55e);
+}
+
+.ring:nth-child(2) {
+  animation-delay: 0.3s;
+  border-right-color: var(--color-primary-light, #4ade80);
+}
+
+.ring:nth-child(3) {
+  animation-delay: 0.6s;
+  border-bottom-color: var(--color-primary-dark, #16a34a);
+}
+
+/* Color variants */
+.primary .ring:nth-child(1) {
+  border-top-color: var(--color-primary, #22c55e);
+}
+
+.primary .ring:nth-child(2) {
+  border-right-color: var(--color-primary-light, #4ade80);
+}
+
+.primary .ring:nth-child(3) {
+  border-bottom-color: var(--color-primary-dark, #16a34a);
+}
+
+.secondary .ring:nth-child(1) {
+  border-top-color: var(--color-text-secondary, #6b7280);
+}
+
+.secondary .ring:nth-child(2) {
+  border-right-color: var(--color-text-muted, #9ca3af);
+}
+
+.secondary .ring:nth-child(3) {
+  border-bottom-color: var(--color-text-tertiary, #d1d5db);
+}
+
+.white .ring:nth-child(1) {
+  border-top-color: #ffffff;
+}
+
+.white .ring:nth-child(2) {
+  border-right-color: rgba(255, 255, 255, 0.8);
+}
+
+.white .ring:nth-child(3) {
+  border-bottom-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Loading text */
+.text {
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* Loading overlay */
+.overlayContainer {
+  position: relative;
+  min-height: 200px;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: var(--border-radius, 8px);
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Dark theme overlay */
+[data-theme="dark"] .overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.overlayContent {
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Loading card */
+.loadingCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--border-radius, 8px);
+  padding: 2rem;
+  margin: 1rem 0;
+}
+
+/* Animations */
+@keyframes spinRing {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Pulse animation for text */
+.text {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    animation: spinRingReduced 2s linear infinite;
+  }
+  
+  .text {
+    animation: none;
+  }
+  
+  @keyframes spinRingReduced {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .ring {
+    border-width: 3px;
+  }
+  
+  .overlay {
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  [data-theme="dark"] .overlay {
+    background: rgba(0, 0, 0, 0.95);
+  }
+}
+
+/* Focus and interaction states */
+.container:focus-visible {
+  outline: 2px solid var(--color-primary, #22c55e);
+  outline-offset: 4px;
+  border-radius: var(--border-radius, 8px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .large {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .xlarge {
+    width: 64px;
+    height: 64px;
+  }
+  
+  .text {
+    font-size: 0.8rem;
+  }
+} 

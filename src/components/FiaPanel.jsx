@@ -6,24 +6,83 @@
 
 import React, { useEffect, useState } from 'react';
 import { useResourcesContext } from '../context/ResourcesContext';
-import { resolveFiaMediaUrl } from '../services/fiaService';
+import { ResourceMetadataCard, HelpsBreadcrumbs } from './shared';
 import styles from './FiaPanel.module.css';
 
-export function FiaPanel() {
+export function FiaPanel({ reference }) {
   const { resources, activateResource } = useResourcesContext();
+  const [hasTriedLoading, setHasTriedLoading] = useState(false);
   
   // Self-activate FIA resources (following existing panel patterns)
   useEffect(() => {
     activateResource('fia');
+    setHasTriedLoading(true);
   }, [activateResource]);
 
   const fiaData = resources.fia;
+  const hasFiaContent = fiaData && fiaData.hasContent && 
+    ((fiaData.images && fiaData.images.length > 0) || (fiaData.maps && fiaData.maps.length > 0));
 
-  if (!fiaData || !fiaData.hasContent) {
+  // Show empty state with consistent styling
+  if (hasTriedLoading && !hasFiaContent && reference?.verse) {
+    // Get default metadata for consistent styling
+    const organization = 'BurritoTruck';
+    const languageId = 'en';
+
+    return (
+      <section data-testid='fia-panel' className={styles.fiaPanel}>
+        {/* Breadcrumbs */}
+        <HelpsBreadcrumbs
+          resourceType="fia"
+          languageId={languageId}
+          organization={organization}
+          onStartNavigation={() => {}}
+        />
+
+        {/* Resource Metadata Card */}
+        <ResourceMetadataCard
+          organization={organization}
+          title="FIA Resources"
+          languageId={languageId}
+          resourceType="fia"
+        />
+
+        <h3 className={styles.panelHeader}>
+          FIA
+          <span className={styles.orgBadge}>from {organization}</span>
+        </h3>
+
+        <div className={styles.itemsGrid}>
+          <div className={styles.fiaItem}>
+            <div className={styles.itemHeader}>
+              <span className={styles.reference}>No FIA Resources</span>
+            </div>
+            <div className={styles.mediaContainer}>
+              <div className={styles.mediaFallback}>
+                <span className={styles.fallbackIcon}>🗺️</span>
+                <p>No FIA images or maps available for this verse.</p>
+                <small>Current verse: <strong>{reference.bookId} {reference.chapter}:{reference.verse}</strong></small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.tipSection}>
+          <p className={styles.tipText}>
+            <span className={styles.tipIcon}>💡</span>
+            <span className={styles.tipBold}>Tip:</span> Try navigating to a different verse that may have more content.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  // Show loading state if not tried loading yet
+  if (!hasFiaContent) {
     return (
       <div className={styles.fiaPanel}>
         <div className={styles.emptyState}>
-          <p>No FIA content available for this verse</p>
+          <p>Loading FIA content...</p>
         </div>
       </div>
     );
@@ -47,6 +106,7 @@ export function FiaPanel() {
                 key={`image-${index}`} 
                 item={item} 
                 type="images"
+                fiaData={fiaData}
               />
             ))}
           </div>
@@ -64,6 +124,7 @@ export function FiaPanel() {
                 key={`map-${index}`} 
                 item={item} 
                 type="maps"
+                fiaData={fiaData}
               />
             ))}
           </div>
@@ -76,11 +137,12 @@ export function FiaPanel() {
 /**
  * Individual FIA item component with media display
  */
-function FiaItem({ item, type }) {
+function FiaItem({ item, type, fiaData }) {
   const [imageError, setImageError] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   
-  const mediaUrl = resolveFiaMediaUrl(item.HREF, type);
+  // Use the resolveMediaUrl function from fiaData which has the correct repository URLs
+  const mediaUrl = fiaData?.resolveMediaUrl ? fiaData.resolveMediaUrl(item.HREF, type) : null;
 
   return (
     <div className={styles.fiaItem}>
@@ -97,7 +159,7 @@ function FiaItem({ item, type }) {
 
       {/* Media display with fallback */}
       <div className={styles.mediaContainer}>
-        {!imageError ? (
+        {!imageError && mediaUrl ? (
           <img
             src={mediaUrl}
             alt={`FIA ${type} for ${item.REF}`}
@@ -112,6 +174,7 @@ function FiaItem({ item, type }) {
             </span>
             <p>Media not available</p>
             <small>{item.HREF}</small>
+            {mediaUrl && <small>URL: {mediaUrl}</small>}
           </div>
         )}
       </div>
@@ -124,6 +187,9 @@ function FiaItem({ item, type }) {
           </div>
           <div className={styles.detailRow}>
             <strong>Path:</strong> {item.HREF || 'N/A'}
+          </div>
+          <div className={styles.detailRow}>
+            <strong>Resolved URL:</strong> {mediaUrl || 'N/A'}
           </div>
           {item.TAGS && (
             <div className={styles.detailRow}>

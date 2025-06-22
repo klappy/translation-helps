@@ -1,0 +1,420 @@
+/**
+ * FIA Maps Panel Styles - Interactive map viewer 2025 design
+ * Features: Interactive pan/zoom, fullscreen, smooth animations
+ */
+
+.mapsPanel {
+  padding: var(--spacing-4);
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.icon {
+  font-size: 1.5rem;
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-surface-secondary);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
+}
+
+/* Maps Grid */
+.mapsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-4);
+}
+
+/* Map Cards */
+.mapCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.mapCard.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mapCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.1),
+    0 6px 10px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-primary);
+}
+
+.mapPreview {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.mapImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.mapCard:hover .mapImage {
+  transform: scale(1.05);
+}
+
+.mapInfo {
+  padding: var(--spacing-3);
+}
+
+.mapTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.mapTags {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Error Card */
+.errorCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-6);
+  text-align: center;
+  height: 280px;
+  background: var(--color-surface-secondary);
+  color: var(--color-text-muted);
+}
+
+.errorIcon {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-2);
+  opacity: 0.5;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 400px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  opacity: 0.3;
+  margin-bottom: var(--spacing-4);
+}
+
+.emptyState h3 {
+  color: var(--color-text);
+  margin-bottom: var(--spacing-2);
+}
+
+/* Interactive Map Viewer */
+.mapViewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-background);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: slideInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.viewerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.viewerHeader h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+}
+
+.viewerControls {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.controlButton {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-md);
+  transition: all 0.2s ease;
+}
+
+.controlButton:hover {
+  background: var(--color-surface-secondary);
+  border-color: var(--color-primary);
+}
+
+.closeButton {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border-danger);
+  background: var(--color-surface);
+  color: var(--color-text-danger);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-md);
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: var(--color-surface-danger);
+}
+
+/* Map Container */
+.mapContainer {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--color-surface-secondary);
+}
+
+.mapWrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease-out;
+  transform-origin: center center;
+}
+
+.interactiveMap {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Map Details */
+.mapDetails {
+  padding: var(--spacing-4);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.mapDetails p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .mapCard {
+  background: var(--color-surface-secondary);
+}
+
+[data-theme="dark"] .count {
+  background: var(--color-surface-tertiary);
+}
+
+/* Fullscreen styles */
+.mapContainer:fullscreen {
+  background: black;
+}
+
+.mapContainer:fullscreen .mapWrapper {
+  background: black;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .mapCard,
+  .mapImage,
+  .mapViewer,
+  .mapWrapper {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .mapsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+  
+  .viewerHeader {
+    padding: var(--spacing-3);
+  }
+  
+  .controlButton,
+  .closeButton {
+    width: 36px;
+    height: 36px;
+    font-size: var(--font-size-sm);
+  }
+  
+  .mapDetails {
+    padding: var(--spacing-3);
+  }
+}
+
+/* Touch gestures for mobile */
+@media (max-width: 767px) {
+  .mapContainer {
+    touch-action: pan-x pan-y;
+  }
+}
+
+/* Fix z-index to appear above scripture panel */
+.mapsPanel {
+  position: relative;
+  z-index: 10;
+}
+
+.mapViewer {
+  z-index: 1001;
+}
+
+/* Enhanced styles for chapter-wide maps */
+.mapTitleSection {
+  flex: 1;
+}
+
+.mapMetadata {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-1);
+}
+
+.verseRefs {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.tags {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Enhanced map card metadata */
+.mapMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-2);
+}
+
+.verseCount {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  background: var(--color-primary-light);
+  padding: 2px var(--spacing-1);
+  border-radius: var(--radius-sm);
+  align-self: flex-start;
+}
+
+.verseList {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-mono, monospace);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .verseCount {
+  background: var(--color-primary-dark);
+  color: var(--color-background);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .mapMetadata {
+    flex-direction: column;
+  }
+  
+  .verseRefs,
+  .tags {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Ensure panel fills full width */
+.mapsPanel {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}

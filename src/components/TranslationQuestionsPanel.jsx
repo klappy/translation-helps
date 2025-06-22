@@ -1,9 +1,6 @@
 /**
  * TranslationQuestionsPanel.jsx - Self-Activating Display Component
- * Follows Simple Verse-Loading Pattern from docs/SIMPLE-VERSE-LOADING-PATTERN.md
- * 
- * TRANSFORMATION: Reduced from 184 lines to ~60 lines
- * PATTERN: Self-activating display component (no loading logic)
+ * Enhanced with proper empty verse state messaging
  */
 
 import React, { useContext, useEffect, useState } from "react";
@@ -17,12 +14,14 @@ import styles from "./TranslationQuestionsPanel.module.css";
 export function TranslationQuestionsPanel({ reference }) {
   const { resources, activateResource } = useResourcesContext();
   const [forceNavigation, setForceNavigation] = useState(null);
+  const [hasTriedLoading, setHasTriedLoading] = useState(false);
   const { handleRcLinkClick } = useContext(RcLinkContext) || {};
 
   // Self-activate this resource type
   useEffect(() => {
     console.log('🎯 TranslationQuestionsPanel: Self-activating questions resource');
     activateResource('questions');
+    setHasTriedLoading(true);
   }, [activateResource]);
 
   const questions = resources.questions || [];
@@ -36,8 +35,79 @@ export function TranslationQuestionsPanel({ reference }) {
     setForceNavigation(step);
   };
 
-  // Show navigation if no questions available or forced navigation
-  if (!hasQuestions || forceNavigation) {
+  // Show navigation if forced navigation is active
+  if (forceNavigation) {
+    return (
+      <section
+        data-testid='translation-questions-panel'
+        className={styles.translationQuestionsPanel}
+      >
+        <InlineHelpsNavigation
+          resourceType="tq"
+          currentReference={reference}
+          onResourceSelect={handleRcLinkClick}
+          isResourceAvailable={hasQuestions}
+          forceNavigation={forceNavigation}
+          onNavigationComplete={() => setForceNavigation(null)}
+        />
+      </section>
+    );
+  }
+
+  // Show empty verse state if we've tried loading and have no questions for this verse
+  if (hasTriedLoading && !hasQuestions && reference?.verse) {
+    // Get default metadata for consistent styling
+    const organization = 'unfoldingWord';
+    const languageId = 'en';
+
+    return (
+      <section data-testid='translation-questions-panel' className={styles.translationQuestionsPanel}>
+        {/* Breadcrumbs */}
+        <HelpsBreadcrumbs
+          resourceType="tq"
+          languageId={languageId}
+          organization={organization}
+          onStartNavigation={handleStartNavigation}
+        />
+
+        {/* Resource Metadata Card */}
+        <ResourceMetadataCard
+          organization={organization}
+          title="Translation Questions"
+          languageId={languageId}
+          resourceType="tq"
+        />
+
+        <h3 className={styles.panelHeader}>
+          Questions
+          {organization !== 'unfoldingWord' && (
+            <span className={styles.orgBadge}>from {organization}</span>
+          )}
+        </h3>
+
+        <div className={styles.questionsList}>
+          <div className={styles.questionCard}>
+            <div className={styles.questionText}>
+              <strong>Q:</strong> No translation questions available for this verse.
+            </div>
+            <div className={styles.answerText}>
+              <strong>A:</strong> Current verse: <strong>{reference.bookId} {reference.chapter}:{reference.verse}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.tipSection}>
+          <p className={styles.tipText}>
+            <span className={styles.tipIcon}>💡</span>
+            <span className={styles.tipBold}>Tip:</span> Try navigating to a different verse that may have more content.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  // Show navigation if no questions available and haven't tried loading yet
+  if (!hasQuestions) {
     return (
       <section
         data-testid='translation-questions-panel'
@@ -79,7 +149,7 @@ export function TranslationQuestionsPanel({ reference }) {
       />
 
       <h3 className={styles.panelHeader}>
-        Translation Questions
+        Questions
         {organization !== 'unfoldingWord' && (
           <span className={styles.orgBadge}>from {organization}</span>
         )}

@@ -1,7 +1,7 @@
 {
   "name": "eten-lab-translation-helps",
   "homepage": "https://klappy.github.io/translation-helps/",
-  "version": "3.2.0",
+  "version": "3.5.0",
   "dependencies": {
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",

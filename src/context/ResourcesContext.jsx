@@ -24,6 +24,8 @@ export const useResourcesContext = () => {
 export function ResourcesProvider({ children }) {
   const { reference, organization, languageId, resourceId } = useReferenceContext();
   const [resources, setResources] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingResources, setLoadingResources] = useState(new Set());
   
   // Parse URL parameters for initial active resources and configurations
   const [activeResources, setActiveResources] = useState(() => {
@@ -95,12 +97,17 @@ export function ResourcesProvider({ children }) {
   useEffect(() => {
     if (!reference?.bookId || !reference?.chapter || !reference?.verse) {
       // No reference, skipping load
+      setIsLoading(false);
+      setLoadingResources(new Set());
       return;
     }
     
-      // Loading resources for verse with active resources
-    
+    // Set loading state
+    setIsLoading(true);
     const resourcesToLoad = Array.from(activeResources);
+    setLoadingResources(new Set(resourcesToLoad));
+      
+    // Loading resources for verse with active resources
     
     // Load resources with simple config - let services handle their own complexity
     Promise.allSettled(
@@ -133,10 +140,14 @@ export function ResourcesProvider({ children }) {
       
       // Setting new resources
       setResources(newResources);
+      setIsLoading(false);
+      setLoadingResources(new Set());
     }).catch(error => {
       console.error('❌ ResourcesContext: Failed to load resources:', error);
+      setIsLoading(false);
+      setLoadingResources(new Set());
     });
-  }, [reference, activeResources]);
+  }, [reference?.bookId, reference?.chapter, activeResources]); // Only reload on book/chapter change, not verse
   
   // Panel self-activation: Panels can request resources they need
   const activateResource = useCallback((resourceType) => {
@@ -155,7 +166,12 @@ export function ResourcesProvider({ children }) {
   }, []);
   
   return (
-    <ResourcesContext.Provider value={{ resources, activateResource }}>
+    <ResourcesContext.Provider value={{ 
+      resources, 
+      activateResource, 
+      isLoading, 
+      loadingResources 
+    }}>
       {children}
     </ResourcesContext.Provider>
   );

@@ -1,28 +1,26 @@
 /**
  * HelpsTabs.jsx
  * Tabbed interface for translation helps with accessible count badges
- * Updated with monochrome icons for professional appearance
+ * Follows design system and accessibility guidelines
  */
 
 import React, { useState, useImperativeHandle, forwardRef } from "react";
 import { useResourcesContext } from "../context/ResourcesContext";
-import { LoadingOverlay, LoadingSpinner, TabIcon } from "./shared";
+import { LoadingOverlay, LoadingSpinner } from "./shared";
 import { TranslationNotesPanel } from "./TranslationNotesPanel";
 import { TranslationQuestionsPanel } from "./TranslationQuestionsPanel";
 import { TranslationWordsPanel } from "./TranslationWordsPanel";
 import { ArticlePanel } from "./ArticlePanel";
 import { LLMChatPanel } from "./LLMChatPanel";
-import { FiaImagesPanel } from "./FiaImagesPanel";
-import { FiaMapsPanel } from "./FiaMapsPanel";
+import { FiaPanel } from "./FiaPanel";
 import styles from "./HelpsTabs.module.css";
 
 const STATIC_TABS = [
-  { id: "tn", label: "Notes", icon: "notes", component: TranslationNotesPanel, isStatic: true },
-  { id: "tq", label: "Questions", icon: "questions", component: TranslationQuestionsPanel, isStatic: true },
-  { id: "tw", label: "Words", icon: "words", component: TranslationWordsPanel, isStatic: true },
-  { id: "fia-images", label: "Images", icon: "images", component: FiaImagesPanel, isStatic: true },
-  { id: "fia-maps", label: "Maps", icon: "maps", component: FiaMapsPanel, isStatic: true },
-  { id: "chat", label: "AI Assistant", icon: "chat", component: LLMChatPanel, isStatic: true },
+  { id: "tn", label: "Translation Notes", component: TranslationNotesPanel, isStatic: true },
+  { id: "tq", label: "Translation Questions", component: TranslationQuestionsPanel, isStatic: true },
+  { id: "tw", label: "Translation Words", component: TranslationWordsPanel, isStatic: true },
+  { id: "fia", label: "FIA Resources", component: FiaPanel, isStatic: true },
+  { id: "chat", label: "AI Assistant", component: LLMChatPanel, isStatic: true },
 ];
 
 export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
@@ -36,8 +34,7 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
       'tn': 'notes',
       'tq': 'questions', 
       'tw': 'words',
-      'fia-images': 'fia',
-      'fia-maps': 'fia'
+      'fia': 'fia'
     };
     const resourceType = resourceMap[tabId];
     return resourceType && loadingResources.has(resourceType);
@@ -60,28 +57,15 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
         const wordsCount = Array.isArray(resources.words) ? resources.words.length : 0;
         const linksCount = Array.isArray(resources.links) ? resources.links.length : 0;
         return Math.max(wordsCount, linksCount); // Use the higher count
-      case 'fia-images':
+      case 'fia':
         if (resources.fia?.hasContent) {
-          return Array.isArray(resources.fia.images) ? resources.fia.images.length : 0;
-        }
-        return 0;
-      case 'fia-maps':
-        if (resources.fia?.hasContent) {
-          return Array.isArray(resources.fia.maps) ? resources.fia.maps.length : 0;
+          const imagesCount = Array.isArray(resources.fia.images) ? resources.fia.images.length : 0;
+          const mapsCount = Array.isArray(resources.fia.maps) ? resources.fia.maps.length : 0;
+          return imagesCount + mapsCount;
         }
         return 0;
       case 'chat':
-        // Return total items loaded across all resources
-        const totalItems = (
-          (Array.isArray(resources.notes) ? resources.notes.length : 0) +
-          (Array.isArray(resources.questions) ? resources.questions.length : 0) +
-          (Array.isArray(resources.words) ? resources.words.length : 0) +
-          (resources.fia?.hasContent ? (
-            (Array.isArray(resources.fia.images) ? resources.fia.images.length : 0) +
-            (Array.isArray(resources.fia.maps) ? resources.fia.maps.length : 0)
-          ) : 0)
-        );
-        return totalItems > 0 ? totalItems : null;
+        return null; // No count for chat
       default:
         return null;
     }
@@ -179,10 +163,7 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
                 tabIndex={isActive ? 0 : -1}
               >
                 <span className={styles.tabLabel}>
-                  <span className={styles.iconTextContent}>
-                    {tab.icon && <TabIcon type={tab.icon} />}
-                    <span>{tab.label}</span>
-                  </span>
+                  <span>{tab.label}</span>
                   {count !== null && (
                     <span 
                       className={`${styles.countBadge} ${count === 0 ? styles.zero : ''} ${count === 'loading' ? styles.loadingBadge : ''}`}
@@ -212,12 +193,13 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
         })}
       </div>
       
-      <div className={styles.mainTabContent}>
+      <div className={styles.tabContent}>
         {/* Always render all static panels but only show the active one */}
+        {/* This ensures refs are always available for LLMChatPanel to access */}
         
         <LoadingOverlay 
           isVisible={activeTab === 'tn' && isResourceLoading('tn')}
-          text="Loading Notes..."
+          text="Loading Translation Notes..."
         >
           <div 
             role="tabpanel"
@@ -234,7 +216,7 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
         
         <LoadingOverlay 
           isVisible={activeTab === 'tq' && isResourceLoading('tq')}
-          text="Loading Questions..."
+          text="Loading Translation Questions..."
         >
           <div 
             role="tabpanel"
@@ -251,7 +233,7 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
         
         <LoadingOverlay 
           isVisible={activeTab === 'tw' && isResourceLoading('tw')}
-          text="Loading Words..."
+          text="Loading Translation Words..."
         >
           <div 
             role="tabpanel"
@@ -267,36 +249,19 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
         </LoadingOverlay>
         
         <LoadingOverlay 
-          isVisible={activeTab === 'fia-images' && isResourceLoading('fia-images')}
-          text="Loading FIA Images..."
+          isVisible={activeTab === 'fia' && isResourceLoading('fia')}
+          text="Loading FIA Resources..."
         >
           <div 
             role="tabpanel"
-            id="tabpanel-fia-images"
-            aria-labelledby="tab-fia-images"
-            data-testid="tab-content-fia-images"
+            id="tabpanel-fia"
+            aria-labelledby="tab-fia"
+            data-testid="tab-content-fia"
             className={styles.tabPanel}
-            style={{ display: activeTab === 'fia-images' ? 'block' : 'none' }}
-            tabIndex={activeTab === 'fia-images' ? 0 : -1}
+            style={{ display: activeTab === 'fia' ? 'block' : 'none' }}
+            tabIndex={activeTab === 'fia' ? 0 : -1}
           >
-            <FiaImagesPanel reference={reference} />
-          </div>
-        </LoadingOverlay>
-        
-        <LoadingOverlay 
-          isVisible={activeTab === 'fia-maps' && isResourceLoading('fia-maps')}
-          text="Loading FIA Maps..."
-        >
-          <div 
-            role="tabpanel"
-            id="tabpanel-fia-maps"
-            aria-labelledby="tab-fia-maps"
-            data-testid="tab-content-fia-maps"
-            className={styles.tabPanel}
-            style={{ display: activeTab === 'fia-maps' ? 'block' : 'none' }}
-            tabIndex={activeTab === 'fia-maps' ? 0 : -1}
-          >
-            <FiaMapsPanel reference={reference} />
+            <FiaPanel reference={reference} />
           </div>
         </LoadingOverlay>
         
