@@ -66,9 +66,12 @@
   border-left-color: var(--color-primary);
 }
 
-/* Remove hover effect when selected to maintain clear state */
+/* Remove hover effect when selected to prevent rendering issues */
 .verse.selected:hover {
   background-color: var(--color-verse-background-selected);
+  /* Ensure no additional transforms or changes that could cause rendering issues */
+  transform: none;
+  box-shadow: none;
 }
 
 /* Add active state for touch feedback */

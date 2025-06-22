@@ -8,7 +8,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useResourcesContext } from '../context/ResourcesContext';
 import { useReferenceContext } from '../context/ReferenceContext';
 import { getChapterFiaMaps } from '../services/fiaService';
-import { LoadingCard } from './shared';
+import { LoadingCard, AvailableBooksShowcase } from './shared';
 import styles from './FiaMapsPanel.module.css';
 
 export function FiaMapsPanel() {
@@ -121,9 +121,12 @@ export function FiaMapsPanel() {
   if (!maps.length) {
     return (
       <div className={styles.emptyState}>
-        <div className={styles.emptyIcon}>🗺️</div>
-        <h3>No Maps Available</h3>
-        <p>There are no FIA maps for {reference?.bookId} chapter {reference?.chapter}</p>
+        <AvailableBooksShowcase
+          resourceType="fia"
+          icon="maps"
+          title="FIA Maps Available"
+          description="These books have FIA map content available:"
+        />
       </div>
     );
   }

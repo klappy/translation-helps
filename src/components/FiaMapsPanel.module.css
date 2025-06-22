@@ -336,14 +336,14 @@
   }
 }
 
-/* Fix z-index to appear above scripture panel */
+/* Fix z-index to appear above all content including scripture panel */
 .mapsPanel {
   position: relative;
   z-index: 10;
 }
 
 .mapViewer {
-  z-index: 1001;
+  z-index: 9999;
 }
 
 /* Enhanced styles for chapter-wide maps */

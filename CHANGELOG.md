@@ -2,6 +2,44 @@
 
 ## [Unreleased]
 
+## [3.5.1] - 2024-12-19
+
+### Fixed
+- **Z-Index Issues**: Fixed scripture panel rendering on top of FIA modal images and maps
+  - Increased FIA lightbox z-index to 9999 to ensure proper layering
+  - Fixed modal overlay conflicts with scripture panel components
+- **Scripture Panel Hover States**: Removed problematic hover effects on selected verses
+  - Added explicit transform and box-shadow resets to prevent rendering issues
+  - Improved visual clarity for selected verse states
+- **AI Assistant Layout**: Optimized chat panel for maximum real estate
+  - Changed to full viewport height (100vh) for better space utilization
+  - Fixed header and input positions with sticky positioning
+  - Improved scrollable content area with proper flexbox constraints
+- **AI Assistant Icon**: Replaced emoji with proper TabIcon component for consistency
+  - Uses the same chat icon as the tab for visual coherence
+
+### Added
+- **AvailableBooksShowcase Component**: New reusable component for showing content availability
+  - Professional card-based layout using existing design system
+  - Shows Old Testament and New Testament books with FIA content
+  - Includes chapter ranges and book IDs for reference
+  - Fully accessible with keyboard navigation and screen reader support
+- **Enhanced FIA Empty States**: FIA panels now show which books have content available
+  - Replaces generic "no content" messages with helpful book showcase
+  - Encourages exploration of available content
+  - Consistent styling with existing help panel patterns
+
+### Changed
+- **FIA Modal Layering**: Improved z-index hierarchy for better modal display
+- **Chat Panel Layout**: Optimized for maximum screen real estate usage
+- **Empty State UX**: More helpful and informative when no content is available
+
+### Technical
+- Added AvailableBooksShowcase component with full CSS module styling
+- Enhanced z-index management across FIA and scripture components
+- Improved chat panel CSS with sticky positioning and flexbox optimization
+- Updated shared components exports for new showcase component
+
 ## [3.5.0] - 2024-12-19
 
 ### Added

@@ -359,14 +359,14 @@
   }
 }
 
-/* Fix z-index to appear above scripture panel */
+/* Fix z-index to appear above all content including scripture panel */
 .imagesPanel {
   position: relative;
   z-index: 10;
 }
 
 .lightbox {
-  z-index: 1001;
+  z-index: 9999;
 }
 
 /* Ensure panel fills full width */

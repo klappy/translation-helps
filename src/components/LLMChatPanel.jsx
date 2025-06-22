@@ -13,6 +13,7 @@ import { sendChatMessage } from "../services/llmChatService";
 import { processMarkdownWithRcLinks } from "../utils/markdownUtils";
 import { enhanceLLMResponse } from "../utils/emojiEnhancer";
 import { extractVerseText, extractChapterText, validateCleanText } from "../utils/usfmTextExtractor";
+import { TabIcon } from "./shared";
 import styles from "./LLMChatPanel.module.css";
 
 export function LLMChatPanel() {
@@ -377,7 +378,9 @@ export function LLMChatPanel() {
       {/* Welcome Message */}
       {messages.length === 0 && (
         <div className={styles.welcomeMessage}>
-          <div className={styles.welcomeIcon}>🤖</div>
+          <div className={styles.welcomeIcon}>
+            <TabIcon type="chat" />
+          </div>
           <h4>Welcome to Translation Assistant!</h4>
           <p>I can help with translation resources. Ask me anything about:</p>
           <ul>

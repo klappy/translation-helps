@@ -1,0 +1,235 @@
+/**
+ * AvailableBooksShowcase.module.css
+ * Styles for the available books showcase component
+ * Follows existing design system patterns
+ */
+
+.showcase {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  font-family: var(--font-family);
+}
+
+.header {
+  padding: var(--spacing-4);
+  background-color: var(--help-card-background);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.iconWrapper {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-text-on-primary);
+}
+
+.titleText {
+  flex: 1;
+}
+
+.title {
+  margin: 0 0 var(--spacing-1) 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+}
+
+.description {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+}
+
+.content {
+  padding: var(--spacing-4);
+}
+
+.testament {
+  margin-bottom: var(--spacing-6);
+}
+
+.testament:last-child {
+  margin-bottom: 0;
+}
+
+.testamentTitle {
+  margin: 0 0 var(--spacing-3) 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--spacing-2);
+}
+
+.booksList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-2);
+}
+
+.bookCard {
+  background-color: var(--help-card-background);
+  border-left: var(--help-card-border);
+  border-radius: var(--help-card-border-radius);
+  padding: var(--help-card-padding);
+  box-shadow: var(--help-card-shadow);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-fast);
+}
+
+.bookCard.clickable {
+  cursor: pointer;
+}
+
+.bookCard.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-primary);
+}
+
+.bookCard.clickable:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.bookName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--spacing-1);
+  line-height: var(--line-height-tight);
+}
+
+.bookDetails {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-xs);
+}
+
+.bookId {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-mono);
+  letter-spacing: 0.5px;
+}
+
+.bookChapters {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.footer {
+  padding: var(--spacing-4);
+  background-color: var(--help-quote-background);
+  border-top: 1px solid var(--color-border);
+}
+
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.suggestionIcon {
+  font-size: var(--font-size-md);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.suggestionText {
+  line-height: var(--line-height-normal);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--spacing-3);
+  }
+
+  .content {
+    padding: var(--spacing-3);
+  }
+
+  .footer {
+    padding: var(--spacing-3);
+  }
+
+  .titleSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+  }
+
+  .iconWrapper {
+    width: 36px;
+    height: 36px;
+  }
+
+  .title {
+    font-size: var(--font-size-md);
+  }
+
+  .booksList {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+  }
+
+  .suggestion {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-1);
+    text-align: left;
+  }
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .showcase {
+  background-color: var(--color-surface-secondary);
+}
+
+[data-theme="dark"] .bookCard {
+  background-color: var(--color-surface);
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .bookCard {
+    border-width: 2px;
+  }
+
+  .testamentTitle {
+    border-bottom-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .bookCard {
+    transition: none;
+  }
+
+  .bookCard.clickable:hover {
+    transform: none;
+  }
+} 

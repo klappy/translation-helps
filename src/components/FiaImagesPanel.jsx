@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useResourcesContext } from '../context/ResourcesContext';
-import { LoadingCard } from './shared';
+import { LoadingCard, AvailableBooksShowcase } from './shared';
 import styles from './FiaImagesPanel.module.css';
 
 export function FiaImagesPanel() {
@@ -58,9 +58,12 @@ export function FiaImagesPanel() {
   if (!images.length) {
     return (
       <div className={styles.emptyState}>
-        <div className={styles.emptyIcon}>🖼️</div>
-        <h3>No Images Available</h3>
-        <p>There are no FIA images for this verse</p>
+        <AvailableBooksShowcase
+          resourceType="fia"
+          icon="images"
+          title="FIA Images Available"
+          description="These books have FIA image content available:"
+        />
       </div>
     );
   }
