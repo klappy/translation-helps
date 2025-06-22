@@ -6,11 +6,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useResourcesContext } from '../context/ResourcesContext';
+import { useReferenceContext } from '../context/ReferenceContext';
 import { LoadingCard, AvailableBooksShowcase } from './shared';
 import styles from './FiaImagesPanel.module.css';
 
 export function FiaImagesPanel() {
-  const { resources, activateResource } = useResourcesContext();
+  const { resources, activateResource, loadingResources } = useResourcesContext();
+  const { reference } = useReferenceContext();
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageStates, setImageStates] = useState({});
   
@@ -21,6 +23,7 @@ export function FiaImagesPanel() {
 
   const fiaData = resources.fia;
   const images = fiaData?.images || [];
+  const isLoadingFia = loadingResources.has('fia');
 
   // Track image loading states
   const handleImageLoad = (index) => {
@@ -51,21 +54,46 @@ export function FiaImagesPanel() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [selectedImage, images]);
 
-  if (!fiaData) {
+  // Show loading state only if actively loading
+  if (isLoadingFia) {
     return <LoadingCard text="Loading images..." />;
   }
 
   if (!images.length) {
-    return (
-      <div className={styles.emptyState}>
-        <AvailableBooksShowcase
-          resourceType="fia"
-          icon="images"
-          title="FIA Images Available"
-          description="These books have FIA image content available:"
-        />
-      </div>
-    );
+    // Check if current book has FIA content at all
+    const currentBookId = reference?.bookId?.toLowerCase();
+    const booksWithFiaContent = ['gen', 'exo', 'num', 'job', 'mat', 'mrk', 'luk', 'jhn', 'act', 'eph'];
+    const currentBookHasFiaContent = booksWithFiaContent.includes(currentBookId);
+
+    if (currentBookHasFiaContent) {
+      // Book has FIA content but not for this verse
+      return (
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon}>🖼️</div>
+          <h3>No Images for This Verse</h3>
+          <p>
+            {reference?.bookId} has FIA image content, but none available for{' '}
+            {reference?.bookId} {reference?.chapter}:{reference?.verse}
+          </p>
+          <div className={styles.suggestion}>
+            <span className={styles.suggestionIcon}>💡</span>
+            Try browsing other verses in {reference?.bookId} to find available images
+          </div>
+        </div>
+      );
+    } else {
+      // Book has no FIA content - show available books
+      return (
+        <div className={styles.emptyStateFullScreen}>
+          <AvailableBooksShowcase
+            resourceType="fia"
+            icon="images"
+            title="FIA Images Available"
+            description="These books have FIA image content available:"
+          />
+        </div>
+      );
+    }
   }
 
   return (

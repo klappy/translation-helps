@@ -7,6 +7,21 @@
   font-family: var(--font-family);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
+  padding: var(--spacing-3); /* Match scripture panel padding */
+  max-width: var(--content-max-width-mobile);
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .translationQuestionsPanel {
+    max-width: var(--content-max-width-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  .translationQuestionsPanel {
+    max-width: var(--content-max-width-desktop);
+  }
 }
 
 .panelHeader {

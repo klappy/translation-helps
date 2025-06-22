@@ -119,16 +119,40 @@ export function FiaMapsPanel() {
   }
 
   if (!maps.length) {
-    return (
-      <div className={styles.emptyState}>
-        <AvailableBooksShowcase
-          resourceType="fia"
-          icon="maps"
-          title="FIA Maps Available"
-          description="These books have FIA map content available:"
-        />
-      </div>
-    );
+    // Check if current book has FIA content at all
+    const currentBookId = reference?.bookId?.toLowerCase();
+    const booksWithFiaContent = ['gen', 'exo', 'num', 'job', 'mat', 'mrk', 'luk', 'jhn', 'act', 'eph'];
+    const currentBookHasFiaContent = booksWithFiaContent.includes(currentBookId);
+
+    if (currentBookHasFiaContent) {
+      // Book has FIA content but not for this verse
+      return (
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon}>🗺️</div>
+          <h3>No Maps for This Chapter</h3>
+          <p>
+            {reference?.bookId} has FIA map content, but none available for{' '}
+            {reference?.bookId} {reference?.chapter}
+          </p>
+          <div className={styles.suggestion}>
+            <span className={styles.suggestionIcon}>💡</span>
+            Try browsing other chapters in {reference?.bookId} to find available maps
+          </div>
+        </div>
+      );
+    } else {
+      // Book has no FIA content - show available books
+      return (
+        <div className={styles.emptyStateFullScreen}>
+          <AvailableBooksShowcase
+            resourceType="fia"
+            icon="maps"
+            title="FIA Maps Available"
+            description="These books have FIA map content available:"
+          />
+        </div>
+      );
+    }
   }
 
   return (

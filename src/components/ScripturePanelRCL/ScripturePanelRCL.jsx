@@ -28,6 +28,7 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
   const [showDebugMode, setShowDebugMode] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [showHelpsSummary, setShowHelpsSummary] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { 
     organization, 
     languageId, 
@@ -119,21 +120,37 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
     }
   }, [shouldShowHelpsSummary, resourceAvailability, showHelpsSummary]);
 
-  // Show loading state if content is loading
-  if (loading) {
-    return (
-      <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
-        {/* Integrated Navigation - Always show breadcrumbs */}
-        <ScripturePanelNavigation onNavigationChange={handleNavigationChange} />
-        <div className={styles["loading-state"]}>Loading scripture...</div>
-      </section>
-    );
-  }
+  // Detect FIA modal state and adjust z-index accordingly
+  useEffect(() => {
+    const checkForModals = () => {
+      const lightboxExists = document.querySelector('.lightbox') !== null;
+      setIsModalOpen(lightboxExists);
+    };
+
+    // Check immediately
+    checkForModals();
+
+    // Set up observer for DOM changes
+    const observer = new MutationObserver(checkForModals);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Loading state is now handled by LoadingOverlay wrapper - no internal loading needed
 
   // Show message if no reference is selected
   if (!reference?.bookId) {
       return (
-    <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
+    <section 
+      data-testid='scripture-panel-rcl' 
+      className={`${styles["scripture-panel"]} ${isModalOpen ? styles["modal-open"] : ""}`}
+    >
       {/* Integrated Navigation - Always show breadcrumbs */}
       <ScripturePanelNavigation onNavigationChange={handleNavigationChange} />
       
@@ -147,7 +164,10 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
   // Show error state
   if (error) {
     return (
-      <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
+      <section 
+        data-testid='scripture-panel-rcl' 
+        className={`${styles["scripture-panel"]} ${isModalOpen ? styles["modal-open"] : ""}`}
+      >
         {/* Integrated Navigation - Always show breadcrumbs */}
         <ScripturePanelNavigation onNavigationChange={handleNavigationChange} />
         <div className={styles["error-state"]}>{error}</div>
@@ -158,7 +178,10 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
 
 
   return (
-    <section data-testid='scripture-panel-rcl' className={styles["scripture-panel"]}>
+    <section 
+      data-testid='scripture-panel-rcl' 
+      className={`${styles["scripture-panel"]} ${isModalOpen ? styles["modal-open"] : ""}`}
+    >
       {/* Integrated Navigation */}
       <ScripturePanelNavigation 
         onNavigationChange={handleNavigationChange}

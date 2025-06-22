@@ -8,6 +8,18 @@
   padding: var(--spacing-3);
   max-width: var(--content-max-width-mobile);
   margin: 0 auto;
+  position: relative;
+  z-index: 1; /* Default z-index */
+}
+
+/* Reduce z-index when FIA modals are open - CSS-only detection */
+:global(body:has(.lightbox)) .scripture-panel {
+  z-index: 0;
+}
+
+/* Fallback for browsers that don't support :has() */
+.scripture-panel.modal-open {
+  z-index: 0;
 }
 
 @media (min-width: 768px) {

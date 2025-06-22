@@ -4,9 +4,23 @@
  */
 
 .imagesPanel {
-  padding: var(--spacing-4);
+  padding: var(--spacing-3); /* Match scripture panel padding */
   height: 100%;
   overflow-y: auto;
+  max-width: var(--content-max-width-mobile);
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .imagesPanel {
+    max-width: var(--content-max-width-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  .imagesPanel {
+    max-width: var(--content-max-width-desktop);
+  }
 }
 
 /* Header */
@@ -149,6 +163,13 @@
   min-height: 400px;
   text-align: center;
   color: var(--color-text-muted);
+  padding: var(--spacing-6);
+}
+
+.emptyStateFullScreen {
+  height: 100vh;
+  overflow-y: auto;
+  padding: var(--spacing-4);
 }
 
 .emptyIcon {
@@ -160,6 +181,25 @@
 .emptyState h3 {
   color: var(--color-text);
   margin-bottom: var(--spacing-2);
+}
+
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-3);
+  background-color: var(--color-info-light);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-info);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.suggestionIcon {
+  font-size: var(--font-size-md);
+  color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 /* Lightbox */

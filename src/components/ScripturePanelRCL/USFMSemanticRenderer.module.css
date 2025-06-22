@@ -238,6 +238,15 @@
   cursor: pointer;
 }
 
+/* Override hover state for selected verses - maintain selected appearance */
+:global(v.selected:hover) {
+  background-color: var(--color-verse-background-selected);
+  color: var(--color-text-on-primary);
+  border-radius: 4px;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
 /* Verse and chapter numbers */
 :global(number) {
   font-weight: var(--font-weight-semibold);
@@ -247,6 +256,11 @@
 
 /* Verse numbers in selected verses should use contrasting color */
 :global(v.selected number) {
+  color: var(--color-text-on-primary);
+}
+
+/* Ensure verse numbers maintain selected styling when selected verse is hovered */
+:global(v.selected:hover number) {
   color: var(--color-text-on-primary);
 }
 
@@ -295,6 +309,12 @@
   display: block;
   margin-left: 20px;
   margin-bottom: 4px;
+  quotes: none; /* Remove browser default quotation marks */
+}
+
+:global(q::before),
+:global(q::after) {
+  content: none; /* Ensure no quotation marks are added via pseudo-elements */
 }
 
 /* Sections and headings */

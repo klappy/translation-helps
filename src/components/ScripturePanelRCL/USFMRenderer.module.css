@@ -51,7 +51,7 @@
 
 /* Remove hover state on mobile to prevent confusion */
 @media (hover: hover) {
-  .verse:hover {
+  .verse:hover:not(.selected) {
     background-color: var(--color-verse-background-hover);
   }
 }
@@ -66,12 +66,12 @@
   border-left-color: var(--color-primary);
 }
 
-/* Remove hover effect when selected to prevent rendering issues */
+/* Completely disable hover for selected verses */
 .verse.selected:hover {
-  background-color: var(--color-verse-background-selected);
-  /* Ensure no additional transforms or changes that could cause rendering issues */
-  transform: none;
-  box-shadow: none;
+  background-color: var(--color-verse-background-selected) !important;
+  border-left-color: var(--color-primary) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* Add active state for touch feedback */

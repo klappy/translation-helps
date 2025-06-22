@@ -379,7 +379,7 @@ export function LLMChatPanel() {
       {messages.length === 0 && (
         <div className={styles.welcomeMessage}>
           <div className={styles.welcomeIcon}>
-            <TabIcon type="chat" />
+            <TabIcon type="chat" className={styles.tabIcon} />
           </div>
           <h4>Welcome to Translation Assistant!</h4>
           <p>I can help with translation resources. Ask me anything about:</p>
@@ -430,23 +430,25 @@ export function LLMChatPanel() {
         </div>
       )}
 
-      {/* Messages */}
-      <div className={styles.messagesContainer}>
-        {messages.map(renderMessage)}
-        {isSubmitting && (
-          <div className={styles.loadingMessage}>
-            <div className={styles.messageContent}>
-              <div className={styles.typingIndicator}>
-                <span></span>
-                <span></span>
-                <span></span>
+      {/* Messages - Only show when there are messages */}
+      {messages.length > 0 && (
+        <div className={styles.messagesContainer}>
+          {messages.map(renderMessage)}
+          {isSubmitting && (
+            <div className={styles.loadingMessage}>
+              <div className={styles.messageContent}>
+                <div className={styles.typingIndicator}>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <div className={styles.loadingText}>AI is thinking...</div>
               </div>
-              <div className={styles.loadingText}>AI is thinking...</div>
             </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      )}
 
       {/* Chat Input */}
       <div className={styles.chatInput}>

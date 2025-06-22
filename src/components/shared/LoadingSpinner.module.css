@@ -114,10 +114,11 @@
   margin-top: 0.5rem;
 }
 
-/* Loading overlay */
+/* Loading overlay - Consistent across all panels */
 .overlayContainer {
   position: relative;
-  min-height: 200px;
+  width: 100%;
+  min-height: 100px;
 }
 
 .overlay {
@@ -126,19 +127,36 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%; /* Ensure full width coverage */
+  background: transparent; /* Fully transparent background */
   z-index: 10;
-  border-radius: var(--border-radius, 8px);
-  transition: opacity 0.3s ease-in-out;
+  pointer-events: none; /* Allow interaction with underlying content */
 }
 
-/* Dark theme overlay */
+/* Loading spinner - Consistent positioning and styling */
+.overlay .container {
+  position: absolute;
+  top: 20px; /* 20px from top of container */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  pointer-events: none;
+  background: transparent; /* Transparent background for consistency */
+  padding: var(--spacing-3);
+  width: auto;
+  max-width: 200px;
+  text-align: center;
+}
+
+/* Ensure consistent spinner size across all panels */
+.overlay .spinner {
+  width: 48px;
+  height: 48px;
+}
+
+/* Dark theme - no background changes needed */
 [data-theme="dark"] .overlay {
-  background: rgba(0, 0, 0, 0.8);
+  background: transparent;
 }
 
 .overlayContent {
@@ -147,16 +165,32 @@
   transition: opacity 0.3s ease-in-out;
 }
 
-/* Loading card */
+/* Loading card - Consistent with overlay system */
 .loadingCard {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  background: transparent; /* Transparent background for consistency */
+  border: none; /* Remove border for cleaner appearance */
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Align to top */
   justify-content: center;
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: var(--border-radius, 8px);
-  padding: 2rem;
-  margin: 1rem 0;
+  padding: 20px var(--spacing-3) var(--spacing-3);
+}
+
+/* Loading card spinner positioning */
+.loadingCard .container {
+  position: relative;
+  top: 0;
+  background: transparent;
+  padding: var(--spacing-3);
+  text-align: center;
+}
+
+/* Consistent spinner size for loading cards */
+.loadingCard .spinner {
+  width: 48px;
+  height: 48px;
 }
 
 /* Animations */

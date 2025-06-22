@@ -2,6 +2,109 @@
 
 ## [Unreleased]
 
+## [3.6.0] - 2025-01-09
+
+### Fixed
+- **Chat Panel Conditional Rendering**: Fixed welcome message and messages container appearing simultaneously
+  - Welcome message now only shows when `messages.length === 0`
+  - Messages container only shows when `messages.length > 0`
+  - Ensures proper mutual exclusivity between display states
+- **Chat Panel Layout**: Fixed height and width to properly fill parent container
+  - Changed from `100vh` to `100%` height for proper parent container filling
+  - Added `width: 100%` to ensure full width coverage
+  - Welcome message and messages container are now the only scrollable elements
+- **Loading Animation Consistency**: Standardized loading animations across all panels
+  - **Transparent Backgrounds**: All loading overlays now use transparent backgrounds for visual consistency
+  - **Consistent Sizing**: Standardized all loading spinners to 48px for uniform appearance
+  - **Proper Positioning**: Loading animations positioned 20px from top, horizontally centered
+  - **Full Width Coverage**: All overlays now span 100% width of their containers
+  - **Scroll-Independent**: Loading animations remain visible regardless of scroll position
+  - Updated both LoadingOverlay (for scripture/help panels) and LoadingCard (for FIA panels)
+- **Scripture Panel Loading**: Removed duplicate loading states causing visual confusion
+  - Eliminated internal loading state in ScripturePanelRCL component
+  - LoadingOverlay wrapper now handles all loading visualization
+  - Fixed loading animation appearing in random locations within content
+- **Help Panels Padding**: Standardized padding across all help panels to match scripture panel
+  - Added `padding: var(--spacing-3)` to all help panel containers
+  - Added responsive max-width constraints matching scripture panel layout
+  - Applied to TranslationNotesPanel, TranslationQuestionsPanel, TranslationWordsPanel, FiaImagesPanel, and FiaMapsPanel
+- **USFM Quote Styling**: Removed CSS-generated quotation marks from `q` elements
+  - Added `quotes: none` to prevent browser default quotation marks
+  - Added `content: none` to `q::before` and `q::after` pseudo-elements
+  - Prevents duplicate quotation marks when USFM text already contains quotes
+- **Scripture Panel Z-Index**: Fixed modal overlay conflicts with FIA lightboxes
+  - Added dynamic z-index management when FIA modals are open
+  - Scripture panel z-index drops to 0 when lightbox elements are detected
+  - Implemented both CSS `:has()` selector and JavaScript fallback for compatibility
+  - Uses MutationObserver to detect modal state changes in real-time
+- **Selected Verse Hover State**: Fixed hover state overriding selected verse appearance
+  - Added `:global(v.selected:hover)` rule to maintain selected styling when hovered
+  - Selected verses now maintain their background color and text color when hovered
+  - Verse numbers in selected verses maintain proper contrast when hovered
+- **FIA Images Infinite Loading**: Fixed loading state getting stuck when no images available
+  - Changed loading condition from `!fiaData` to `loadingResources.has('fia')`
+  - Component now properly transitions from loading to empty state when 0 items found
+  - Added proper loading state detection from ResourcesContext
+
+### Enhanced
+- **Visual Consistency**: All loading states now provide uniform user experience
+- **Interface Harmony**: Consistent padding and spacing across all panel types
+- **User Feedback**: Clear loading indicators that remain visible and don't interfere with content
+- **Modal Layering**: Proper z-index hierarchy ensures FIA content displays correctly
+- **Selection Clarity**: Selected verses maintain clear visual indication even when hovered
+
+### Technical
+- Updated LoadingSpinner.module.css with comprehensive consistency improvements
+- Enhanced ScripturePanelRCL with modal detection and z-index management
+- Added MutationObserver for dynamic DOM change detection
+- Improved CSS specificity for selected verse hover states
+- Standardized all help panel CSS modules with consistent container styling
+
+## [3.5.3] - 2025-01-09
+
+### Fixed
+- **AI Assistant Icon Size**: Fixed TabIcon to match original 48px emoji size
+  - Added CSS override in LLMChatPanel.module.css to scale TabIcon to 48px × 48px
+  - Applied proper className to TabIcon component for size override
+  - Maintains green color (`var(--color-success)`) and proper centering
+  - Icon now matches the visual impact of the previous emoji
+
+### Technical
+- Enhanced welcomeIcon CSS with explicit width/height and TabIcon size override
+- Added className prop to TabIcon component for proper CSS targeting
+
+## [3.5.2] - 2025-01-09
+
+### Fixed
+- **Scripture Panel Selected Verse Hover**: Completely disabled hover effects on selected verses
+  - Updated USFMRenderer.module.css to use `:not(.selected)` selector for hover states
+  - Added `!important` declarations to ensure selected state cannot be overridden
+  - Prevents highlight color changes and improves verse visibility when selected
+- **AI Assistant Icon Consistency**: Made chat icon match previous emoji size and color
+  - Updated LLMChatPanel.module.css to make welcome icon green (`var(--color-success)`)
+  - Added proper flexbox centering for consistent icon display
+  - Maintains 48px size to match previous emoji
+- **FIA Empty State Logic Enhancement**: Distinguished between different empty states
+  - Updated FiaImagesPanel.jsx and FiaMapsPanel.jsx with smart empty state detection
+  - Books with FIA content but no current verse content show targeted "try other verses/chapters" message
+  - Books without any FIA content show scrollable full-screen book showcase
+  - Added suggestion boxes with helpful navigation hints
+- **AI Assistant Header Layout**: Fixed header positioning for proper content scrolling
+  - Updated LLMChatPanel.module.css messagesContainer with proper height calculation
+  - Added `max-height: calc(100vh - 140px)` to account for sticky header and input
+  - Ensures header stays locked at top while content scrolls below
+- **FIA Empty State Styling**: Added comprehensive CSS for enhanced UX
+  - Added `.emptyStateFullScreen` class for scrollable full-height showcase
+  - Added `.suggestion` and `.suggestionIcon` styles for helpful hints
+  - Added `.emptyIcon` styling for consistent empty state icons
+  - Applied to both FiaImagesPanel.module.css and FiaMapsPanel.module.css
+
+### Technical
+- Enhanced empty state logic with book-specific FIA content detection
+- Improved CSS specificity and organization for better maintainability
+- Added proper height calculations for sticky layout components
+- All fixes maintain existing architectural patterns and design consistency
+
 ## [3.5.1] - 2024-12-19
 
 ### Fixed
