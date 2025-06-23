@@ -1,45 +1,36 @@
 /**
  * NavigationBar.jsx
- * Application header with logo and theme toggle
+ * Enhanced application header with professional ETEN Lab styling
  */
 
 import React from "react";
 import { ThemeToggle } from "./ThemeToggle";
+import styles from "./NavigationBar.module.css";
 
 export function NavigationBar() {
   return (
-    <nav
-      style={{
-        backgroundColor: "var(--color-footer)",
-        color: "var(--color-primary)",
-        padding: "var(--spacing-2) var(--spacing-3)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        boxShadow: "var(--shadow-sm)",
-        flexWrap: "wrap",
-        gap: "var(--spacing-2)",
-      }}
-    >
-      {/* Logo */}
-      <div style={{ 
-        display: "flex", 
-        alignItems: "center", 
-        flexShrink: 0,
-      }}>
+    <nav className={styles.navigationBar}>
+      {/* Logo Section */}
+      <div className={styles.logoContainer}>
         <img 
           src="/eten-lab-icon.png" 
           alt="ETEN Innovation Lab" 
-          style={{ 
-            height: "32px", 
-            width: "auto",
-            objectFit: "contain"
-          }} 
+          className={styles.logoIcon}
         />
+        <div>
+          <h1 className={styles.logoText}>
+            Translation Helps
+          </h1>
+          <p className={styles.logoSubtext}>
+            ETEN Innovation Lab
+          </p>
+        </div>
       </div>
 
-      {/* Theme Toggle */}
-      <ThemeToggle />
+      {/* Navigation Actions */}
+      <div className={styles.navigationActions}>
+        <ThemeToggle />
+      </div>
     </nav>
   );
 }

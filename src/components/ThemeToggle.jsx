@@ -39,10 +39,9 @@ export function ThemeToggle() {
       className={styles.themeToggle}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
       title={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-
     >
-      <span style={{ color: 'var(--color-primary)', fontSize: '1.5em' }}>
-        {isDark ? '○' : '●'}
+      <span className={styles.themeIcon}>
+        {isDark ? '☀️' : '🌙'}
       </span>
     </button>
   );

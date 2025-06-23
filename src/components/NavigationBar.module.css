@@ -1,0 +1,130 @@
+/**
+ * NavigationBar Component Styles
+ * Professional ETEN Lab header design
+ */
+
+.navigationBar {
+  background: var(--color-footer);
+  color: var(--color-text);
+  padding: var(--spacing-3) var(--spacing-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-md);
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  min-height: 64px;
+}
+
+.navigationBar::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), var(--color-primary));
+  opacity: 0.8;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-shrink: 0;
+}
+
+.logoIcon {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  transition: all 150ms ease-in-out;
+  border-radius: var(--radius-sm);
+}
+
+.logoIcon:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.logoText {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.logoSubtext {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-regular);
+  margin-top: 2px;
+}
+
+.navigationActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navigationBar {
+    padding: var(--spacing-2) var(--spacing-3);
+    gap: var(--spacing-2);
+    min-height: 56px;
+  }
+  
+  .logoText {
+    font-size: var(--font-size-md);
+  }
+  
+  .logoIcon {
+    height: 32px;
+  }
+  
+  .logoSubtext {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .navigationBar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--spacing-2);
+    gap: var(--spacing-2);
+  }
+  
+  .logoContainer {
+    justify-content: center;
+  }
+  
+  .navigationActions {
+    justify-content: center;
+  }
+}
+
+/* Theme-specific enhancements */
+[data-theme="light"] .navigationBar {
+  background: var(--color-footer);
+  border-bottom-color: var(--color-border);
+}
+
+[data-theme="dark"] .navigationBar {
+  background: var(--color-footer);
+  border-bottom-color: var(--color-border);
+}
+
+/* Animation for smooth theme transitions */
+.navigationBar,
+.logoIcon,
+.logoText,
+.logoSubtext {
+  transition: all 150ms ease-in-out;
+} 
