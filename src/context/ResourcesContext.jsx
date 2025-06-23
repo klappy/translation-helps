@@ -69,6 +69,17 @@ export function ResourcesProvider({ children }) {
       return;
     }
     
+    // ALWAYS update the reference object when reference changes, regardless of resource loading
+    setResources(prev => ({
+      ...prev,
+      reference: {
+        bookId: reference.bookId,
+        chapter: reference.chapter,
+        verse: reference.verse,
+        citation: `${reference.bookId} ${reference.chapter}:${reference.verse}`
+      }
+    }));
+    
     const resourcesToLoad = Array.from(activeResources);
     if (resourcesToLoad.length === 0) {
       setLoadingResources(new Set());
@@ -124,15 +135,10 @@ export function ResourcesProvider({ children }) {
           const result = await loadResourceForType(type, reference, config);
           
           // Update this resource immediately when it loads - ANTI-FRAGILE
+          // Note: reference is updated separately above, so we don't duplicate it here
           setResources(prev => ({
             ...prev,
-            [type]: result,
-            reference: {
-              bookId: reference.bookId,
-              chapter: reference.chapter,
-              verse: reference.verse,
-              citation: `${reference.bookId} ${reference.chapter}:${reference.verse}`
-            }
+            [type]: result
           }));
           
           // Remove from loading immediately when done

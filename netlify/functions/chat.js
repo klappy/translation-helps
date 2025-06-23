@@ -480,6 +480,68 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // 🚨 EMERGENCY TOKEN SIZE CHECK - Prevent 500 errors
+    const contextSize = JSON.stringify(translationContext).length;
+    const estimatedTokens = Math.ceil(contextSize / 4); // Rough estimation: 4 chars per token
+    const maxSafeTokens = 100000; // Safety margin (GPT-4o-mini limit is 128k)
+    
+    console.log(`🔍 Token estimation: ${estimatedTokens} tokens (${(contextSize/1000).toFixed(1)}KB context)`);
+    
+    if (estimatedTokens > maxSafeTokens) {
+      console.error(`🚨 CONTEXT TOO LARGE: ${estimatedTokens} tokens exceeds safe limit of ${maxSafeTokens}`);
+      
+      // Remove alignment data if present (most common cause of oversized context)
+      if (translationContext.resources?.alignmentData) {
+        console.log("🔧 Removing alignment data to reduce context size");
+        delete translationContext.resources.alignmentData;
+        
+        // Recalculate size
+        const newContextSize = JSON.stringify(translationContext).length;
+        const newEstimatedTokens = Math.ceil(newContextSize / 4);
+        console.log(`✅ Reduced to ${newEstimatedTokens} tokens (${(newContextSize/1000).toFixed(1)}KB)`);
+        
+        if (newEstimatedTokens > maxSafeTokens) {
+          // Still too large - return graceful error
+          return {
+            statusCode: 200, // Don't return 500 - return success with error message
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+            body: JSON.stringify({
+              response: "I'm sorry, but the context for this verse is too large for me to process right now. This sometimes happens with resources that have extensive alignment data. Please try asking a more specific question, or the development team can optimize this in a future update.",
+              metadata: {
+                error: "context_too_large",
+                estimatedTokens: newEstimatedTokens,
+                maxTokens: maxSafeTokens,
+                contextReference: translationContext.reference?.citation,
+                timestamp: new Date().toISOString(),
+              },
+            }),
+          };
+        }
+      } else {
+        // Large context without alignment data - return graceful error
+        return {
+          statusCode: 200, // Don't return 500 - return success with error message
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+          body: JSON.stringify({
+            response: "I'm sorry, but there's too much context information for this verse for me to process right now. Please try asking a more specific question about a particular aspect of the verse.",
+            metadata: {
+              error: "context_too_large",
+              estimatedTokens: estimatedTokens,
+              maxTokens: maxSafeTokens,
+              contextReference: translationContext.reference?.citation,
+              timestamp: new Date().toISOString(),
+            },
+          }),
+        };
+      }
+    }
+
     // Format the system prompt with translation context
     const systemPrompt = formatSystemPrompt(translationContext);
 
@@ -549,15 +611,36 @@ exports.handler = async (event, context) => {
         error: errorData,
       });
 
+      // Parse the error to provide meaningful feedback
+      let userFriendlyMessage = "I'm having trouble connecting to the AI service right now.";
+      
+      try {
+        const errorJson = JSON.parse(errorData);
+        if (errorJson.error?.code === "context_length_exceeded") {
+          userFriendlyMessage = "The context for this verse is too complex for me to process. This can happen with resources that have extensive alignment data. Please try asking a more specific question.";
+        } else if (errorJson.error?.code === "rate_limit_exceeded") {
+          userFriendlyMessage = "I'm receiving too many requests right now. Please wait a moment and try again.";
+        } else if (errorJson.error?.code === "insufficient_quota") {
+          userFriendlyMessage = "The AI service quota has been exceeded. Please contact support or try again later.";
+        }
+      } catch (parseError) {
+        // Use default message if we can't parse the error
+      }
+
       return {
-        statusCode: 500,
+        statusCode: 200, // Return 200 to avoid triggering error boundaries
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         },
         body: JSON.stringify({
-          error: "Failed to get response from AI service",
-          details: process.env.NODE_ENV === "development" ? errorData : undefined,
+          response: userFriendlyMessage + " Please try again in a moment.",
+          metadata: {
+            error: "api_error",
+            openaiStatus: openaiResponse.status,
+            contextReference: translationContext.reference?.citation,
+            timestamp: new Date().toISOString(),
+          },
         }),
       };
     }
@@ -609,15 +692,31 @@ exports.handler = async (event, context) => {
   } catch (error) {
     console.error("Chat function error:", error);
 
+    // Provide graceful error messages based on error type
+    let userMessage = "I'm having trouble processing your request right now.";
+    
+    if (error.message?.includes('timeout')) {
+      userMessage = "The request took too long to process. Please try asking a shorter or more specific question.";
+    } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+      userMessage = "I'm having trouble connecting to the AI service. Please check your connection and try again.";
+    } else if (error.message?.includes('JSON')) {
+      userMessage = "There was a problem with the request format. Please try again.";
+    }
+
     return {
-      statusCode: 500,
+      statusCode: 200, // Return 200 to avoid error boundaries - let the app handle gracefully
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
-        error: "Internal server error",
-        details: process.env.NODE_ENV === "development" ? error.message : undefined,
+        response: userMessage + " If this continues, please contact support.",
+        metadata: {
+          error: "server_error",
+          errorType: error.name || "unknown",
+          contextReference: translationContext?.reference?.citation || "unknown",
+          timestamp: new Date().toISOString(),
+        },
       }),
     };
   }

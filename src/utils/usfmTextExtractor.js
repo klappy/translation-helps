@@ -47,7 +47,79 @@ function getVisibleText(element) {
   return html.replace(/\s+/g, ' ').trim();
 }
 
-
+/**
+ * Emergency fallback for USFM extraction using simple string operations
+ * Used when semantic parser fails (common with aligned Bibles)
+ * @param {string} usfmText - Raw USFM content
+ * @param {number} chapter - Target chapter number
+ * @param {number} verse - Target verse number
+ * @returns {string} Clean text for the specific verse
+ */
+export function emergencyUSFMExtract(usfmText, chapter, verse) {
+  try {
+    console.log(`🚨 Emergency USFM extraction for ${chapter}:${verse}`);
+    
+    // Split by chapter markers - find our chapter
+    const chapterPattern = new RegExp(`\\\\c\\s+${chapter}\\b`);
+    const chapterSplit = usfmText.split(chapterPattern);
+    
+    if (chapterSplit.length < 2) {
+      throw new Error(`Chapter ${chapter} not found`);
+    }
+    
+    // Get content after the chapter marker
+    let chapterContent = chapterSplit[1];
+    
+    // Find next chapter to limit scope
+    const nextChapterMatch = chapterContent.match(/\\c\s+\d+/);
+    if (nextChapterMatch) {
+      chapterContent = chapterContent.substring(0, nextChapterMatch.index);
+    }
+    
+    // Split by verse markers - find our verse
+    const versePattern = new RegExp(`\\\\v\\s+${verse}\\b`);
+    const verseSplit = chapterContent.split(versePattern);
+    
+    if (verseSplit.length < 2) {
+      throw new Error(`Verse ${verse} not found in chapter ${chapter}`);
+    }
+    
+    // Get content after the verse marker
+    let verseContent = verseSplit[1];
+    
+    // Find next verse to limit scope
+    const nextVerseMatch = verseContent.match(/\\v\s+\d+/);
+    if (nextVerseMatch) {
+      verseContent = verseContent.substring(0, nextVerseMatch.index);
+    }
+    
+    // Aggressive cleanup for aligned Bibles - remove all alignment data
+    let cleanText = verseContent
+      // Remove alignment markers completely
+      .replace(/\\zaln-s[^\\]*\\zaln-e\*/g, '')
+      .replace(/\\zaln-[se][^\\]*/g, '')
+      // Extract text from word markup: \w word|alignment\w* -> word
+      .replace(/\\w\s+([^|\\]+)\|[^\\]*\\w\*/g, '$1')
+      .replace(/\\w\s+([^\\]+)\\w\*/g, '$1')
+      // Remove any remaining USFM markers
+      .replace(/\\[a-z-]+\*/g, '')
+      .replace(/\\[a-z-]+\s*/g, '')
+      // Clean up attributes and pipes
+      .replace(/\|[^|]*\|/g, '')
+      .replace(/\|[^\\]*/g, '')
+      // Normalize whitespace
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    const result = `${verse} ${cleanText}`;
+    console.log(`✅ Emergency extraction successful: "${result.substring(0, 100)}..."`);
+    return result;
+    
+  } catch (error) {
+    console.error('🚨 Emergency USFM extraction failed:', error);
+    return `${verse} [Text extraction failed for this verse]`;
+  }
+}
 
 /**
  * Extracts clean text for a specific verse using the scripture panel's CSS approach
@@ -396,4 +468,5 @@ export default {
   extractVerseText,
   extractChapterText,
   validateCleanText,
+  emergencyUSFMExtract,
 }; 

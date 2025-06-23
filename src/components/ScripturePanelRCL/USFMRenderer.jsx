@@ -339,20 +339,16 @@ const USFMRenderer = React.memo(function USFMRenderer({
       // Update local highlighting immediately (pure operation)
       setLocalSelectedVerse(verseNum);
       
-      // Verse clicks should only update highlighting, not global context
-      // This prevents unnecessary re-renders of the scripture component
-      console.log("Verse clicked for highlighting:", verseNum);
+      // Update global reference context for verse navigation
+      console.log("Verse clicked - updating global reference:", verseNum);
+      updateReference({ chapter: parseInt(chapter), verse: verseNum });
       
       // Only call the optional parent callback
       if (onVerseClick) {
         onVerseClick(verseNum, chapter);
       }
-      
-      // NOTE: No context update here - verse highlighting is handled locally
-      // If global context updates are needed for helps panels, they should be
-      // triggered by explicit navigation actions, not verse clicks
     },
-    [chapter, onVerseClick]
+    [chapter, onVerseClick, updateReference]
   );
 
   // Render verses directly from USFM parsing

@@ -6,13 +6,13 @@
  * PATTERN: Multi-resource self-activation with direct context access
  */
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useChatContext } from "../context/ChatContext";
 import { useResourcesContext } from "../context/ResourcesContext";
 import { sendChatMessage } from "../services/llmChatService";
 import { processMarkdownWithRcLinks } from "../utils/markdownUtils";
 import { enhanceLLMResponse } from "../utils/emojiEnhancer";
-import { extractVerseText, extractChapterText, validateCleanText } from "../utils/usfmTextExtractor";
+import { extractVerseText, extractChapterText, validateCleanText, emergencyUSFMExtract } from "../utils/usfmTextExtractor";
 import { TabIcon } from "./shared";
 import styles from "./LLMChatPanel.module.css";
 
@@ -121,11 +121,42 @@ export function LLMChatPanel() {
       } catch (error) {
         console.error('❌ LLM Context: Failed to extract clean text from USFM:', error);
         console.error('❌ LLM Context: Error details:', error.message, error.stack);
-        console.error('❌ LLM Context: Falling back to raw USFM');
+        console.log('🚨 LLM Context: Attempting emergency fallback extraction');
         
-        // Fallback: use raw USFM (better than nothing, but will cause issues)
-        scriptureForLLM = rawUsfm;
-        console.warn('⚠️ LLM Context: Using raw USFM as fallback - AI may be confused by markup');
+        // EMERGENCY FALLBACK: Use simple string operations for aligned Bibles
+        try {
+          const emergencyText = emergencyUSFMExtract(rawUsfm, resources.reference.chapter, resources.reference.verse);
+          if (emergencyText && emergencyText.trim().length > 0) {
+            scriptureForLLM = emergencyText;
+            scriptureMetadata = {
+              extractedAt: new Date().toISOString(),
+              isClean: false, // Emergency extraction may not be perfectly clean
+              originalLength: rawUsfm.length,
+              cleanLength: emergencyText.length,
+              reference: resources.reference.citation,
+              extractionMethod: 'emergency',
+              fallbackReason: error.message
+            };
+            console.log('✅ LLM Context: Emergency extraction successful');
+          } else {
+            throw new Error('Emergency extraction also failed');
+          }
+        } catch (emergencyError) {
+          console.error('🚨 LLM Context: Emergency extraction failed:', emergencyError);
+          
+          // FINAL FALLBACK: Provide a helpful message instead of raw USFM
+          scriptureForLLM = `[Scripture text for ${resources.reference.citation} is temporarily unavailable due to formatting complexity. Translation resources are still available.]`;
+          scriptureMetadata = {
+            extractedAt: new Date().toISOString(),
+            isClean: true,
+            originalLength: rawUsfm.length,
+            cleanLength: scriptureForLLM.length,
+            reference: resources.reference.citation,
+            extractionMethod: 'fallback-message',
+            fallbackReason: 'All extraction methods failed'
+          };
+          console.log('📝 LLM Context: Using fallback message for user-friendly experience');
+        }
       }
     } else {
       // No scripture data or reference available
@@ -328,8 +359,8 @@ export function LLMChatPanel() {
     );
   };
 
-  // Get current context info for display
-  const getContextInfo = () => {
+  // Get current context info for display - memoized to respond to verse changes
+  const contextInfo = useMemo(() => {
     const totalResources = (resources.scripture ? 1 : 0) +
                           (resources.notes?.length || 0) +
                           (resources.questions?.length || 0) +
@@ -340,11 +371,7 @@ export function LLMChatPanel() {
       reference: resources.reference?.citation || 'No reference',
       resourceCount: totalResources
     };
-  };
-  
-  const contextInfo = getContextInfo();
-
-
+  }, [resources.reference?.citation, resources.scripture, resources.notes?.length, resources.questions?.length, resources.words?.length, resources.links?.length]);
 
   return (
     <div className={styles.chatPanel} data-testid='llm-chat-panel'>

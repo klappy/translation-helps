@@ -4,8 +4,9 @@
  * Supports multiple view modes: preview, full, and debug
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useContext } from "react";
 import { parseUSFMToHTML, validateTextContentPreservation } from "./USFMSemanticParser.js";
+import { ReferenceContext } from "../../context/ReferenceContext";
 import styles from "./USFMSemanticRenderer.module.css";
 
 /**
@@ -36,6 +37,9 @@ export default function USFMSemanticRenderer({
   const [isLoading, setIsLoading] = useState(false);
   // Local state for verse highlighting - no global context updates needed
   const [localSelectedVerse, setLocalSelectedVerse] = useState(selectedVerse);
+  
+  // Get updateContext from ReferenceContext for verse navigation
+  const { updateContext, reference: currentReference } = useContext(ReferenceContext);
 
   // Update internal mode when prop changes
   useEffect(() => {
@@ -96,15 +100,27 @@ export default function USFMSemanticRenderer({
           // Update local highlighting immediately (pure CSS operation)
           setLocalSelectedVerse(verseNumber);
           
+          // Update global reference context for verse navigation
+          console.log("Verse clicked - updating global reference:", verseNumber);
+          if (updateContext && currentReference) {
+            updateContext({ 
+              reference: {
+                bookId: currentReference.bookId,
+                chapter: parseInt(chapter), 
+                verse: verseNumber 
+              }
+            });
+          }
+          
           // Optional callback for components that need to know about verse clicks
           // but this doesn't trigger re-renders of this component
           if (onVerseClick) {
-          onVerseClick(verseNumber, chapter);
+            onVerseClick(verseNumber, chapter);
           }
         }
       }
     },
-    [onVerseClick, chapter]
+    [onVerseClick, chapter, updateContext, currentReference]
   );
 
   // Add selected class to verses - use local state for immediate highlighting
