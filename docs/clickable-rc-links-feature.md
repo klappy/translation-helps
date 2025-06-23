@@ -43,7 +43,7 @@ This feature automatically converts `rc://` resource links found in translation 
 
 ### Visual Design
 
-- **Link Styling**: Clickable links are styled with blue color (`#1976d2`), underline, and monospace font
+- **Link Styling**: Clickable links are styled with ETEN Lab green (`var(--color-primary)`), underline, and monospace font
 - **Hover Effects**: Links show a cursor pointer and include tooltip with "Open [uri] in new tab"
 - **Custom Styling**: Link styles can be customized through the `linkStyle` parameter
 

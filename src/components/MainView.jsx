@@ -3,7 +3,7 @@
  * Orchestrates the main content area including scripture text, navigation tabs, and helps panels.
  */
 
-import React, { useContext, useState, createContext } from "react";
+import React, { useContext, useState, createContext, useRef } from "react";
 import { ReferenceContext } from "../context/ReferenceContext";
 import { useResourcesContext } from "../context/ResourcesContext";
 // Simple Verse-Loading Pattern: ResourcesProvider handles all resource loading
@@ -22,15 +22,17 @@ export const RcLinkContext = createContext();
 
 export function MainView() {
   const { reference, organization, languageId, updateContext, updateResourceInArray } = useContext(ReferenceContext);
+  const { activateResource } = useResourcesContext();
   // ANTI-FRAGILE: No global loading state - each panel handles its own loading
   // Simple Verse-Loading Pattern: No refs needed - ResourcesContext handles everything
   const [activeHelpsTab, setActiveHelpsTab] = useState("tn");
   const [activeMobileTab, setActiveMobileTab] = useState("scripture");
+  const helpsTabsRef = useRef(null);
 
   const handleVerseClick = (verseNum) => {
-    // When a verse is clicked, it automatically updates the reference context
-    // which triggers the helps panels to update
-    console.log("Verse clicked:", verseNum);
+    // Verse clicks are now pure CSS highlighting operations
+    // No global state updates needed - prevents unnecessary re-renders
+    console.log("Verse clicked:", verseNum, "(highlighting handled locally)");
   };
 
   // Handle rc:// link clicks to open article tabs or switch to appropriate internal tabs
@@ -61,8 +63,21 @@ export function MainView() {
     
     if (isResourceSelection) {
       console.log('🔗 Handling resource selection RC link:', rcUri);
+      
+      // Map external resource IDs to internal resource types
+      const resourceTypeMap = {
+        'tn': 'notes',
+        'tq': 'questions', 
+        'tw': 'words',
+        'twl': 'links',
+        'ta': 'ta'
+      };
+      
+      const internalResourceType = resourceTypeMap[resourceType] || resourceType;
+      
       console.log('📍 Setting mixed resource:', {
-        resourceType,
+        externalType: resourceType,
+        internalType: internalResourceType,
         languageId: rcLanguageId,
         organization: effectiveOrganization
       });
@@ -70,26 +85,27 @@ export function MainView() {
       // This is a resource selection from navigation - update resources array
       if (updateResourceInArray) {
         // Update resources array to use the selected language/organization for this resource type
-        updateResourceInArray(resourceType, {
+        updateResourceInArray(internalResourceType, {
           languageId: rcLanguageId,
           organization: effectiveOrganization,
-          resourceId: resourceType
+          resourceId: resourceType // Keep original resourceId for API calls
         });
       } else if (updateContext) {
         // Fallback to legacy mixed resources format
         updateContext({
           mixedResources: {
-            [resourceType]: {
+            [internalResourceType]: {
               languageId: rcLanguageId,
               organization: effectiveOrganization,
-              resourceId: resourceType
+              resourceId: resourceType // Keep original resourceId for API calls
             }
           }
         });
       }
       
-      // Simple Verse-Loading Pattern: Resources self-activate, no manual tab switching needed
-      console.log(`Resource ${resourceType} will self-activate when loaded`);
+      // Trigger resource reload with new configuration
+      activateResource(internalResourceType);
+      console.log(`Resource ${internalResourceType} activated and will reload with new configuration`);
       
       return; // Don't continue with article loading logic
     }
@@ -98,16 +114,28 @@ export function MainView() {
       case "tw":
         // For translation words, fetch the full article and open in new tab
         try {
-          // Simple Verse-Loading Pattern: Open external link directly
+          console.log("Fetching TW article for:", rcUri);
+          const article = await getArticle(rcUri, effectiveLanguageId, effectiveOrganization);
+          
+          if (article && !article.error && helpsTabsRef.current) {
+            console.log("Opening TW article in new tab:", article.title);
+            helpsTabsRef.current.openArticleTab(article);
+          } else if (article && article.error) {
+            console.warn("Error loading article:", article.error);
+            // Fallback to external URL if article fetch fails
           const externalUrl = convertRcUriToUrl(rcUri, effectiveLanguageId, effectiveOrganization);
           if (externalUrl) {
-            console.log("Opening external TW article:", externalUrl);
+              console.log("Falling back to external URL:", externalUrl);
             window.open(externalUrl, "_blank", "noopener,noreferrer");
-          } else {
-            console.warn("Could not convert rc:// URI to external URL:", rcUri);
+            }
           }
         } catch (error) {
           console.error("Error handling TW link:", error);
+          // Fallback to external URL
+          const externalUrl = convertRcUriToUrl(rcUri, effectiveLanguageId, effectiveOrganization);
+          if (externalUrl) {
+            window.open(externalUrl, "_blank", "noopener,noreferrer");
+          }
         }
         break;
       case "tn":
@@ -119,17 +147,30 @@ export function MainView() {
         console.log("Translation Questions resource will self-activate");
         break;
       case "ta":
-        // Simple Verse-Loading Pattern: Open Translation Academy externally
+        // For translation academy, fetch the full article and open in new tab
         try {
+          console.log("Fetching TA article for:", rcUri);
+          const article = await getTaArticle(rcUri, effectiveLanguageId, effectiveOrganization);
+          
+          if (article && !article.error && helpsTabsRef.current) {
+            console.log("Opening TA article in new tab:", article.title);
+            helpsTabsRef.current.openArticleTab(article);
+          } else if (article && article.error) {
+            console.warn("Error loading TA article:", article.error);
+            // Fallback to external URL if article fetch fails
           const externalUrl = convertRcUriToUrl(rcUri, effectiveLanguageId, effectiveOrganization);
           if (externalUrl) {
-            console.log("Opening external Translation Academy resource:", externalUrl);
+              console.log("Falling back to external URL:", externalUrl);
             window.open(externalUrl, "_blank", "noopener,noreferrer");
-          } else {
-            console.warn("Could not convert rc:// URI to external URL:", rcUri);
+            }
           }
         } catch (error) {
           console.error("Error handling Translation Academy link:", error);
+          // Fallback to external URL
+          const externalUrl = convertRcUriToUrl(rcUri, effectiveLanguageId, effectiveOrganization);
+          if (externalUrl) {
+            window.open(externalUrl, "_blank", "noopener,noreferrer");
+          }
         }
         break;
       default:
@@ -186,7 +227,7 @@ export function MainView() {
           }`}
         >
           <RcLinkContext.Provider value={{ handleRcLinkClick }}>
-            <HelpsTabs reference={reference} />
+            <HelpsTabs ref={helpsTabsRef} reference={reference} />
           </RcLinkContext.Provider>
         </div>
       </div>

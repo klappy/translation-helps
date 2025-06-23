@@ -130,6 +130,27 @@ export function ResourceGrid({
     if (resource.book_count && typeof resource.book_count === 'number') {
       return resource.book_count;
     }
+    
+    // For Translation Words and TWL resources, check alternative fields
+    if (resource.subject === 'Translation Words' || 
+             resource.subject === 'TSV Translation Words Links' ||
+             resource.id === 'tw' || resource.id === 'twl' ||
+             resource.name?.toLowerCase().includes('translation words') ||
+             resource.title?.toLowerCase().includes('translation words')) {
+      // Try content array
+      if (resource.content && Array.isArray(resource.content)) {
+        return resource.content.length;
+      }
+      // Try coverage array
+      else if (resource.coverage && Array.isArray(resource.coverage)) {
+        return resource.coverage.length;
+      }
+      // Try manifest projects
+      else if (resource.manifest && resource.manifest.projects && Array.isArray(resource.manifest.projects)) {
+        return resource.manifest.projects.length;
+      }
+    }
+    
     return null;
   };
 
@@ -143,7 +164,44 @@ export function ResourceGrid({
 
   // Enhanced book count analysis for Bible resources
   const getDetailedBookCount = (resource) => {
-    if (!resource.books || !Array.isArray(resource.books)) {
+    let bookIds = [];
+    
+    // Standard books array (for Bible resources)
+    if (resource.books && Array.isArray(resource.books)) {
+      bookIds = resource.books.map(book => 
+        typeof book === 'string' ? book.toLowerCase() : book.id?.toLowerCase()
+      ).filter(Boolean);
+    }
+    // For Translation Words and TWL resources, check alternative fields
+    else if (resource.subject === 'Translation Words' || 
+             resource.subject === 'TSV Translation Words Links' ||
+             resource.id === 'tw' || resource.id === 'twl' ||
+             resource.name?.toLowerCase().includes('translation words') ||
+             resource.title?.toLowerCase().includes('translation words')) {
+      // Try content array
+      if (resource.content && Array.isArray(resource.content)) {
+        bookIds = resource.content.map(item => 
+          typeof item === 'string' ? item.toLowerCase() : 
+          item.id?.toLowerCase() || item.book?.toLowerCase() || item.bookId?.toLowerCase()
+        ).filter(Boolean);
+      }
+      // Try coverage array
+      else if (resource.coverage && Array.isArray(resource.coverage)) {
+        bookIds = resource.coverage.map(item => 
+          typeof item === 'string' ? item.toLowerCase() : 
+          item.id?.toLowerCase() || item.book?.toLowerCase() || item.bookId?.toLowerCase()
+        ).filter(Boolean);
+      }
+      // Try manifest projects
+      else if (resource.manifest && resource.manifest.projects && Array.isArray(resource.manifest.projects)) {
+        bookIds = resource.manifest.projects.map(project => 
+          project.identifier?.toLowerCase() || project.id?.toLowerCase() || project.path?.toLowerCase()
+        ).filter(Boolean);
+      }
+    }
+
+    // If no books found, return null
+    if (bookIds.length === 0) {
       return null;
     }
 
@@ -162,13 +220,13 @@ export function ResourceGrid({
       '1pe', '2pe', '1jn', '2jn', '3jn', 'jud', 'rev'
     ];
 
-    const bookIds = resource.books.map(book => 
-      typeof book === 'string' ? book.toLowerCase() : book.id?.toLowerCase()
-    ).filter(Boolean);
-
     const otCount = bookIds.filter(id => otBooks.includes(id)).length;
     const ntCount = bookIds.filter(id => ntBooks.includes(id)).length;
     const totalCount = bookIds.length;
+
+    // Get actual book IDs for each testament
+    const otBookIds = bookIds.filter(id => otBooks.includes(id));
+    const ntBookIds = bookIds.filter(id => ntBooks.includes(id));
 
     return {
       total: totalCount,
@@ -178,8 +236,116 @@ export function ResourceGrid({
       hasNT: ntCount > 0,
       isCompleteOT: otCount === 39,
       isCompleteNT: ntCount === 27,
-      isCompleteBible: otCount === 39 && ntCount === 27
+      isCompleteBible: otCount === 39 && ntCount === 27,
+      otBookIds,
+      ntBookIds,
+      allBookIds: bookIds
     };
+  };
+
+  // Component for displaying book count with hover tooltips
+  const BookCountDisplay = ({ resource }) => {
+    const detailed = getDetailedBookCount(resource);
+    
+    if (!detailed) {
+      // Fallback to simple count
+      const fallbackDisplay = getBookCountDisplay(resource);
+      if (!fallbackDisplay) {
+        // For tW/TWL resources, try to show some indication they have content
+        if (resource.subject === 'Translation Words' || 
+            resource.subject === 'TSV Translation Words Links' ||
+            resource.id === 'tw' || resource.id === 'twl' ||
+            resource.name?.toLowerCase().includes('translation words') ||
+            resource.title?.toLowerCase().includes('translation words')) {
+          return <span style={{ cursor: 'help' }} title="Translation resource - book coverage information not available">📚 Content available</span>;
+        }
+        return null;
+      }
+      return <span>{fallbackDisplay}</span>;
+    }
+
+    if (detailed.total === 0) return <span>No books</span>;
+    if (detailed.total === 1) return <span>1 book</span>;
+
+    // Format book IDs for display in tooltips
+    const formatBookIds = (bookIds) => {
+      return bookIds.join(', ').toUpperCase();
+    };
+
+    // If it's a complete Bible
+    if (detailed.isCompleteBible) {
+      return (
+        <span 
+          title={`All books included:\nOT: ${formatBookIds(detailed.otBookIds)}\nNT: ${formatBookIds(detailed.ntBookIds)}`}
+          style={{ cursor: 'help' }}
+        >
+          📖 Complete Bible (66 books)
+        </span>
+      );
+    }
+
+    // If it has both OT and NT
+    if (detailed.hasOT && detailed.hasNT) {
+      return (
+        <span style={{ cursor: 'help' }}>
+          <span 
+            title={`Old Testament books (${detailed.ot}):\n${formatBookIds(detailed.otBookIds)}`}
+            style={{ cursor: 'help' }}
+          >
+            📜 OT: {detailed.ot}
+          </span>
+          {' • '}
+          <span 
+            title={`New Testament books (${detailed.nt}):\n${formatBookIds(detailed.ntBookIds)}`}
+            style={{ cursor: 'help' }}
+          >
+            ✝️ NT: {detailed.nt}
+          </span>
+        </span>
+      );
+    }
+
+    // If it's only OT
+    if (detailed.hasOT && !detailed.hasNT) {
+      const displayText = detailed.isCompleteOT 
+        ? '📜 Complete Old Testament (39 books)'
+        : `📜 Old Testament (${detailed.ot} books)`;
+      
+      return (
+        <span 
+          title={`Old Testament books (${detailed.ot}):\n${formatBookIds(detailed.otBookIds)}`}
+          style={{ cursor: 'help' }}
+        >
+          {displayText}
+        </span>
+      );
+    }
+
+    // If it's only NT
+    if (detailed.hasNT && !detailed.hasOT) {
+      const displayText = detailed.isCompleteNT 
+        ? '✝️ Complete New Testament (27 books)'
+        : `✝️ New Testament (${detailed.nt} books)`;
+      
+      return (
+        <span 
+          title={`New Testament books (${detailed.nt}):\n${formatBookIds(detailed.ntBookIds)}`}
+          style={{ cursor: 'help' }}
+        >
+          {displayText}
+        </span>
+      );
+    }
+
+    // Fallback for edge cases
+    return (
+      <span 
+        title={`Books included (${detailed.total}):\n${formatBookIds(detailed.allBookIds)}`}
+        style={{ cursor: 'help' }}
+      >
+        📚 {detailed.total} books
+      </span>
+    );
   };
 
   const getEnhancedBookCountDisplay = (resource) => {
@@ -349,8 +515,6 @@ export function ResourceGrid({
     
     return null;
   };
-
-
 
   const createResourceMetricBadges = (metrics) => {
     if (!metrics) return [];
@@ -526,9 +690,9 @@ export function ResourceGrid({
                             )}
                             
                             {/* Book Count - Only show if meaningful */}
-                            {getEnhancedBookCountDisplay(resource) && (
+                            {(getBookCount(resource) !== null && getBookCount(resource) > 0) && (
                               <div className={styles.bookCount}>
-                                {getEnhancedBookCountDisplay(resource)}
+                                <BookCountDisplay resource={resource} />
                               </div>
                             )}
                           </div>

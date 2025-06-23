@@ -5,6 +5,7 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import { RcLinkContext } from "./MainView";
+import { ReferenceContext } from "../context/ReferenceContext";
 import { useResourcesContext } from "../context/ResourcesContext";
 import { processMarkdownWithRcLinks } from "../utils/markdownUtils.jsx";
 import { InlineHelpsNavigation } from "./InlineHelpsNavigation";
@@ -13,6 +14,7 @@ import styles from "./TranslationNotesPanel.module.css";
 
 export function TranslationNotesPanel({ reference }) {
   const { resources, activateResource } = useResourcesContext();
+  const { mixedResources, organization: defaultOrganization, languageId: defaultLanguageId } = useContext(ReferenceContext);
   const [forceNavigation, setForceNavigation] = useState(null);
   const [hasTriedLoading, setHasTriedLoading] = useState(false);
   const { handleRcLinkClick } = useContext(RcLinkContext) || {};
@@ -25,6 +27,17 @@ export function TranslationNotesPanel({ reference }) {
 
   const notes = resources.notes || [];
   const hasNotes = notes && notes.length > 0;
+
+  // Get actual selected resource metadata (not hardcoded defaults)
+  const getSelectedResourceMetadata = () => {
+    // Check if user has selected a specific resource configuration
+    const selectedResource = mixedResources?.notes;
+    
+    return {
+      organization: selectedResource?.organization || defaultOrganization || 'unfoldingWord',
+      languageId: selectedResource?.languageId || defaultLanguageId || 'en'
+    };
+  };
 
   // Render with available notes
 
@@ -52,9 +65,8 @@ export function TranslationNotesPanel({ reference }) {
 
   // Show empty verse state if we've tried loading and have no notes for this verse
   if (hasTriedLoading && !hasNotes && reference?.verse) {
-    // Get default metadata for consistent styling
-    const organization = 'unfoldingWord';
-    const languageId = 'en';
+    // Get actual selected resource metadata instead of hardcoded defaults
+    const { organization, languageId } = getSelectedResourceMetadata();
 
     return (
       <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
@@ -64,14 +76,6 @@ export function TranslationNotesPanel({ reference }) {
           languageId={languageId}
           organization={organization}
           onStartNavigation={handleStartNavigation}
-        />
-
-        {/* Resource Metadata Card */}
-        <ResourceMetadataCard
-          organization={organization}
-          title="Translation Notes"
-          languageId={languageId}
-          resourceType="tn"
         />
 
         <h3 className={styles.panelHeader}>
@@ -89,15 +93,26 @@ export function TranslationNotesPanel({ reference }) {
             <div className={styles.noteTags}>
               Current verse: <strong>{reference.bookId} {reference.chapter}:{reference.verse}</strong>
             </div>
+            <div className={styles.noteTags}>
+              Selected resource: <strong>{organization} • {languageId.toUpperCase()}</strong>
+            </div>
           </li>
         </ul>
 
         <div className={styles.tipSection}>
           <p className={styles.tipText}>
             <span className={styles.tipIcon}>💡</span>
-            <span className={styles.tipBold}>Tip:</span> Try navigating to a different verse that may have more content.
+            <span className={styles.tipBold}>Tip:</span> Try navigating to a different verse that may have more content, or select a different organization/language combination.
           </p>
         </div>
+
+        {/* Resource Metadata Card - Moved to bottom */}
+        <ResourceMetadataCard
+          organization={organization}
+          title="Translation Notes"
+          languageId={languageId}
+          resourceType="tn"
+        />
       </section>
     );
   }
@@ -120,31 +135,25 @@ export function TranslationNotesPanel({ reference }) {
 
   // Get metadata from first note (all notes have same metadata)
   const noteMetadata = notes[0] || {};
-  const organization = noteMetadata.organization || 'unfoldingWord';
-  const languageId = noteMetadata.languageId || 'en';
+  const { organization, languageId } = getSelectedResourceMetadata();
+  // Fallback to note metadata if somehow no selection exists
+  const finalOrganization = organization || noteMetadata.organization || 'unfoldingWord';
+  const finalLanguageId = languageId || noteMetadata.languageId || 'en';
 
   return (
     <section data-testid='translation-notes-panel' className={styles.translationNotesPanel}>
       {/* Breadcrumbs */}
       <HelpsBreadcrumbs
         resourceType="tn"
-        languageId={languageId}
-        organization={organization}
+        languageId={finalLanguageId}
+        organization={finalOrganization}
         onStartNavigation={handleStartNavigation}
-      />
-
-      {/* Resource Metadata Card */}
-      <ResourceMetadataCard
-        organization={organization}
-        title="Translation Notes"
-        languageId={languageId}
-        resourceType="tn"
       />
 
       <h3 className={styles.panelHeader}>
         Notes
-        {organization !== 'unfoldingWord' && (
-          <span className={styles.orgBadge}>from {organization}</span>
+        {finalOrganization !== 'unfoldingWord' && (
+          <span className={styles.orgBadge}>from {finalOrganization}</span>
         )}
       </h3>
 
@@ -166,7 +175,7 @@ export function TranslationNotesPanel({ reference }) {
                   <div className={styles.noteText}>
                     {processMarkdownWithRcLinks(note.text, (rcUri) => {
                       if (handleRcLinkClick) {
-                        handleRcLinkClick(rcUri, languageId, organization);
+                        handleRcLinkClick(rcUri, finalLanguageId, finalOrganization);
                       }
                     })}
                   </div>
@@ -183,7 +192,7 @@ export function TranslationNotesPanel({ reference }) {
                 >
                   {processMarkdownWithRcLinks(note.text, (rcUri) => {
                     if (handleRcLinkClick) {
-                      handleRcLinkClick(rcUri, languageId, organization);
+                      handleRcLinkClick(rcUri, finalLanguageId, finalOrganization);
                     }
                   })}
                 </div>
@@ -195,7 +204,7 @@ export function TranslationNotesPanel({ reference }) {
                 See also:{" "}
                 {processMarkdownWithRcLinks(note.supportReference, (rcUri) => {
                   if (handleRcLinkClick) {
-                    handleRcLinkClick(rcUri, languageId, organization);
+                    handleRcLinkClick(rcUri, finalLanguageId, finalOrganization);
                   }
                 })}
               </div>
@@ -203,6 +212,14 @@ export function TranslationNotesPanel({ reference }) {
           </li>
         ))}
       </ul>
+
+      {/* Resource Metadata Card - Moved to bottom */}
+      <ResourceMetadataCard
+        organization={finalOrganization}
+        title="Translation Notes"
+        languageId={finalLanguageId}
+        resourceType="tn"
+      />
     </section>
   );
 }

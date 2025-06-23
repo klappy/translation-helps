@@ -1,5 +1,64 @@
 # Changelog
 
+## [3.7.3] - 2025-01-09
+
+### Fixed
+
+- **Scripture Organization Synchronization**: Fixed critical issue where scripture wouldn't switch organizations when selecting resources from different owners
+  - Added scripture path update when `resourceOrganization` changes in `ReferenceContext.jsx`
+  - Scripture now properly switches to match selected resource organization (e.g., translationCore-Create-BCS)
+  - URL now shows consistent organization across scripture and resources
+  - Example: `scriptures=[/translationCore-Create-BCS/hi/glt/tit/1/1]&resources=[/translationCore-Create-BCS/hi/tn,...]`
+
+## [3.7.2] - 2025-01-09
+
+### Fixed
+
+- **URL State Synchronization**: Fixed critical issue where URL bar wasn't preserving owner and other state when switching resources
+  - Added `mixedResources` to URL update effect dependency array in `ReferenceContext.jsx`
+  - URL now properly updates when switching to resources by different owners
+  - Prevents loss of URL state items during organization changes
+  - Ensures consistent URL parameter management across resource switches
+
+## [3.7.1] - 2025-01-09
+
+### Fixed
+
+- **Breadcrumb Hover State**: Fixed poor visibility of breadcrumb hover states in scripture panel navigation
+  - Changed hover text color from green (`var(--color-primary)`) to black for proper contrast on green backgrounds
+  - Updated `ScripturePanelNavigation.module.css` to ensure readable hover states
+
+- **RC Link Functionality**: Restored proper RC link functionality in translation help panels
+  - Fixed RC links opening raw DCS repository files instead of rendered articles
+  - Updated `MainView.jsx` to properly handle RC link clicks with `getArticle()` and `getTaArticle()`
+  - Restored `handleRcLinkClick` to open articles in new tabs via `helpsTabsRef.current.openArticleTab()`
+  - Added fallback to external URLs if article fetching fails
+  - Enhanced error handling for both TW and TA resources
+  - Updated `TWLPanel.jsx` to use proper `handleRcLinkClick` calls instead of hardcoded DCS links
+
+### Enhanced
+
+- **Resource Attribution UX**: Relocated all resource attribution cards to bottom of content areas
+  - Users must now scroll to see organization, title, and license information
+  - Updated Scripture Panel (`USFMSemanticRenderer.jsx`) to move resource details after USFM content
+  - Updated all Translation Help panels to move `ResourceMetadataCard` to bottom position
+  - Applied to TranslationNotesPanel, TranslationQuestionsPanel, TranslationWordsPanel, TWLPanel, and FiaPanel
+  - Updated CSS styling to use `border-top` and `margin-top` instead of bottom variants
+
+- **Scrollbar Theming**: Added comprehensive theme-consistent scrollbar styling across the application
+  - Added WebKit browser support with themed track/thumb colors matching design system
+  - Added Firefox support with `scrollbar-width` and `scrollbar-color` properties
+  - Implemented hover states using `--color-primary` (ETEN Lab green)
+  - Applied to global scrollbars and specific `.scriptureSwipeContainer` for consistency
+  - Enhanced `.scrollable` class for specific containers
+
+### Technical
+
+- Enhanced scrollbar styling in `globals.css` with comprehensive browser support
+- Updated `ScripturePanelRCL.module.css` with matching scrollbar theming
+- Improved RC link handling architecture with proper article rendering integration
+- Maintained consistent styling patterns across all resource attribution relocations
+
 ## [Unreleased]
 
 ## [3.7.0] - 2025-01-09

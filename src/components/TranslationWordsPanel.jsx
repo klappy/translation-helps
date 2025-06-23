@@ -5,6 +5,7 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import { RcLinkContext } from "./MainView";
+import { ReferenceContext } from "../context/ReferenceContext";
 import { useResourcesContext } from "../context/ResourcesContext";
 import { processRcLinks, RcLink } from "../utils/rcLinkUtils.jsx";
 import { InlineHelpsNavigation } from "./InlineHelpsNavigation";
@@ -37,9 +38,21 @@ function extractSummary(content) {
 
 export function TranslationWordsPanel({ reference, onWordClick }) {
   const { resources, activateResource } = useResourcesContext();
+  const { mixedResources, organization: defaultOrganization, languageId: defaultLanguageId } = useContext(ReferenceContext);
   const [forceNavigation, setForceNavigation] = useState(null);
   const [hasTriedLoading, setHasTriedLoading] = useState(false);
   const { handleRcLinkClick } = useContext(RcLinkContext) || {};
+
+  // Get actual selected resource metadata (not hardcoded defaults)
+  const getSelectedResourceMetadata = () => {
+    // Check if user has selected a specific resource configuration
+    const selectedResource = mixedResources?.words;
+    
+    return {
+      organization: selectedResource?.organization || defaultOrganization || 'unfoldingWord',
+      languageId: selectedResource?.languageId || defaultLanguageId || 'en'
+    };
+  };
 
   // Self-activate both words and links resource types
   useEffect(() => {
@@ -113,9 +126,8 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
 
   // Show empty verse state if we've tried loading and have no words for this verse
   if (hasTriedLoading && !hasWords && reference?.verse) {
-    // Get default metadata for consistent styling
-    const organization = 'unfoldingWord';
-    const languageId = 'en';
+    // Get actual selected resource metadata instead of hardcoded defaults
+    const { organization, languageId } = getSelectedResourceMetadata();
 
     return (
       <section data-testid='translation-words-panel' className={styles.translationWordsPanel}>
@@ -125,14 +137,6 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
           languageId={languageId}
           organization={organization}
           onStartNavigation={handleStartNavigation}
-        />
-
-        {/* Resource Metadata Card */}
-        <ResourceMetadataCard
-          organization={organization}
-          title="Translation Words"
-          languageId={languageId}
-          resourceType="tw"
         />
 
         <h3 className={styles.panelHeader}>
@@ -153,12 +157,15 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
             <p className={styles.rcLink}>
               Current verse: <strong>{reference.bookId} {reference.chapter}:{reference.verse}</strong>
             </p>
+            <p className={styles.rcLink}>
+              Selected resource: <strong>{organization} • {languageId.toUpperCase()}</strong>
+            </p>
           </div>
 
           <div className={styles.tipSection}>
             <p className={styles.tipText}>
               <span className={styles.tipIcon}>💡</span>
-              <span className={styles.tipBold}>Tip:</span> Try navigating to a different verse that may have more content.
+              <span className={styles.tipBold}>Tip:</span> Try navigating to a different verse that may have more content, or select a different organization/language combination.
             </p>
           </div>
         </div>
@@ -176,6 +183,14 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
             </ul>
           </details>
         )}
+
+        {/* Resource Metadata Card - Moved to bottom */}
+        <ResourceMetadataCard
+          organization={organization}
+          title="Translation Words"
+          languageId={languageId}
+          resourceType="tw"
+        />
       </section>
     );
   }
@@ -211,41 +226,25 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
 
   // Get metadata from first word (all words have same metadata)
   const wordMetadata = words[0] || {};
-  const organization = wordMetadata.organization || 'unfoldingWord';
-  const languageId = wordMetadata.languageId || 'en';
+  const { organization, languageId } = getSelectedResourceMetadata();
+  // Fallback to word metadata if somehow no selection exists
+  const finalOrganization = organization || wordMetadata.organization || 'unfoldingWord';
+  const finalLanguageId = languageId || wordMetadata.languageId || 'en';
 
   return (
     <section data-testid='translation-words-panel' className={styles.translationWordsPanel}>
       {/* Breadcrumbs */}
       <HelpsBreadcrumbs
         resourceType="tw"
-        languageId={languageId}
-        organization={organization}
+        languageId={finalLanguageId}
+        organization={finalOrganization}
         onStartNavigation={handleStartNavigation}
-      />
-
-      {/* Resource Metadata Card */}
-      <ResourceMetadataCard
-        organization={organization}
-        title="Translation Words"
-        languageId={languageId}
-        resourceType="tw"
-      />
-
-      {/* Always render InlineHelpsNavigation for breadcrumb functionality */}
-      <InlineHelpsNavigation
-        resourceType="tw"
-        currentReference={reference}
-        onResourceSelect={handleRcLinkClick}
-        isResourceAvailable={hasWords}
-        forceNavigation={forceNavigation}
-        onNavigationComplete={() => setForceNavigation(null)}
       />
 
       <h3 className={styles.panelHeader}>
         Words
-        {organization !== 'unfoldingWord' && (
-          <span className={styles.orgBadge}>from {organization}</span>
+        {finalOrganization !== 'unfoldingWord' && (
+          <span className={styles.orgBadge}>from {finalOrganization}</span>
         )}
       </h3>
 
@@ -271,7 +270,7 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
               <p className={styles.wordSummary}>
                 {processRcLinks(summary, (rcUri) => {
                   if (handleRcLinkClick) {
-                    handleRcLinkClick(rcUri, languageId, organization);
+                    handleRcLinkClick(rcUri, finalLanguageId, finalOrganization);
                   }
                 })}
               </p>
@@ -292,7 +291,7 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
                     rcUri={word.rcUri}
                     onRcLinkClick={(rcUri) => {
                       if (handleRcLinkClick) {
-                        handleRcLinkClick(rcUri, languageId, organization);
+                        handleRcLinkClick(rcUri, finalLanguageId, finalOrganization);
                       }
                     }}
                   >
@@ -314,6 +313,14 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
           </p>
         </div>
       </div>
+
+      {/* Resource Metadata Card - Moved to bottom */}
+      <ResourceMetadataCard
+        organization={finalOrganization}
+        title="Translation Words"
+        languageId={finalLanguageId}
+        resourceType="tw"
+      />
     </section>
   );
 }

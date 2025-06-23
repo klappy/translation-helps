@@ -34,11 +34,18 @@ export default function USFMSemanticRenderer({
   const [currentMode, setCurrentMode] = useState(mode);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  // Local state for verse highlighting - no global context updates needed
+  const [localSelectedVerse, setLocalSelectedVerse] = useState(selectedVerse);
 
   // Update internal mode when prop changes
   useEffect(() => {
     setCurrentMode(mode);
   }, [mode]);
+
+  // Update local selected verse when prop changes
+  useEffect(() => {
+    setLocalSelectedVerse(selectedVerse);
+  }, [selectedVerse]);
 
   // Parse USFM and render to HTML
   const renderedHTML = useMemo(() => {
@@ -74,11 +81,9 @@ export default function USFMSemanticRenderer({
     setCurrentMode(newMode);
   }, []);
 
-  // Handle verse clicks
+  // Handle verse clicks - now pure CSS highlighting with optional callback
   const handleVerseClick = useCallback(
     (event) => {
-      if (!onVerseClick) return;
-
       // Find the closest verse element
       const verseElement = event.target.closest("v");
       if (!verseElement) return;
@@ -88,30 +93,37 @@ export default function USFMSemanticRenderer({
       if (numberElement) {
         const verseNumber = parseInt(numberElement.textContent);
         if (!isNaN(verseNumber)) {
+          // Update local highlighting immediately (pure CSS operation)
+          setLocalSelectedVerse(verseNumber);
+          
+          // Optional callback for components that need to know about verse clicks
+          // but this doesn't trigger re-renders of this component
+          if (onVerseClick) {
           onVerseClick(verseNumber, chapter);
+          }
         }
       }
     },
     [onVerseClick, chapter]
   );
 
-  // Add selected class to verses - ALWAYS call this hook
+  // Add selected class to verses - use local state for immediate highlighting
   useEffect(() => {
-    if (selectedVerse === null || !renderedHTML) return;
+    if (localSelectedVerse === null || !renderedHTML) return;
 
     const verseElements = document.querySelectorAll("v");
     verseElements.forEach((verseElement) => {
       const numberElement = verseElement.querySelector("number");
       if (numberElement) {
         const verseNumber = parseInt(numberElement.textContent);
-        if (verseNumber === selectedVerse) {
+        if (verseNumber === localSelectedVerse) {
           verseElement.classList.add("selected");
         } else {
           verseElement.classList.remove("selected");
         }
       }
     });
-  }, [selectedVerse, renderedHTML]);
+  }, [localSelectedVerse, renderedHTML]);
 
   // Collapsible notes effect - ALWAYS call this hook
   useEffect(() => {
@@ -245,8 +257,6 @@ export default function USFMSemanticRenderer({
     );
   }
 
-
-
   return (
     <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer" {...props}>
       {showModeToggle && (
@@ -276,7 +286,13 @@ export default function USFMSemanticRenderer({
       )}
 
       <div className={styles["usfm-content"]}>
-        {/* Resource Details */}
+        {/* USFM Content */}
+        <div
+          onClick={handleVerseClick}
+          dangerouslySetInnerHTML={{ __html: renderedHTML }}
+        />
+
+        {/* Resource Details - Moved to bottom */}
         {resourceDetails && (
           <div className={styles["resource-details"]}>
             <div className={styles["resource-detail-item"]}>
@@ -296,12 +312,6 @@ export default function USFMSemanticRenderer({
             </div>
           </div>
         )}
-
-        {/* USFM Content */}
-        <div
-          onClick={handleVerseClick}
-          dangerouslySetInnerHTML={{ __html: renderedHTML }}
-        />
       </div>
     </div>
   );

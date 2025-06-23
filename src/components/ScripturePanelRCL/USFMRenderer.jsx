@@ -295,6 +295,13 @@ const USFMRenderer = React.memo(function USFMRenderer({
   chapter,
 }) {
   const { updateReference } = useContext(ReferenceContext);
+  // Local state for verse highlighting - no global context updates needed
+  const [localSelectedVerse, setLocalSelectedVerse] = useState(selectedVerse);
+
+  // Update local selected verse when prop changes
+  useEffect(() => {
+    setLocalSelectedVerse(selectedVerse);
+  }, [selectedVerse]);
 
   // Parse USFM directly to verses for this chapter using custom parser
   const verses = useMemo(() => {
@@ -329,10 +336,23 @@ const USFMRenderer = React.memo(function USFMRenderer({
   // Handle verse click with memoized callback
   const handleVerseClick = useCallback(
     (verseNum) => {
-      updateReference({ chapter: chapter, verse: verseNum });
-      if (onVerseClick) onVerseClick(verseNum, chapter);
+      // Update local highlighting immediately (pure operation)
+      setLocalSelectedVerse(verseNum);
+      
+      // Verse clicks should only update highlighting, not global context
+      // This prevents unnecessary re-renders of the scripture component
+      console.log("Verse clicked for highlighting:", verseNum);
+      
+      // Only call the optional parent callback
+      if (onVerseClick) {
+        onVerseClick(verseNum, chapter);
+      }
+      
+      // NOTE: No context update here - verse highlighting is handled locally
+      // If global context updates are needed for helps panels, they should be
+      // triggered by explicit navigation actions, not verse clicks
     },
-    [chapter, updateReference, onVerseClick]
+    [chapter, onVerseClick]
   );
 
   // Render verses directly from USFM parsing
@@ -347,7 +367,7 @@ const USFMRenderer = React.memo(function USFMRenderer({
               .map((verseData) => (
                 <div
                   className={`${styles.verse} ${
-                    verseData.verse === selectedVerse ? styles.selected : ""
+                    verseData.verse === localSelectedVerse ? styles.selected : ""
                   }`}
                   key={verseData.verse}
                   onClick={() => handleVerseClick(verseData.verse)}

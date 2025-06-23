@@ -27,6 +27,7 @@ export function ResourcesProvider({ children }) {
     organization, 
     languageId, 
     resourceId,
+    resourceOrganization,
     getResourceOrganization,
     getResourceLanguage, 
     getResourceId,
@@ -74,8 +75,6 @@ export function ResourcesProvider({ children }) {
       return;
     }
     
-    // Loading resources for current reference
-    
     // Mark all resources as loading
     setLoadingResources(new Set(resourcesToLoad));
     
@@ -84,22 +83,32 @@ export function ResourcesProvider({ children }) {
       resourcesToLoad.map(async (type) => {
         try {
           // Calculate config directly from state values
-          let resourceOrg = organization;
-          let resourceLang = languageId;
-          let resourceRes = resourceId;
+          let resourceOrg, resourceLang, resourceRes;
           
-          // Check mixedResources for overrides
+          // For scripture, use the actual selected resource organization
+          if (type === 'scripture') {
+            resourceOrg = resourceOrganization || organization;
+            resourceLang = languageId;
+            resourceRes = resourceId;
+          } else {
+            // For translation helps, start with selected scripture organization
+            resourceOrg = resourceOrganization || organization;
+            resourceLang = languageId;
+            
+            // Default resource IDs for translation helps
+            if (type === 'notes') resourceRes = 'tn';
+            else if (type === 'questions') resourceRes = 'tq';
+            else if (type === 'words') resourceRes = 'tw';
+            else if (type === 'links') resourceRes = 'twl';
+            else resourceRes = type;
+          }
+          
+          // Check mixedResources for overrides (this takes precedence over everything)
           if (mixedResources[type]) {
             resourceOrg = mixedResources[type].organization || resourceOrg;
             resourceLang = mixedResources[type].languageId || resourceLang;
             resourceRes = mixedResources[type].resourceId || resourceRes;
           }
-          
-          // Default resource IDs for translation helps
-          if (type === 'notes') resourceRes = 'tn';
-          else if (type === 'questions') resourceRes = 'tq';
-          else if (type === 'words') resourceRes = 'tw';
-          else if (type === 'links') resourceRes = 'twl';
           
           const config = {
             organization: resourceOrg,
@@ -111,8 +120,6 @@ export function ResourcesProvider({ children }) {
           if (type === 'scripture' && currentResourceData) {
             config.resourceData = currentResourceData;
           }
-          
-          // Loading resource configuration
           
           const result = await loadResourceForType(type, reference, config);
           
@@ -135,12 +142,9 @@ export function ResourcesProvider({ children }) {
             return newSet;
           });
           
-          // Resource loaded successfully
           return { type, result };
           
         } catch (error) {
-          // Resource loading failed - continue with others
-          
           // Set failed resource to null immediately - ANTI-FRAGILE
           setResources(prev => ({
             ...prev,
@@ -160,9 +164,8 @@ export function ResourcesProvider({ children }) {
     ).then(() => {
       // Final cleanup - ensure loading state is clear
       setLoadingResources(new Set());
-      // All resources processed
     });
-  }, [reference?.bookId, reference?.chapter, reference?.verse, activeResources, organization, languageId, resourceId, currentResourceData, mixedResources]); // Watch full reference for chapter/verse changes
+  }, [reference?.bookId, reference?.chapter, reference?.verse, activeResources, organization, languageId, resourceId, resourceOrganization, currentResourceData, mixedResources]); // Added resourceOrganization to dependencies
   
   // Panel self-activation: Panels can request resources they need
   const activateResource = useCallback((resourceType) => {

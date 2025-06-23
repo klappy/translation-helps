@@ -74,14 +74,6 @@ export function TWLPanel({ reference }) {
         onStartNavigation={handleStartNavigation}
       />
 
-      {/* Resource Metadata Card */}
-      <ResourceMetadataCard
-        organization={organization}
-        title="Translation Word Links"
-        languageId={languageId}
-        resourceType="twl"
-      />
-
       {/* Always render InlineHelpsNavigation for breadcrumb functionality */}
       <InlineHelpsNavigation
         resourceType="twl"
@@ -109,14 +101,24 @@ export function TWLPanel({ reference }) {
               </h4>
               <div className="twl-link">
                 {rcLink && (
-                  <a 
-                    href={`https://git.door43.org/unfoldingWord/en_tw/src/branch/master/bible/${rcLink.replace('rc://en/tw/dict/bible/', '')}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={{ color: 'var(--color-primary)' }}
+                  <button 
+                    onClick={() => {
+                      if (handleRcLinkClick) {
+                        handleRcLinkClick(rcLink, languageId, organization);
+                      }
+                    }}
+                    style={{ 
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--color-primary)',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      padding: 0,
+                      font: 'inherit'
+                    }}
                   >
                     View Translation Word Article →
-                  </a>
+                  </button>
                 )}
                 <div style={{ fontSize: '0.9em', color: '#666', marginTop: '4px' }}>
                   {rcLink}
@@ -126,6 +128,14 @@ export function TWLPanel({ reference }) {
           );
         })}
       </div>
+
+      {/* Resource Metadata Card - Moved to bottom */}
+      <ResourceMetadataCard
+        organization={organization}
+        title="Translation Word Links"
+        languageId={languageId}
+        resourceType="twl"
+      />
     </section>
   );
 }

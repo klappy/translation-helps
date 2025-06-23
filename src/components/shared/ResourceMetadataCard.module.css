@@ -7,7 +7,7 @@
   justify-content: center;
   gap: var(--spacing-4);
   padding: var(--spacing-3);
-  margin-bottom: var(--spacing-3);
+  margin-top: var(--spacing-3);
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
@@ -35,6 +35,36 @@
   font-size: var(--font-size-sm);
   flex-shrink: 0;
   opacity: 0.6;
+}
+
+/* GitHub repository link styling */
+.githubLink {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+  font-weight: var(--font-weight-normal);
+}
+
+.githubLink:hover {
+  color: var(--color-primary);
+}
+
+.githubLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.githubIcon {
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+}
+
+.githubLink:hover .githubIcon {
+  opacity: 1;
 }
 
 /* Mobile responsive adjustments */

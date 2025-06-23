@@ -79,23 +79,31 @@ The `ThemeToggle` component (`src/components/ThemeToggle.jsx`) provides:
 **Problem**: Yellow highlights with no text color specification - completely unreadable
 **Solution**: ETEN Lab green background with white text for proper contrast ratios
 
-### 7. Button Contrast Fix
+### 7. Scrollbar Theming
+**Problem**: Default browser scrollbars not matching application theme
+**Solution**: Comprehensive scrollbar styling in `globals.css` with:
+- WebKit browser support (`-webkit-scrollbar`, `-webkit-scrollbar-track`, `-webkit-scrollbar-thumb`)
+- Firefox support (`scrollbar-width: thin`, `scrollbar-color`)
+- Theme-consistent colors using `--color-border` and `--color-primary` for hover states
+- Applied globally and to specific containers like `.scriptureSwipeContainer`
+
+### 8. Button Contrast Fix
 **Problem**: White text on green (#c1d72e) background fails WCAG contrast requirements
 **Solution**: Changed to black text (`--color-text-on-primary`) on all green buttons
 
-### 8. Dark Theme as Default
+### 9. Dark Theme as Default
 **Problem**: Light theme didn't match ETEN Lab's website aesthetic
 **Solution**: Made dark theme the default with proper black/grey backgrounds
 
-### 9. Button Synchronization Issue
+### 10. Button Synchronization Issue
 **Problem**: JavaScript event handlers caused button backgrounds to get out of sync after multiple interactions
 **Solution**: Replaced JavaScript event handlers with pure CSS hover/focus states using `!important` declarations
 
-### 10. Navigation Bar Usability
+### 11. Navigation Bar Usability
 **Problem**: Large breadcrumbs cluttered the interface and took up too much space
 **Solution**: Made breadcrumbs collapsible (hidden by default) and added logo button to toggle visibility
 
-### 11. Scripture Selection Colors
+### 12. Scripture Selection Colors
 **Problem**: Scripture verse hover and selection used default browser blue colors instead of ETEN Lab green theme
 **Solution**: Updated all verse background colors and global text selection to use ETEN Lab green with proper contrast
 

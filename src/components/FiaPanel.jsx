@@ -39,14 +39,6 @@ export function FiaPanel({ reference }) {
           onStartNavigation={() => {}}
         />
 
-        {/* Resource Metadata Card */}
-        <ResourceMetadataCard
-          organization={organization}
-          title="FIA Resources"
-          languageId={languageId}
-          resourceType="fia"
-        />
-
         <h3 className={styles.panelHeader}>
           FIA
           <span className={styles.orgBadge}>from {organization}</span>
@@ -73,6 +65,14 @@ export function FiaPanel({ reference }) {
             <span className={styles.tipBold}>Tip:</span> Try navigating to a different verse that may have more content.
           </p>
         </div>
+
+        {/* Resource Metadata Card - Moved to bottom */}
+        <ResourceMetadataCard
+          organization={organization}
+          title="FIA Resources"
+          languageId={languageId}
+          resourceType="fia"
+        />
       </section>
     );
   }

@@ -5,6 +5,7 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import { RcLinkContext } from "./MainView";
+import { ReferenceContext } from "../context/ReferenceContext";
 import { useResourcesContext } from "../context/ResourcesContext";
 import { processMarkdownWithRcLinks } from "../utils/markdownUtils.jsx";
 import { InlineHelpsNavigation } from "./InlineHelpsNavigation";
@@ -13,6 +14,7 @@ import styles from "./TranslationQuestionsPanel.module.css";
 
 export function TranslationQuestionsPanel({ reference }) {
   const { resources, activateResource } = useResourcesContext();
+  const { mixedResources, organization: defaultOrganization, languageId: defaultLanguageId } = useContext(ReferenceContext);
   const [forceNavigation, setForceNavigation] = useState(null);
   const [hasTriedLoading, setHasTriedLoading] = useState(false);
   const { handleRcLinkClick } = useContext(RcLinkContext) || {};
@@ -28,6 +30,17 @@ export function TranslationQuestionsPanel({ reference }) {
   const hasQuestions = questions && questions.length > 0;
 
   console.log('🎯 TranslationQuestionsPanel: Rendering with', questions.length, 'questions');
+
+  // Get actual selected resource metadata (not hardcoded defaults)
+  const getSelectedResourceMetadata = () => {
+    // Check if user has selected a specific resource configuration
+    const selectedResource = mixedResources?.questions;
+    
+    return {
+      organization: selectedResource?.organization || defaultOrganization || 'unfoldingWord',
+      languageId: selectedResource?.languageId || defaultLanguageId || 'en'
+    };
+  };
 
   // Handle breadcrumb navigation
   const handleStartNavigation = (step = 'language') => {
@@ -56,9 +69,8 @@ export function TranslationQuestionsPanel({ reference }) {
 
   // Show empty verse state if we've tried loading and have no questions for this verse
   if (hasTriedLoading && !hasQuestions && reference?.verse) {
-    // Get default metadata for consistent styling
-    const organization = 'unfoldingWord';
-    const languageId = 'en';
+    // Get actual selected resource metadata instead of hardcoded defaults
+    const { organization, languageId } = getSelectedResourceMetadata();
 
     return (
       <section data-testid='translation-questions-panel' className={styles.translationQuestionsPanel}>
@@ -68,14 +80,6 @@ export function TranslationQuestionsPanel({ reference }) {
           languageId={languageId}
           organization={organization}
           onStartNavigation={handleStartNavigation}
-        />
-
-        {/* Resource Metadata Card */}
-        <ResourceMetadataCard
-          organization={organization}
-          title="Translation Questions"
-          languageId={languageId}
-          resourceType="tq"
         />
 
         <h3 className={styles.panelHeader}>
@@ -93,15 +97,26 @@ export function TranslationQuestionsPanel({ reference }) {
             <div className={styles.answerText}>
               <strong>A:</strong> Current verse: <strong>{reference.bookId} {reference.chapter}:{reference.verse}</strong>
             </div>
+            <div className={styles.answerText}>
+              Selected resource: <strong>{organization} • {languageId.toUpperCase()}</strong>
+            </div>
           </div>
         </div>
 
         <div className={styles.tipSection}>
           <p className={styles.tipText}>
             <span className={styles.tipIcon}>💡</span>
-            <span className={styles.tipBold}>Tip:</span> Try navigating to a different verse that may have more content.
+            <span className={styles.tipBold}>Tip:</span> Try navigating to a different verse that may have more content, or select a different organization/language combination.
           </p>
         </div>
+
+        {/* Resource Metadata Card - Moved to bottom */}
+        <ResourceMetadataCard
+          organization={organization}
+          title="Translation Questions"
+          languageId={languageId}
+          resourceType="tq"
+        />
       </section>
     );
   }
@@ -127,31 +142,25 @@ export function TranslationQuestionsPanel({ reference }) {
 
   // Get metadata from first question (all questions have same metadata)
   const questionMetadata = questions[0] || {};
-  const organization = questionMetadata.organization || 'unfoldingWord';
-  const languageId = questionMetadata.languageId || 'en';
+  const { organization, languageId } = getSelectedResourceMetadata();
+  // Fallback to question metadata if somehow no selection exists
+  const finalOrganization = organization || questionMetadata.organization || 'unfoldingWord';
+  const finalLanguageId = languageId || questionMetadata.languageId || 'en';
 
   return (
     <section data-testid='translation-questions-panel' className={styles.translationQuestionsPanel}>
       {/* Breadcrumbs */}
       <HelpsBreadcrumbs
         resourceType="tq"
-        languageId={languageId}
-        organization={organization}
+        languageId={finalLanguageId}
+        organization={finalOrganization}
         onStartNavigation={handleStartNavigation}
-      />
-
-      {/* Resource Metadata Card */}
-      <ResourceMetadataCard
-        organization={organization}
-        title="Translation Questions"
-        languageId={languageId}
-        resourceType="tq"
       />
 
       <h3 className={styles.panelHeader}>
         Questions
-        {organization !== 'unfoldingWord' && (
-          <span className={styles.orgBadge}>from {organization}</span>
+        {finalOrganization !== 'unfoldingWord' && (
+          <span className={styles.orgBadge}>from {finalOrganization}</span>
         )}
       </h3>
 
@@ -162,7 +171,7 @@ export function TranslationQuestionsPanel({ reference }) {
               <strong>Q:</strong>{" "}
               {processMarkdownWithRcLinks(qa.question, (rcUri) => {
                 if (handleRcLinkClick) {
-                  handleRcLinkClick(rcUri, languageId, organization);
+                  handleRcLinkClick(rcUri, finalLanguageId, finalOrganization);
                 }
               })}
             </div>
@@ -170,13 +179,21 @@ export function TranslationQuestionsPanel({ reference }) {
               <strong>A:</strong>{" "}
               {processMarkdownWithRcLinks(qa.answer, (rcUri) => {
                 if (handleRcLinkClick) {
-                  handleRcLinkClick(rcUri, languageId, organization);
+                  handleRcLinkClick(rcUri, finalLanguageId, finalOrganization);
                 }
               })}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Resource Metadata Card - Moved to bottom */}
+      <ResourceMetadataCard
+        organization={finalOrganization}
+        title="Translation Questions"
+        languageId={finalLanguageId}
+        resourceType="tq"
+      />
     </section>
   );
 }

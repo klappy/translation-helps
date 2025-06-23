@@ -138,17 +138,18 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
 
   // Accept both chapter and verse for context update
   const handleVerseClick = (verseNum, chapterNum) => {
-    // If chapterNum is not provided, use the current reference
-    const newChapter = chapterNum || reference?.chapter;
-    const newReference = {
-      ...currentReference,
-      chapter: newChapter,
-      verse: verseNum
-    };
-    updateContext({ reference: newReference });
+    // Verse clicks should only update highlighting, not global context
+    // This prevents unnecessary re-renders of the scripture component
+    console.log("Verse clicked for highlighting:", verseNum);
+    
+    // Only call the optional parent callback
     if (onVerseClick) {
-      onVerseClick(verseNum, newChapter);
+      onVerseClick(verseNum, chapterNum);
     }
+    
+    // NOTE: No context update here - verse highlighting is handled locally
+    // If global context updates are needed for helps panels, they should be
+    // triggered by explicit navigation actions, not verse clicks
   };
 
   const handleNavigationChange = (navigating) => {

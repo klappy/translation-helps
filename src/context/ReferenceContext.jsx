@@ -194,7 +194,7 @@ export function ReferenceProvider({ children }) {
       };
       updateQueryFromContext(context);
     }
-  }, [isInitialized, organization, languageId, resourceId, reference, resourceOrganization, scriptures, resources]);
+  }, [isInitialized, organization, languageId, resourceId, reference, resourceOrganization, scriptures, resources, mixedResources]);
 
   // Auto-fetch resource data when we have URL parameters or when resource changes
   useEffect(() => {
@@ -384,6 +384,29 @@ export function ReferenceProvider({ children }) {
     
     if (updates.resourceOrganization !== undefined) {
       setResourceOrganization(updates.resourceOrganization);
+      
+      // CRITICAL FIX: Update scriptures array when resourceOrganization changes
+      // This ensures the scripture switches to the new organization
+      if (scriptures.length > 0) {
+        const updatedScriptures = scriptures.map(scripture => {
+          // Update the primary scripture (first one) with new organization
+          if (scripture === scriptures[0]) {
+            const newScripturePath = buildResourcePath({
+              organization: updates.resourceOrganization, // Use new organization
+              languageId,
+              resourceId,
+              bookId: reference.bookId,
+              chapter: reference.chapter,
+              verse: reference.verse
+            }, true);
+            console.log('🔄 ReferenceContext: Updating scripture organization from', scripture, 'to', newScripturePath);
+            return newScripturePath;
+          }
+          return scripture;
+        });
+        setScriptures(updatedScriptures);
+        console.log('✅ ReferenceContext: Updated scriptures array for organization change');
+      }
     }
     
     if (updates.currentResourceData !== undefined) {
