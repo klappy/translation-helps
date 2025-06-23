@@ -3,6 +3,74 @@
 name: ETEN Innovation Lab Translation Helps
 description: An application for viewing Bible translation resources from ETEN Innovation Lab and partner organizations including Translation Notes (tN), Translation Questions (tQ), Translation Words (tW), and the new Translation Words Links (TWL) format.
 
+## 🛑 CRITICAL: WORKFLOW RULES - READ FIRST!
+
+### 🚨 BEFORE ANY CODE CHANGES - MANDATORY CHECKLIST
+
+**YOU MUST CREATE A FEATURE BRANCH. NEVER WORK DIRECTLY ON DEV OR MAIN.**
+
+```bash
+# 1. CHECK YOUR CURRENT BRANCH
+git branch --show-current
+
+# 2. IF YOU'RE ON dev OR main - STOP! CREATE A FEATURE BRANCH:
+git checkout dev
+git pull origin dev
+git checkout -b feature/descriptive-name-here
+
+# 3. CONFIRM YOU'RE ON FEATURE BRANCH
+git branch --show-current  # Should show: feature/your-branch-name
+```
+
+### Branch Naming Rules
+
+| Task Type | Branch Prefix | Example |
+|-----------|--------------|---------|
+| New Feature | `feature/` | `feature/add-splash-screen` |
+| Bug Fix | `bugfix/` | `bugfix/fix-navigation` |
+| Hot Fix | `hotfix/` | `hotfix/critical-error` |
+
+### ⚠️ NEVER DO THIS:
+- ❌ Work directly on `dev` branch
+- ❌ Work directly on `main` branch  
+- ❌ Work directly on `staging` branch
+- ❌ Work directly on `production` branch
+
+### ✅ ALWAYS DO THIS:
+- ✅ Create a feature branch from `dev`
+- ✅ Make commits to your feature branch
+- ✅ Create a Pull Request to merge back to `dev`
+- ✅ Get code review before merging
+
+### 🎯 Quick Command Reference
+
+```bash
+# Start new feature
+git checkout dev
+git pull origin dev
+git checkout -b feature/my-new-feature
+
+# Make changes and commit
+git add .
+git commit -m "feat: add new feature"
+git push origin feature/my-new-feature
+
+# Create PR on GitHub to merge feature → dev
+```
+
+---
+
+## 🏗️ Core Architecture Principles
+
+After following the workflow rules above, understand these principles:
+
+1. **Simple Verse-Loading Pattern** - ResourcesContext loads ALL data, panels self-activate
+2. **API-Direct Only** - NO manifest files, use catalog API with ingredients array
+3. **No Proskomma** - Use custom USFM semantic rendering system
+4. **URL-Driven State** - All state reflected in URL parameters
+
+---
+
 ## 🧭 Project Structure
 
 - `src/`: Main React app source
@@ -50,7 +118,7 @@ description: An application for viewing Bible translation resources from ETEN In
 - Loads data from Door43 Git-based repos
 - Uses TSV and Markdown content structures
 
-## 🧠 Assistant Tips (for AGENTS)
+## �� Assistant Tips (for AGENTS)
 
 - **Repo Owner:** `klappy`
 - **🎯 PRIMARY ARCHITECTURE**: Follow the **Simple Verse-Loading Pattern** documented in `docs/SIMPLE-VERSE-LOADING-PATTERN.md`
@@ -60,26 +128,26 @@ description: An application for viewing Bible translation resources from ETEN In
 - **❌ ANTI-PATTERN**: Never add complex loading logic to panels
 - **⚠️ CRITICAL: DO NOT USE PROSKOMMA** - Use custom USFM semantic rendering system in `src/components/ScripturePanelRCL/`
 - **🚀 API-DIRECT ONLY**: Use catalog API with ingredients array, NO manifest files ever
-- **📈 API OPTIMIZATION**: DCS catalog search uses subject filtering to reduce payloads by 15.4% - see `catalogService.js` `appSupportedSubjects` array
+- **�� API OPTIMIZATION**: DCS catalog search uses subject filtering to reduce payloads by 15.4% - see `catalogService.js` `appSupportedSubjects` array
 - TWL is a new addition that replaces Greek inline tags—point devs to TWL documentation
 - UI/UX tests use Vitest and React Testing Library
 - **LLM Chat**: Direct ResourcesContext access, no panel refs or polling
 
 ## 🔄 GitFlow Branch Strategy
 
-This project follows the GitFlow branching model:
+This project follows the GitFlow branching model with one modification: we use `dev` instead of `develop`.
 
 ### Core Branches
 
 - **main**: Production-ready code. Only merged from release branches or hotfix branches.
-- **develop**: Integration branch for ongoing development. Features are merged here.
+- **dev**: Integration branch for ongoing development. Features are merged here. (Note: GitFlow typically calls this `develop`, but we use `dev`)
 
 ### Supporting Branches
 
-- **feature/[feature-name]**: Created from `develop` for new features. Merge back to `develop` when complete.
-- **release/[version]**: Created from `develop` when preparing a release. Merge to both `main` and `develop` when ready.
-- **hotfix/[fix-name]**: Created from `main` for critical production fixes. Merge to both `main` and `develop`.
-- **bugfix/[bug-name]**: Created from `develop` for non-critical bugs. Merge to `develop`.
+- **feature/[feature-name]**: Created from `dev` for new features. Merge back to `dev` when complete.
+- **release/[version]**: Created from `dev` when preparing a release. Merge to both `main` and `dev` when ready.
+- **hotfix/[fix-name]**: Created from `main` for critical production fixes. Merge to both `main` and `dev`.
+- **bugfix/[bug-name]**: Created from `dev` for non-critical bugs. Merge to `dev`.
 
 ### Branch Naming Conventions
 
@@ -92,9 +160,9 @@ Example: `feature/42-add-translation-notes-filtering`
 
 ### Branch Lifecycle
 
-1. Create branch from appropriate base (develop for features/bugfixes, main for hotfixes)
+1. Create branch from appropriate base (dev for features/bugfixes, main for hotfixes)
 2. Develop and commit changes
-3. Create pull request to target branch (develop or main)
+3. Create pull request to target branch (dev or main)
 4. Review, test, and approve
 5. Merge and delete feature branch
 6. Update CHANGELOG.md according to the changes
@@ -240,41 +308,43 @@ The project maintains a comprehensive CHANGELOG.md file documenting all changes:
 
 ## 🚧 Workflow Summary for LLMs
 
-1. **Issue Analysis**
+1. **FIRST: Create Feature Branch** (See top of this document)
+
+2. **Issue Analysis**
 
    - Use GitHub MCP tools to list and examine open issues
    - Check related documentation and existing implementation
    - Identify affected files and dependencies
 
-2. **Branch Creation** (via GitHub API)
+3. **Branch Creation** (via GitHub API)
 
-   - Base branch selection (develop or main) based on issue type
+   - Base branch selection (dev or main) based on issue type
    - Branch naming following GitFlow conventions
 
-3. **Implementation**
+4. **Implementation**
 
    - Develop the solution following established patterns
    - Write tests to validate functionality
    - Update documentation to reflect changes
 
-4. **Testing**
+5. **Testing**
 
    - Run unit tests to verify implementation
    - Visual confirmation with Playwright tests
    - Manual verification as needed
 
-5. **Documentation**
+6. **Documentation**
 
    - Update project documentation
    - Ensure all documentation is in sync with code changes
 
-6. **Version and Changelog Updates**
+7. **Version and Changelog Updates**
 
    - Increment version number in package.json according to semver impact
    - Add detailed changelog entry with implementation bullets
    - Follow established changelog format and standards
 
-7. **Issue Closure**
+8. **Issue Closure**
    - Update the GitHub issue with a detailed completion summary
    - Reference all relevant commits and PRs
    - Close the issue through GitHub API

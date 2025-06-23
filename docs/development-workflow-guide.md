@@ -1,11 +1,16 @@
 # Development Workflow Guide
 
+## 🛑 MANDATORY: Read WORKFLOW-PREFLIGHT.md First!
+
+**Before ANY development work, you MUST complete the [WORKFLOW-PREFLIGHT.md](./WORKFLOW-PREFLIGHT.md) checklist.**
+
+---
+
 ## Current Branch Status
 
 After establishing our deployment pipeline, here's the current state:
 
-- **refactor** (current) - Has latest documentation but is transition branch
-- **dev** - Primary development branch (1 commit behind)
+- **dev** - Primary development branch (ALL WORK STARTS HERE)
 - **staging** - QA testing branch
 - **production** - Live production branch  
 - **master** - Protected reference branch
@@ -14,36 +19,29 @@ After establishing our deployment pipeline, here's the current state:
 
 ### 🎯 PRIMARY DEVELOPMENT BRANCH: `dev`
 
-**Answer: Start all new work from the `dev` branch.**
+**Answer: Start all new work from the `dev` branch BY CREATING A FEATURE BRANCH.**
 
-### Why `dev` Branch?
+⚠️ **NEVER work directly on `dev`. Always create a feature branch first!**
 
-1. **Designed for active development** - This is its purpose in our pipeline
-2. **Automatic deployment** - Changes deploy to dev environment for testing
-3. **Integration point** - Where feature branches merge
-4. **Stable foundation** - Regularly promoted to staging/production
-5. **Team collaboration** - Everyone works from the same base
+### Why Feature Branches?
+
+1. **Protects dev branch** - No accidental breaks
+2. **Enables code review** - PRs show exactly what changed
+3. **Allows rollback** - Can revert entire features
+4. **Parallel development** - Multiple features don't conflict
+5. **Clear history** - Each feature is documented
 
 ### Daily Development Process
 
-#### 1. Start New Feature
+#### 1. Start New Feature (FOLLOW PREFLIGHT CHECKLIST)
 ```bash
-# Switch to dev branch
+# MANDATORY: Run preflight checklist first
+# See docs/WORKFLOW-PREFLIGHT.md
+
+# Quick version (after preflight):
 git checkout dev
-
-# Get latest changes
 git pull origin dev
-
-# Create feature branch
 git checkout -b feature/your-feature-name
-
-# Work on your feature
-# Make commits
-git add .
-git commit -m "feat: add new feature"
-
-# Push feature branch
-git push origin feature/your-feature-name
 ```
 
 #### 2. Create Pull Request
@@ -55,29 +53,7 @@ git push origin feature/your-feature-name
 #### 3. Test in Dev Environment
 - Verify your changes work in dev environment
 - Test integration with other features
-- Fix any issues with additional commits to `dev`
-
-### Branch Transition Strategy
-
-Since we're currently on `refactor` and it has the latest docs, we need to sync:
-
-#### Option 1: Merge refactor into dev (Recommended)
-```bash
-git checkout dev
-git merge refactor
-git push origin dev
-```
-
-#### Option 2: Make dev the new primary
-```bash
-# Update dev with latest
-git checkout dev
-git merge refactor
-git push origin dev
-
-# Archive refactor branch
-git branch -d refactor  # (after confirming dev is updated)
-```
+- Fix any issues with additional commits to your feature branch
 
 ### Feature Branch Naming
 
@@ -132,11 +108,6 @@ feature/xyz → dev → staging → production → master (tagged)
 - Only updated after successful production deployments
 - Used for tagging releases and historical reference
 
-#### `refactor` Branch
-- Transition branch (current situation)
-- Should be merged into `dev` and then archived
-- Not part of ongoing workflow
-
 ### Hotfix Workflow
 
 For critical production issues:
@@ -180,15 +151,21 @@ git push origin dev
 
 ## Summary
 
-**🎯 Start new work from: `dev` branch**
+**🎯 WORKFLOW IN 3 STEPS:**
 
-**Workflow:**
-1. `git checkout dev`
-2. `git pull origin dev`  
-3. `git checkout -b feature/my-feature`
-4. Work, commit, push
-5. Create PR to `dev`
-6. Test in dev environment
-7. Promote through staging to production
+1. **Complete WORKFLOW-PREFLIGHT.md checklist**
+2. **Create feature branch from `dev`**
+3. **Make changes, push, and create PR**
+
+**Quick Commands:**
+```bash
+# EVERY TIME - NO EXCEPTIONS
+git checkout dev
+git pull origin dev  
+git checkout -b feature/my-feature
+# ... work ...
+git push origin feature/my-feature
+# Create PR on GitHub
+```
 
 This gives you a professional development workflow with proper testing environments and safe deployment practices.

@@ -1,7 +1,27 @@
 # ETEN Innovation Lab Translation Helps
 
-## Version 3.1.1 (2025-01-30)
+## 🛑 CRITICAL: DEVELOPMENT WORKFLOW
 
+**BEFORE ANY CODE CHANGES, YOU MUST:**
+
+1. **Read [docs/WORKFLOW-PREFLIGHT.md](docs/WORKFLOW-PREFLIGHT.md)** - Mandatory preflight checklist
+2. **Create a feature branch** - NEVER work directly on dev/main
+3. **Follow GitFlow** - See [AGENTS.md](AGENTS.md) for complete workflow
+
+```bash
+# QUICK START - EVERY TIME:
+git checkout dev
+git pull origin dev
+git checkout -b feature/your-feature-name
+```
+
+---
+
+## Version 3.8.0 (2025-01-09)
+
+- Interactive slideshow splash screen showcasing Translation Helps innovations
+- 9-slide journey highlighting "impossible" achievements: flat files, AI on budget, serverless
+- Full theme support with smooth animations and multiple navigation methods
 - Reference and resources context now always sync with the URL, ensuring correct context/resources on navigation and fresh load.
 - LLM chat context always receives the exact raw USFM for the current chapter, matching what is rendered in the scripture pane.
 - LLM prompt now includes explicit instructions for extracting verse text from USFM.
@@ -62,7 +82,7 @@ rm -rf node_modules
 npm install
 ```
 
-If you prefer not to use nvm and are running Node 17 or above, you can fall back to the legacy OpenSSL provider:
+If you prefer not to use nvm and are running Node 17 or above, you can fall back to the legacy OpenSSL provider:
 
 ```bash
 export NODE_OPTIONS=--openssl-legacy-provider
