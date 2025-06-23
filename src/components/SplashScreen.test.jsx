@@ -1,6 +1,6 @@
 /**
  * SplashScreen.test.jsx
- * Tests for the SplashScreen component
+ * Tests for the interactive slideshow SplashScreen component
  */
 
 import React from 'react';
@@ -8,75 +8,86 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { SplashScreen } from './SplashScreen';
 
-// Mock fetch for splash content
-global.fetch = vi.fn(() =>
-  Promise.resolve({
-    text: () => Promise.resolve(`
-# ETEN Innovation Lab Translation Helps
+describe('SplashScreen Slideshow', () => {
+  it('renders without crashing', () => {
+    render(<SplashScreen />);
+    expect(screen.getByText(/Translation Helps/i)).toBeInTheDocument();
+  });
 
-## Welcome to the Future of Bible Translation
+  it('shows the first slide by default', () => {
+    render(<SplashScreen />);
+    expect(screen.getByText(/Proving the "Impossible"/i)).toBeInTheDocument();
+    expect(screen.getByText(/Begin Journey/i)).toBeInTheDocument();
+  });
 
-### Key Features
-
-#### 📖 Scripture Panel
-View Bible text
-
-#### 📝 Translation Notes
-Access detailed explanations
-    `)
-  })
-);
-
-describe('SplashScreen', () => {
-  it('renders without crashing', async () => {
+  it('navigates to next slide when clicking next button', async () => {
     render(<SplashScreen />);
     
-    // Wait for content to load
+    const nextButton = screen.getByText(/Begin Journey/i);
+    fireEvent.click(nextButton);
+
     await waitFor(() => {
-      expect(screen.getByText(/Translation Helps/i)).toBeInTheDocument();
+      expect(screen.getByText(/Aquifer Reference Implementation/i)).toBeInTheDocument();
     });
   });
 
-  it('shows loading state initially', () => {
-    render(<SplashScreen />);
-    expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
-  });
-
-  it('loads and displays content from markdown', async () => {
+  it('navigates using arrow buttons', async () => {
     render(<SplashScreen />);
     
+    // Click Begin Journey to go to second slide
+    fireEvent.click(screen.getByText(/Begin Journey/i));
+    
     await waitFor(() => {
-      expect(screen.getByText(/Translation Helps/i)).toBeInTheDocument();
+      expect(screen.getByText(/Aquifer Reference Implementation/i)).toBeInTheDocument();
+    });
+
+    // Find and click the next arrow button
+    const nextArrow = screen.getByLabelText(/Next slide/i);
+    fireEvent.click(nextArrow);
+
+    await waitFor(() => {
+      expect(screen.getByText(/They Said Flat Files Were Dead/i)).toBeInTheDocument();
+    });
+
+    // Find and click the previous arrow button
+    const prevArrow = screen.getByLabelText(/Previous slide/i);
+    fireEvent.click(prevArrow);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Aquifer Reference Implementation/i)).toBeInTheDocument();
     });
   });
 
-  it('calls onComplete when continue button is clicked', async () => {
-    const mockOnComplete = vi.fn();
-    render(<SplashScreen onComplete={mockOnComplete} />);
+  it('navigates using keyboard', async () => {
+    render(<SplashScreen />);
     
+    // Press right arrow
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+
     await waitFor(() => {
-      const continueButton = screen.getByText(/Begin Exploring/i);
-      expect(continueButton).toBeInTheDocument();
+      expect(screen.getByText(/Aquifer Reference Implementation/i)).toBeInTheDocument();
     });
 
-    const continueButton = screen.getByText(/Begin Exploring/i);
-    fireEvent.click(continueButton);
+    // Press space
+    fireEvent.keyDown(window, { key: ' ' });
 
     await waitFor(() => {
-      expect(mockOnComplete).toHaveBeenCalled();
-    }, { timeout: 1000 });
+      expect(screen.getByText(/They Said Flat Files Were Dead/i)).toBeInTheDocument();
+    });
+
+    // Press left arrow
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Aquifer Reference Implementation/i)).toBeInTheDocument();
+    });
   });
 
   it('calls onComplete when skip button is clicked', async () => {
     const mockOnComplete = vi.fn();
     render(<SplashScreen onComplete={mockOnComplete} />);
     
-    // Wait for content to load first
-    await waitFor(() => {
-      expect(screen.getByText(/Skip intro/i)).toBeInTheDocument();
-    });
-    
-    const skipButton = screen.getByText(/Skip intro/i);
+    const skipButton = screen.getByText(/Skip presentation/i);
     fireEvent.click(skipButton);
 
     await waitFor(() => {
@@ -84,21 +95,59 @@ describe('SplashScreen', () => {
     }, { timeout: 1000 });
   });
 
-  it('renders in both light and dark themes', async () => {
+  it('calls onComplete when pressing Escape', async () => {
+    const mockOnComplete = vi.fn();
+    render(<SplashScreen onComplete={mockOnComplete} />);
+    
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    await waitFor(() => {
+      expect(mockOnComplete).toHaveBeenCalled();
+    }, { timeout: 1000 });
+  });
+
+  it('navigates to specific slide using indicators', async () => {
+    render(<SplashScreen />);
+    
+    // Click on the third indicator
+    const indicators = screen.getAllByLabelText(/Go to slide/i);
+    fireEvent.click(indicators[2]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/They Said Flat Files Were Dead/i)).toBeInTheDocument();
+    });
+  });
+
+  it('calls onComplete on the last slide CTA', async () => {
+    const mockOnComplete = vi.fn();
+    render(<SplashScreen onComplete={mockOnComplete} />);
+    
+    // Navigate to the last slide
+    const indicators = screen.getAllByLabelText(/Go to slide/i);
+    fireEvent.click(indicators[indicators.length - 1]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Ready to Explore\?/i)).toBeInTheDocument();
+    });
+
+    // Click the Start Exploring button
+    const startButton = screen.getByText(/Start Exploring/i);
+    fireEvent.click(startButton);
+
+    await waitFor(() => {
+      expect(mockOnComplete).toHaveBeenCalled();
+    }, { timeout: 1000 });
+  });
+
+  it('renders in both light and dark themes', () => {
     // Test dark theme
     document.documentElement.setAttribute('data-theme', 'dark');
     const { rerender } = render(<SplashScreen />);
-    
-    await waitFor(() => {
-      expect(screen.getByText(/Translation Helps/i)).toBeInTheDocument();
-    });
+    expect(screen.getByText(/Translation Helps/i)).toBeInTheDocument();
 
     // Test light theme
     document.documentElement.setAttribute('data-theme', 'light');
     rerender(<SplashScreen />);
-    
-    await waitFor(() => {
-      expect(screen.getByText(/Translation Helps/i)).toBeInTheDocument();
-    });
+    expect(screen.getByText(/Translation Helps/i)).toBeInTheDocument();
   });
 });

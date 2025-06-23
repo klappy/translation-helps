@@ -1,133 +1,182 @@
-# Splash Screen Feature Documentation
+# Interactive Slideshow Splash Screen Documentation
 
 ## Overview
 
-The Translation Helps application includes an elegant splash screen that introduces users to the app's purpose, features, and unique AI-built nature. The splash screen appears on first visit and can be triggered manually via URL parameter.
+The Translation Helps application features an interactive slideshow splash screen that tells the story of architectural innovations and "impossible" achievements. The slideshow educates users about the groundbreaking technical accomplishments while introducing the app's features.
 
 ## Architecture
 
 ### Components
 
-1. **SplashScreen.jsx** - Main component handling animations and content display
-2. **SplashScreen.module.css** - Theme-aware styling with animations
-3. **splash-content.md** - Editable markdown file for easy content updates
-
-### Integration Points
-
-- **App.jsx** - Controls splash screen display logic
-- **localStorage** - Tracks if user has seen splash (`hasSeenSplash`)
-- **URL Parameter** - Force display with `?splash=true`
-
-## Features
-
-### Visual Design
-
-- **Animated Logo**: Pulsing ETEN Lab green logo with "TH" branding
-- **Staggered Animations**: Content reveals in sequence for visual appeal
-- **Floating Elements**: Subtle background animations for depth
-- **Theme Support**: Full light/dark mode compatibility
-
-### Content Sections
-
-1. **Header**: Logo, title, and ETEN Lab branding
-2. **Tagline**: Mission statement about Bible translation
-3. **Features Grid**: Icon-based feature showcase
-4. **AI Badge**: Highlights 100% AI-built nature
-5. **CTA Button**: "Begin Exploring" with hover effects
-6. **Footer Quote**: Inspirational closing message
-
-### Accessibility
-
-- **Skip Button**: Allows immediate bypass for returning users
-- **Reduced Motion**: Respects `prefers-reduced-motion` setting
-- **Keyboard Navigation**: Full keyboard support
-- **Screen Reader**: Proper ARIA labels
-
-## Content Management
-
-The splash screen content is loaded from `/public/docs/splash-content.md`, allowing easy updates without code changes:
-
-```markdown
-# ETEN Innovation Lab Translation Helps
-
-## Welcome to the Future of Bible Translation
-[Tagline content]
+1. **SplashScreen.jsx** - Interactive slideshow component with navigation
+2. **SplashScreen.module.css** - Comprehensive styling with animations
+3. **Slide Content** - Hardcoded for performance and reliability
 
 ### Key Features
-#### 📖 Scripture Panel
-[Feature description]
+
+- **9-Slide Journey**: Tells the complete story of Translation Helps innovations
+- **Interactive Navigation**: Click, keyboard, or swipe through slides
+- **Theme Support**: Full light/dark mode compatibility
+- **Smooth Animations**: Slide transitions with direction awareness
+- **Progress Indicators**: Visual dots showing current position
+- **Multiple CTAs**: Various ways to complete or skip the presentation
+
+## Slide Content
+
+### 1. Welcome (Hero)
+- ETEN Lab branding
+- "Proving the Impossible" tagline
+- Begin Journey CTA
+
+### 2. Proof of Concept
+- Aquifer reference implementation
+- GitHub repository architecture
+- Breaking claimed barriers
+
+### 3. Flat Files Revolution
+- Debunking "flat files are slow" myth
+- Showing interlinkable, dynamic flat files
+- Performance achievements
+
+### 4. Cross-Organization Integration
+- Multiple organization support
+- Breaking down silos
+- Unified experience
+
+### 5. AI Revolution
+- Budget-friendly AI implementation
+- Accurate quoting and honesty
+- Dynamic flat file reading
+
+### 6. Serverless Architecture
+- No extra servers needed
+- Minimal costs
+- Infinite scalability
+
+### 7. Multimedia Experience
+- FIA Maps and Images showcase
+- Rich biblical context
+- Interactive features
+
+### 8. Honest Limitations
+- Transparent about constraints
+- Focus on proving concepts
+- Opening doors for future
+
+### 9. Get Started (CTA)
+- Feature summary
+- Multiple action buttons
+- Clear next steps
+
+## Navigation Methods
+
+### Click/Touch
+- Next/Previous arrow buttons
+- Slide indicator dots
+- CTA buttons on slides
+
+### Keyboard
+- **→** or **Space**: Next slide
+- **←**: Previous slide
+- **Escape**: Skip presentation
+- **1-9**: Jump to specific slide (via indicators)
+
+### Swipe (Mobile)
+- Left swipe: Next slide
+- Right swipe: Previous slide
+
+## Technical Implementation
+
+### State Management
+```javascript
+const [currentSlide, setCurrentSlide] = useState(0);
+const [animationPhase, setAnimationPhase] = useState('entering');
+const [slideDirection, setSlideDirection] = useState('forward');
 ```
+
+### Animation System
+- Slide transitions: 300ms ease-out
+- Direction-aware animations (forward/backward)
+- Staggered content reveals
+- Floating background elements
+
+### Responsive Design
+- Mobile-optimized layouts
+- Touch-friendly navigation
+- Adaptive typography
+- Hidden keyboard hints on mobile
+
+## Accessibility
+
+- **ARIA Labels**: All interactive elements labeled
+- **Keyboard Navigation**: Full keyboard support
+- **Reduced Motion**: Respects user preferences
+- **Screen Reader**: Semantic HTML structure
+- **Focus Management**: Proper focus indicators
+
+## Performance
+
+- **No External Dependencies**: All content hardcoded
+- **Optimized Animations**: Hardware-accelerated CSS
+- **Lazy Rendering**: Only current slide renders
+- **Small Bundle**: Minimal JavaScript overhead
 
 ## Usage
 
 ### First Visit
-The splash screen automatically displays on first visit to the application.
+Automatically displays on first visit to educate new users.
 
 ### Manual Trigger
-Add `?splash=true` to the URL to force display:
 ```
 https://translation-helps.netlify.app/?splash=true
 ```
 
 ### Programmatic Control
 ```javascript
-// Clear splash seen flag
+// Clear seen flag to show again
 localStorage.removeItem('hasSeenSplash');
-
-// Check if user has seen splash
-const hasSeenSplash = localStorage.getItem('hasSeenSplash');
 ```
 
-## Styling
+## Customization
 
-The component uses CSS modules with theme variables:
-
-```css
-.splashContainer {
-  background: var(--color-background);
-  color: var(--color-text);
-}
-
-.logo {
-  background: var(--color-primary);
-  box-shadow: 0 8px 32px rgba(193, 215, 46, 0.3);
-}
+### Adding/Modifying Slides
+Edit the `slides` array in `SplashScreen.jsx`:
+```javascript
+const slides = [
+  {
+    id: 'unique-id',
+    type: 'hero|feature|breakthrough|showcase|honest|cta',
+    content: {
+      // Slide-specific content
+    }
+  }
+];
 ```
 
-## Animation Sequence
-
-1. **0ms**: Logo fade in
-2. **200ms**: Title fade in
-3. **400ms**: Tagline fade in
-4. **600ms**: Features grid staggered fade in
-5. **1200ms**: CTA button fade in
-6. **1400ms**: Footer quote fade in
-
-## Performance
-
-- **Lazy Loading**: Content loaded asynchronously
-- **Fallback Content**: Hardcoded backup if markdown fails
-- **Smooth Transitions**: Hardware-accelerated animations
-- **Minimal Re-renders**: Self-contained state management
+### Styling
+All styles use CSS variables for theme compatibility:
+- Colors: `var(--color-primary)`, etc.
+- Spacing: `var(--spacing-4)`, etc.
+- Typography: `var(--font-family-heading)`, etc.
 
 ## Testing
 
-Run tests with:
+Comprehensive test coverage includes:
+- Navigation methods (click, keyboard, indicators)
+- Animation completion
+- Theme compatibility
+- onComplete callback
+- Edge cases
+
+Run tests:
 ```bash
 npm test SplashScreen.test.jsx
 ```
 
-Tests cover:
-- Component rendering
-- Content loading
-- User interactions
-- Theme compatibility
-- Animation completion
-
 ## Future Enhancements
 
-1. **Analytics Integration**: Track engagement metrics
-2. **A/B Testing**: Test different content variations
-3. **Video Background**: Optional video for more impact
-4. **Multi-language**: Localized splash content
-5. **Tour Integration**: Connect to app walkthrough
+1. **Touch Gestures**: Native swipe support
+2. **Auto-advance**: Optional timer-based progression
+3. **Analytics**: Track slide engagement
+4. **Localization**: Multi-language support
+5. **Dynamic Content**: Load from markdown/API
