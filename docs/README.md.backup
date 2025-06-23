@@ -5,7 +5,7 @@
 
 ### Current Status
 - **Version**: 3.5.0
-- **Last Major Update**: Deployment Strategy & FIA Integration
+- **Last Major Update**: FIA Integration Complete
 - **Architecture**: Stable, production-ready
 - **Test Coverage**: Comprehensive with 85+ documentation files
 
@@ -14,25 +14,6 @@
 - **[Architecture](ARCHITECTURE.md)** - Detailed technical architecture
 - **[Component Map](component-map.md)** - Visual component relationships
 - **[API Integration Patterns](api-integration-patterns.md)** - Service layer patterns
-- **[Deployment Strategy](deployment-strategy.md)** - 🆕 Multi-environment deployment guide
-
-## 🚀 Deployment & Operations (NEW)
-
-### Deployment Documentation
-- **[Deployment Strategy](deployment-strategy.md)** - Complete deployment architecture
-- **[Deployment Quick Reference](deployment-quick-reference.md)** - Quick commands and URLs
-- **[Deployment Setup Guide](deployment-setup-guide.md)** - Initial environment setup
-
-### Deployment Scripts
-- `scripts/deployment/promote-to-staging.sh` - Automated staging promotion
-- `scripts/deployment/create-release.sh` - Version management and tagging
-- `scripts/deployment/emergency-rollback.sh` - Emergency rollback procedures
-
-### Environment Structure
-- **Development**: `dev` branch → https://dev--translation-helps.netlify.app
-- **Staging**: `staging` branch → https://staging--translation-helps.netlify.app
-- **Production**: `production` branch → https://translation-helps.netlify.app
-- **Master**: Protected reference branch (no auto-deploy)
 
 ## 🎯 Recent Major Updates (v3.5.0)
 
@@ -120,7 +101,6 @@
 - ✅ Empty State Consistency
 - ✅ URL Synchronization Fix
 - ✅ Documentation Audit & Cleanup
-- ✅ Deployment Strategy & Multi-Environment Setup
 
 ### Next Phase Candidates
 - **Enhanced Search**: Cross-resource search capabilities
@@ -136,11 +116,6 @@
 3. [SIMPLE-VERSE-LOADING-PATTERN.md](SIMPLE-VERSE-LOADING-PATTERN.md) - Core patterns
 4. [component-map.md](component-map.md) - Navigate the codebase
 
-### For DevOps & Deployment
-1. [deployment-strategy.md](deployment-strategy.md) - Complete deployment guide
-2. [deployment-quick-reference.md](deployment-quick-reference.md) - Quick commands
-3. [deployment-setup-guide.md](deployment-setup-guide.md) - Environment setup
-
 ### For Feature Development
 1. [api-integration-patterns.md](api-integration-patterns.md) - Service patterns
 2. [separation-of-concerns.md](separation-of-concerns.md) - Code organization
@@ -154,7 +129,7 @@
 ## 🔍 Documentation Health
 
 ### Recent Audit (December 2024)
-- **Total Documents**: 88+ files (including new deployment docs)
+- **Total Documents**: 85+ files
 - **Status**: Up-to-date and organized
 - **Conflicts**: Resolved in v3.5.0
 - **Coverage**: Comprehensive across all major features
