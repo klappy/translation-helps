@@ -1,3 +1,9 @@
+---
+description: Deployment workflow enforcement and branch management for translation-helps project
+globs: 
+alwaysApply: true
+---
+
 # Deployment Workflow Enforcement
 
 ## PRIMARY DEVELOPMENT BRANCH: `dev`
@@ -57,5 +63,3 @@ Create PR from staging to production on GitHub, get approval, then merge.
 
 ## Emergency Hotfix Exception:
 Only start from `production` branch for critical production issues, then merge back to both `production` AND `dev`.
-
-**Priority: CRITICAL** - Wrong branch usage breaks the deployment pipeline.
