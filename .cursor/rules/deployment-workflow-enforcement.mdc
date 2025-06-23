@@ -1,106 +1,61 @@
-# Deployment Workflow Documentation Enforcement
+# Deployment Workflow Enforcement
 
-## Rule: Always Reference Authoritative Documentation
+## PRIMARY DEVELOPMENT BRANCH: `dev`
 
-### PRIMARY DIRECTIVE
-When deployment, git workflow, or branch management topics arise:
+When user mentions starting new work, creating features, or beginning development:
 
-**NEVER duplicate deployment commands or procedures in responses.**
-**ALWAYS direct users to the authoritative documentation.**
+**ALWAYS provide these exact commands:**
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feature/descriptive-name
+```
 
-### Required Documentation References
+## Branch Usage Rules
 
-For deployment workflow questions, ALWAYS point to:
-- `docs/development-workflow-guide.md` - Complete development workflow
-- `docs/deployment-strategy-netlify-ui.md` - Safe deployment using Netlify UI
-- `docs/deployment-quick-reference.md` - Quick commands reference
+- **`dev`** ← START HERE for all new work
+- **`staging`** ← Only for QA testing (merge dev into staging)
+- **`production`** ← Only for releases (merge staging into production)  
+- **`master`** ← Only for historical reference and tags
+
+## Promotion Commands
+
+**Dev to Staging:**
+```bash
+git checkout staging
+git merge dev
+git push origin staging
+```
+
+**Staging to Production:**
+Create PR from staging to production on GitHub, get approval, then merge.
+
+## Environment URLs
+- **Dev**: https://dev--translation-helps.netlify.app
+- **Staging**: https://staging--translation-helps.netlify.app
+- **Production**: https://translation-helps.netlify.app
+
+## Critical Reminders
+
+1. **NEVER modify netlify.toml** - Use Netlify UI for environment configuration
+2. **Always start from `dev` branch** for new features
+3. **Follow promotion flow**: dev → staging → production → master
+
+## Red Flags - Stop User If They Mention:
+- "Working on production branch"
+- "Making changes to staging"  
+- "Starting from master"
+- "Modifying netlify.toml"
+
+**Immediately redirect to proper `dev` branch workflow.**
+
+## For Complete Details See:
+- `docs/development-workflow-guide.md` - Complete workflow documentation
+- `docs/deployment-strategy-netlify-ui.md` - Safe deployment configuration
+- `docs/deployment-quick-reference.md` - All commands and procedures
 - `docs/netlify-config-analysis.md` - Why we don't modify netlify.toml
 
-### Enforcement Protocol
+## Emergency Hotfix Exception:
+Only start from `production` branch for critical production issues, then merge back to both `production` AND `dev`.
 
-When user asks about:
-- Starting new work
-- Git branch workflow  
-- Deployment procedures
-- Environment setup
-- Branch promotion
-
-**Response Format:**
-```
-🔗 Please refer to the authoritative documentation:
-
-For [specific topic]: See `docs/[relevant-file].md`
-
-The documentation contains the complete, up-to-date procedures.
-```
-
-### Examples
-
-**User asks: "How do I start new work?"**
-Response:
-```
-🔗 Please see `docs/development-workflow-guide.md` for the complete workflow.
-
-Key point: Always start from the `dev` branch.
-```
-
-**User asks: "How do I deploy to staging?"**
-Response:
-```
-🔗 See `docs/development-workflow-guide.md` section "Branch Promotion Flow" 
-and `docs/deployment-quick-reference.md` for exact commands.
-```
-
-**User asks: "How do I configure environments?"**
-Response:
-```
-🔗 See `docs/deployment-strategy-netlify-ui.md` for safe environment configuration.
-
-Important: Use Netlify UI, not netlify.toml modifications.
-```
-
-### Critical Reminders (Always Include)
-
-1. **Primary development branch**: `dev` (refer to docs for details)
-2. **Don't modify netlify.toml**: Use Netlify UI (see netlify-config-analysis.md)
-3. **Follow promotion flow**: dev → staging → production (see workflow guide)
-
-### What NOT to Do
-
-❌ Don't provide git commands directly in responses
-❌ Don't duplicate deployment procedures  
-❌ Don't recreate workflow steps
-❌ Don't provide environment URLs without context
-❌ Don't explain branch strategies without referencing docs
-
-### What TO Do
-
-✅ Reference specific documentation files
-✅ Point to relevant sections within docs
-✅ Remind about key principles (dev branch, UI config)
-✅ Encourage reading the complete procedures
-✅ Verify documentation is current and accurate
-
-### Documentation Maintenance
-
-If documentation appears outdated or incomplete:
-1. Update the relevant documentation file
-2. Ensure all references point to updated content
-3. Never work around outdated docs by providing inline instructions
-
-### Success Criteria
-
-- User consistently refers to documentation
-- No duplicate deployment information in conversations
-- Documentation remains the single source of truth
-- Workflow adherence improves through proper documentation usage
-
-## Priority: CRITICAL
-
-This rule prevents:
-- Information drift between docs and responses
-- Outdated procedures being followed
-- Confusion from multiple sources of truth
-- Documentation becoming neglected
-
-The documentation is authoritative. Always defer to it.
+**Priority: CRITICAL** - Wrong branch usage breaks the deployment pipeline.

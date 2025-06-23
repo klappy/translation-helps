@@ -1,66 +1,50 @@
-# Documentation Authority Rule
+# Documentation Reference Guide
 
-## Single Source of Truth Protocol
+## Quick Reference Commands
 
-### Core Principle
-The `/docs` folder contains the authoritative information for this project.
-AI responses MUST NOT duplicate, override, or contradict documented procedures.
-
-### Documentation Hierarchy
-
-1. **`docs/development-workflow-guide.md`** - Primary development workflow
-2. **`docs/deployment-strategy-netlify-ui.md`** - Deployment configuration  
-3. **`docs/deployment-quick-reference.md`** - Quick command reference
-4. **`docs/netlify-config-analysis.md`** - Configuration constraints
-5. **`docs/README.md`** - Documentation index
-
-### Response Protocol
-
-When deployment/workflow topics arise:
-
-1. **Read the relevant documentation first**
-2. **Reference the specific file and section**
-3. **Provide minimal context, not full procedures**
-4. **Direct user to read the complete documentation**
-
-### Template Response
-```
-🔗 This is covered in `docs/[filename].md` [section name].
-
-Key point: [One sentence summary]
-
-Please refer to the documentation for complete procedures.
+### Start New Feature (Most Common)
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feature/descriptive-name
 ```
 
-### Documentation Verification
+### Promote to Staging
+```bash
+git checkout staging
+git merge dev
+git push origin staging
+```
 
-Before referencing any documentation:
-1. Verify the file exists
-2. Check if content is current
-3. Ensure no contradictions with other docs
-4. Update documentation if needed, don't work around it
+### Check Status
+```bash
+git status
+git branch
+```
 
-### Forbidden Actions
+## Key Principles
+- Always start from `dev` branch
+- Never work directly on staging/production/master
+- Use Netlify UI for environment configuration (not netlify.toml)
+- Follow promotion flow: dev → staging → production → master
 
-❌ Recreating git commands from memory
-❌ Providing deployment steps inline
-❌ Explaining branch strategies without doc reference
-❌ Giving environment URLs without context
-❌ Overriding documented procedures with "better" approaches
+## Environment URLs
+- Dev: https://dev--translation-helps.netlify.app
+- Staging: https://staging--translation-helps.netlify.app
+- Production: https://translation-helps.netlify.app
 
-### Required Actions
+## For Detailed Explanations See:
+- `docs/development-workflow-guide.md` - Why we use this workflow, complete procedures
+- `docs/deployment-strategy-netlify-ui.md` - How to configure environments safely  
+- `docs/deployment-quick-reference.md` - All commands with context
+- `docs/netlify-config-analysis.md` - Technical details about configuration
+- `docs/cursor-rules-explanation.md` - How these rules work
 
-✅ Always check docs before responding
-✅ Reference specific files and sections
-✅ Keep responses brief and authoritative
-✅ Encourage documentation reading
-✅ Update docs if they're insufficient
+## When to Reference Full Documentation:
+- User needs to understand WHY we do things this way
+- Setting up deployment for first time
+- Troubleshooting deployment issues
+- Learning the complete workflow
+- Configuring Netlify environment variables
 
-### Exception Handling
-
-If documentation is missing or outdated:
-1. Create/update the documentation first
-2. Then reference the updated documentation
-3. Never provide ad-hoc procedures
-
-This ensures documentation remains the living, authoritative source.
+The Cursor rules provide quick commands. The MD docs provide the reasoning, context, and detailed procedures.
