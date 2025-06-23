@@ -28,45 +28,13 @@
   [functions.timeout]
     default = 25
 
-# Production context - live environment
-[context.production]
-  environment = { NODE_ENV = "production", VITE_API_ENV = "production", VITE_ENABLE_DEBUG = "false" }
-  command = "yarn install && yarn test && yarn run build"
 
-# Staging context - pre-production testing
-[context.staging]
-  environment = { NODE_ENV = "staging", VITE_API_ENV = "staging", VITE_ENABLE_DEBUG = "true" }
-  command = "yarn install && yarn test && yarn run build"
+# Environment variable setup (for production)
+[context.production.environment]
+  NODE_ENV = "development"
 
-# Development context - active development
-[context.dev]
-  environment = { NODE_ENV = "development", VITE_API_ENV = "development", VITE_ENABLE_DEBUG = "true" }
-  command = "yarn install && yarn run build"
+[context.deploy-preview.environment]
+  NODE_ENV = "development"
 
-# Branch deploy settings - for feature branches
-[context.branch-deploy]
-  environment = { NODE_ENV = "development", VITE_API_ENV = "development", VITE_ENABLE_DEBUG = "true" }
-
-# Deploy preview settings - for pull requests
-[context.deploy-preview]
-  environment = { NODE_ENV = "development", VITE_API_ENV = "development", VITE_ENABLE_DEBUG = "true" }
-
-# Headers for security and performance
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
-
-[[headers]]
-  for = "/dist/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-[[headers]]
-  for = "/index.html"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
+[context.branch-deploy.environment]
+  NODE_ENV = "development"
