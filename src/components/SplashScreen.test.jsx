@@ -16,7 +16,7 @@ describe('SplashScreen Slideshow', () => {
 
   it('shows the first slide by default', () => {
     render(<SplashScreen />);
-    expect(screen.getByText(/Proving the "Impossible"/i)).toBeInTheDocument();
+    expect(screen.getByText(/Proving "Overlooked" Concepts/i)).toBeInTheDocument();
     expect(screen.getByText(/Begin Journey/i)).toBeInTheDocument();
   });
 

@@ -7,7 +7,7 @@
 import React, { useEffect, useState } from 'react';
 import styles from './SplashScreen.module.css';
 
-// Slide content - proving the "impossible"
+// Slide content - proving "overlooked" concepts
 const slides = [
   {
     id: 'welcome',
@@ -16,7 +16,7 @@ const slides = [
       logo: 'TH',
       title: 'Translation Helps',
       subtitle: 'ETEN Innovation Lab',
-      tagline: 'Proving the "Impossible" in Bible Translation Technology',
+      tagline: 'Proving "Overlooked" Concepts in Bible Translation Technology',
       cta: 'Begin Journey'
     }
   },

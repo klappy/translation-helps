@@ -6,7 +6,7 @@
 
 - **Interactive Slideshow Splash Screen - COMPLETE**
   - ✅ **9-Slide Journey**: Interactive presentation showcasing Translation Helps innovations
-  - ✅ **Proving the "Impossible"**: Highlights architectural achievements others said couldn't be done
+  - ✅ **Proving "Overlooked" Concepts**: Highlights innovative architectural approaches in Bible translation technology
   - ✅ **Flat Files Revolution**: Shows how flat files can be fast, dynamic, and interlinkable
   - ✅ **Cross-Organization Magic**: Demonstrates seamless integration across organizational boundaries
   - ✅ **AI on a Budget**: Showcases accurate AI without expensive retraining
