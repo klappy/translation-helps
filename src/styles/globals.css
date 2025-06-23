@@ -205,139 +205,173 @@
   --help-meta-size: var(--font-size-xs);
 }
 
-/* Light theme - Traditional light mode for accessibility */
+/* Light theme - Professional ETEN Lab light mode for accessibility */
 [data-theme="light"] {
-  --color-primary: #c1d72e; /* ETEN Lab green - exact color from website */
-  --color-primary-light: #d1e74e;
-  --color-primary-dark: #a1c70e;
-  --color-primary-hover: #b8d025;
-  --color-secondary: #f59e42;
-  --color-background: #ffffff; /* White */
-  --color-surface: #ffffff;
-  --color-surface-hover: #f8f9fa;
-  --color-surface-secondary: #f8f9fa; /* Secondary surface for cards/panels */
-  --color-surface-tertiary: #f1f5f9; /* Tertiary surface for nested elements */
-  --color-surface-quaternary: #e2e8f0; /* Quaternary surface for hover states */
-  --color-footer: #f8f9fa; /* Light grey for footer in light theme */
-  --color-border: #e2e8f0;
-  --color-border-hover: #cbd5e1;
-  --color-border-secondary: #cbd5e1; /* Secondary border color */
-  --color-border-tertiary: #94a3b8; /* Tertiary border color */
-  --color-text: #1e293b;
-  --color-text-primary: #1e293b; /* Primary text color */
-  --color-text-secondary: #64748b; /* Secondary text color */
-  --color-text-tertiary: #94a3b8; /* Tertiary text color */
-  --color-text-light: #64748b;
-  --color-text-muted: #94a3b8;
-  --color-text-on-primary: #000000; /* Black text on green buttons for readability */
+  /* Primary Brand Colors - ETEN Lab Green Family */
+  --color-primary: #c1d72e;          /* ETEN Lab signature green - exact match */
+  --color-primary-light: #d4e157;    /* Hover states, highlights */
+  --color-primary-dark: #afb42b;     /* Active states, emphasis */
+  --color-primary-hover: #cddc39;    /* Interactive feedback */
+  --color-secondary: #f59e42;        /* Secondary accent color */
+  
+  /* Surface Colors - Professional Light Theme */
+  --color-background: #fafafa;       /* Main application background - off-white */
+  --color-surface: #ffffff;          /* Cards, panels, primary content areas */
+  --color-surface-hover: #f5f5f5;    /* Hover states for interactive surfaces */
+  --color-surface-secondary: #f8f9fa; /* Secondary content areas, sidebars */
+  --color-surface-tertiary: #f0f2f4; /* Tertiary surfaces, nested elements */
+  --color-surface-quaternary: #e8eaed; /* Quaternary surface for deep nesting */
+  --color-footer: #f1f3f4;          /* Footer background - subtle grey */
+  
+  /* Border System - Light Theme Optimized */
+  --color-border: #e1e5e9;          /* Primary borders - subtle grey */
+  --color-border-hover: #d1d7db;    /* Interactive border states */
+  --color-border-focus: #c1d72e;    /* Focus indicators (ETEN Lab green) */
+  --color-border-secondary: #d1d7db; /* Secondary border color */
+  --color-border-tertiary: #bdc1c6; /* Tertiary border color */
+  
+  /* Typography Colors - Optimized Contrast */
+  --color-text: #202124;            /* Primary text - dark grey for readability */
+  --color-text-primary: #202124;    /* Primary text color */
+  --color-text-secondary: #5f6368;  /* Secondary text - medium grey */
+  --color-text-tertiary: #80868b;   /* Tertiary text - light grey */
+  --color-text-light: #5f6368;      /* Light text variant */
+  --color-text-muted: #80868b;      /* Muted text - subtle grey */
+  --color-text-on-primary: #000000; /* Black text on green backgrounds */
   --color-primary-rgb: 193, 215, 46; /* RGB values for primary color */
-  --color-dark: #1e293b;
-  --color-darker: #0f172a;
-  --color-success: #c1d72e; /* ETEN Lab green */
-  --color-warning: #facc15;
-  --color-error: #ef4444;
-  --color-info: #0ea5e9;
+  
+  /* Legacy compatibility */
+  --color-dark: #202124;
+  --color-darker: #1a1a1a;
+  
+  /* State Colors - Light Theme Optimized */
+  --color-success: #c1d72e;         /* ETEN Lab green for success */
+  --color-warning: #fbbc04;         /* Professional amber for warnings */
+  --color-error: #ea4335;           /* Clear red for errors */
+  --color-info: #4285f4;            /* Professional blue for information */
 
-  /* Additional color variants for light theme */
-  --color-success-light: #e8f5e9;
-  --color-success-dark: #1b5e20;
+  /* Additional state color variants for light theme */
+  --color-success-light: #e8f5e8;
+  --color-success-dark: #2e7d32;
   --color-warning-light: #fff8e1;
   --color-warning-dark: #f57c00;
   --color-error-light: #ffebee;
   --color-error-dark: #c62828;
   --color-info-light: #e3f2fd;
-  --color-info-dark: #0277bd;
+  --color-info-dark: #1976d2;
 
-  /* Status colors for light theme */
-  --color-status-low: #e3f2fd;
-  --color-status-low-text: #0277bd;
+  /* Status colors for light theme - Professional Design */
+  --color-status-low: #e8f4fd;
+  --color-status-low-text: #1976d2;
   --color-status-low-border: #90caf9;
   --color-status-medium: #fff8e1;
   --color-status-medium-text: #f57c00;
   --color-status-medium-border: #ffcc80;
   --color-status-high: #ffebee;
-  --color-status-high-text: #c62828;
+  --color-status-high-text: #d32f2f;
   --color-status-high-border: #ef9a9a;
 
-  /* Highlight colors for light theme */
+  /* Highlight colors for light theme - Enhanced Visibility */
   --color-highlight-yellow: var(--color-primary);
   --color-highlight-yellow-dark: var(--color-primary-dark);
-  --color-highlight-green: rgba(193, 215, 46, 0.1);
+  --color-highlight-green: rgba(193, 215, 46, 0.12);
   --color-highlight-green-border: var(--color-primary);
-  --color-highlight-blue: rgba(193, 215, 46, 0.05);
-  --color-highlight-blue-border: var(--color-primary);
-  --color-highlight-orange: rgba(245, 158, 66, 0.05);
+  --color-highlight-blue: rgba(66, 133, 244, 0.08);
+  --color-highlight-blue-border: var(--color-info);
+  --color-highlight-orange: rgba(245, 158, 66, 0.08);
   --color-highlight-orange-border: var(--color-secondary);
-  --color-highlight-purple: rgba(193, 215, 46, 0.08);
+  --color-highlight-purple: rgba(193, 215, 46, 0.1);
   --color-highlight-purple-border: var(--color-primary-dark);
 
-  /* Tip and note colors for light theme */
-  --color-tip-background: #f0f9ff;
-  --color-tip-text: #0369a1;
-  --color-note-background: #fef3c7;
-  --color-note-text: #92400e;
+  /* Tip and note colors for light theme - Professional Styling */
+  --color-tip-background: #e8f4fd;
+  --color-tip-text: #1976d2;
+  --color-note-background: #fff8e1;
+  --color-note-text: #f57c00;
 
-  /* Light theme shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(30, 41, 59, 0.08);
-  --shadow-md: 0 2px 8px 0 rgba(30, 41, 59, 0.08);
-  --shadow-lg: 0 4px 16px 0 rgba(30, 41, 59, 0.08);
-  --shadow-xl: 0 8px 32px 0 rgba(30, 41, 59, 0.12);
+  /* Enhanced Shadow System - Light Theme Professional Depth */
+  --shadow-sm: 0 1px 3px 0 rgba(60, 64, 67, 0.08);
+  --shadow-md: 0 2px 6px 0 rgba(60, 64, 67, 0.08);
+  --shadow-lg: 0 4px 12px 0 rgba(60, 64, 67, 0.08);
+  --shadow-xl: 0 8px 24px 0 rgba(60, 64, 67, 0.12);
 
-  /* Light theme scripture tokens */
+  /* Scripture-specific Design Tokens - Light Theme */
   --color-verse-background: var(--color-surface);
   --color-verse-background-selected: var(--color-primary);
-  --color-verse-background-hover: rgba(193, 215, 46, 0.2);
+  --color-verse-background-hover: rgba(193, 215, 46, 0.15);
   --color-verse-border: var(--color-border);
   --color-verse-border-selected: var(--color-primary);
   --color-verse-number: var(--color-primary);
   --color-verse-text: var(--color-text);
   --color-chapter-header: var(--color-text);
 
-  /* Light theme interactive states */
-  --color-button-secondary: #f8fafc;
-  --color-button-secondary-hover: #e2e8f0;
-  --color-button-secondary-active: #cbd5e1;
+  /* Interactive States - Light Theme Professional */
+  --color-button-secondary: #f8f9fa;
+  --color-button-secondary-hover: #f1f3f4;
+  --color-button-secondary-active: #e8eaed;
 
-  /* Light theme help panel */
+  /* Help Panel Design System - Light theme Professional */
   --help-card-background: #f8f9fa;
   --help-card-border: 4px solid var(--color-primary);
-  --help-quote-background: #f0f0f0;
+  --help-card-border-radius: var(--radius-md);
+  --help-card-padding: var(--spacing-3);
+  --help-card-margin: var(--spacing-3);
+  --help-card-shadow: 0 2px 4px rgba(60, 64, 67, 0.08);
+  
+  --help-quote-background: #f1f3f4;
   --help-quote-color: var(--color-text);
-  --help-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --help-quote-padding: var(--spacing-1) var(--spacing-2);
+  --help-quote-border-radius: var(--radius-sm);
+  
+  --help-text-color: var(--color-text);
+  --help-meta-color: var(--color-text-secondary);
+  --help-meta-size: var(--font-size-xs);
 }
 
-/* Dark theme - Explicit dark theme for when user switches */
+/* Dark theme - Professional ETEN Lab dark mode matching etenlab.org */
 [data-theme="dark"] {
-  --color-primary: #c1d72e; /* ETEN Lab green - exact color from website */
-  --color-primary-light: #d1e74e;
-  --color-primary-dark: #a1c70e;
-  --color-primary-hover: #b8d025;
-  --color-secondary: #f59e42;
-  --color-background: #000000; /* Black */
-  --color-surface: #1a1a1a;
-  --color-surface-hover: #2d2d2d;
-  --color-surface-secondary: #2a2a2a; /* Secondary surface for cards/panels */
-  --color-surface-tertiary: #333333; /* Tertiary surface for nested elements */
+  /* Primary Brand Colors - ETEN Lab Green Family */
+  --color-primary: #c1d72e;          /* ETEN Lab signature green - exact match */
+  --color-primary-light: #d1e74e;    /* Brighter for dark backgrounds */
+  --color-primary-dark: #a1c70e;     /* Deeper green for emphasis */
+  --color-primary-hover: #b8d025;    /* Interactive feedback */
+  --color-secondary: #f59e42;        /* Secondary accent color */
+  
+  /* Surface Colors - ETEN Lab Dark Theme */
+  --color-background: #000000;       /* Pure black - matches etenlab.org */
+  --color-surface: #1a1a1a;          /* Dark grey for content cards */
+  --color-surface-hover: #2d2d2d;    /* Hover states for interactivity */
+  --color-surface-secondary: #2a2a2a; /* Secondary content areas */
+  --color-surface-tertiary: #333333;  /* Nested elements, sidebars */
   --color-surface-quaternary: #404040; /* Quaternary surface for hover states */
-  --color-footer: #262626; /* Footer grey from ETEN Lab website */
-  --color-border: #333333;
-  --color-border-hover: #404040;
+  --color-footer: #262626;           /* Footer grey from ETEN Lab website */
+  
+  /* Border System - Dark Theme Optimized */
+  --color-border: #333333;           /* Standard borders, subtle definition */
+  --color-border-hover: #404040;     /* Interactive border states */
+  --color-border-focus: #c1d72e;     /* Focus indicators (ETEN Lab green) */
   --color-border-secondary: #404040; /* Secondary border color */
-  --color-border-tertiary: #555555; /* Tertiary border color */
-  --color-text: #ffffff; /* White */
-  --color-text-primary: #ffffff; /* Primary text color */
-  --color-text-secondary: #cccccc; /* Secondary text color */
-  --color-text-tertiary: #999999; /* Tertiary text color */
-  --color-text-light: #cccccc;
-  --color-text-muted: #999999;
-  --color-text-on-primary: #000000; /* Black text on green buttons for readability */
+  --color-border-tertiary: #555555;  /* Tertiary border color */
+  
+  /* Typography Colors - High Contrast for Dark Backgrounds */
+  --color-text: #ffffff;             /* Pure white - primary text */
+  --color-text-primary: #ffffff;     /* Primary text color */
+  --color-text-secondary: #cccccc;   /* Secondary text - light grey */
+  --color-text-tertiary: #999999;    /* Tertiary text - medium grey */
+  --color-text-light: #cccccc;       /* Light text variant */
+  --color-text-muted: #999999;       /* Muted text - subtle grey */
+  --color-text-on-primary: #000000;  /* Black text on green backgrounds */
   --color-primary-rgb: 193, 215, 46; /* RGB values for primary color */
+  
+  /* Legacy compatibility */
   --color-dark: #cccccc;
   --color-darker: #ffffff;
-  --color-success: #c1d72e; /* ETEN Lab green */
-  --color-warning: #facc15;
-  --color-error: #ef4444;
-  --color-info: #0ea5e9;
+  
+  /* State Colors - Dark Theme Optimized */
+  --color-success: #c1d72e;          /* ETEN Lab green for success */
+  --color-warning: #facc15;          /* Bright amber for warnings */
+  --color-error: #ef4444;            /* Vibrant red for errors */
+  --color-info: #0ea5e9;             /* Bright blue for information */
 
   /* Additional color variants for dark theme */
   --color-success-light: #1b5e20;
@@ -399,11 +433,22 @@
   --color-button-secondary-hover: #2a2a2a;
   --color-button-secondary-active: #333333;
 
-  /* Dark theme help panel */
+  /* Help Panel Design System - Dark theme Professional */
   --help-card-background: #1a1a1a;
   --help-card-border: 4px solid var(--color-primary);
+  --help-card-border-radius: var(--radius-md);
+  --help-card-padding: var(--spacing-3);
+  --help-card-margin: var(--spacing-3);
+  --help-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  
   --help-quote-background: #2a2a2a;
-  --help-quote-color: #d1e74e;
+  --help-quote-color: #d1e74e;       /* Bright green for quotes */
+  --help-quote-padding: var(--spacing-1) var(--spacing-2);
+  --help-quote-border-radius: var(--radius-sm);
+  
+  --help-text-color: var(--color-text);
+  --help-meta-color: var(--color-text-light);
+  --help-meta-size: var(--font-size-xs);
 }
 
 /* Global Styles */
