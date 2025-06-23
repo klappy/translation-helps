@@ -1,5 +1,53 @@
 # Changelog
 
+## [3.7.4] - 2025-01-09
+
+### Fixed
+
+- **🚨 EMERGENCY PATCH - AI Chat Panel Token Overflow**: Fixed critical 500 errors when using aligned Bible resources (Hindi, Arabic, etc.)
+  - **Token Limit Crisis**: Aligned Bibles were sending 1.7M tokens (14x the 128K limit) causing API rejections
+  - **Smart USFM Fallback**: Added emergency fallback using simple `\c` and `\v` string splitting when semantic parser fails
+  - **Graceful Error Handling**: Replaced 500 errors with user-friendly messages explaining alignment data complexity
+  - **Context Size Validation**: Added token counting and automatic context truncation for oversized requests
+  - **Performance**: Reduced aligned Bible context from 1.7M tokens to ~100 tokens for LLM consumption
+
+- **🔧 Verse Click Navigation Restoration**: Fixed critical bug where verse clicks didn't update URL or context
+  - **Root Cause**: `USFMSemanticRenderer` was calling non-existent `updateReference` instead of `updateContext`
+  - **Parameter Structure**: Fixed reference object structure to include `bookId`, `chapter`, and `verse`
+  - **URL Synchronization**: Verse clicks now properly update browser URL and history
+  - **Panel Synchronization**: All translation help panels now update when verses are clicked
+  - **Context Tracking**: AI panel context indicator now tracks verse changes in real-time
+
+- **🎯 AI Panel Context Indicator**: Fixed context display stuck on first verse of chapter
+  - **Dependency Tracking**: Added proper `useMemo` dependencies for `resources.reference?.citation`
+  - **Real-time Updates**: Context indicator now shows current verse immediately when changed
+  - **Resource Counting**: Accurate resource count display for current verse context
+
+### Enhanced
+
+- **User Experience**: Eliminated confusing technical error messages in favor of helpful explanations
+- **Performance**: Dramatically reduced API response times for aligned Bible resources
+- **Navigation Flow**: Seamless verse-to-verse navigation with proper URL and context synchronization
+- **Error Recovery**: System now gracefully handles complex alignment data without crashing
+
+### Technical
+
+- **Emergency USFM Extractor**: New `emergencyUSFMExtract()` function in `usfmTextExtractor.js`
+- **Token Size Validation**: Added OpenAI token counting and size validation in `chat.js`
+- **Context Function Fix**: Corrected `updateContext` usage in `USFMSemanticRenderer.jsx`
+- **Dependency Management**: Fixed React hook dependencies for proper re-rendering
+- **Error Boundaries**: Enhanced error handling with meaningful user feedback
+
+### Breaking Changes
+
+- **None**: All changes are backward compatible and maintain existing functionality
+
+### Migration Notes
+
+- No migration required - this is an emergency patch release
+- Aligned Bible resources will now work properly with AI chat functionality
+- Verse navigation behavior restored to expected functionality
+
 ## [3.7.3] - 2025-01-09
 
 ### Fixed
