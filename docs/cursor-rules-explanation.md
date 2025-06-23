@@ -1,75 +1,84 @@
-# Cursor Rules for Deployment Workflow
+# Cursor Rules for Deployment Workflow - CORRECTED FORMAT
 
-## Corrected Approach
+## Issue Resolution
 
-The Cursor rules now work correctly:
-- **Cursor rules (.mdc files)**: Contain quick commands and immediate guidance
-- **Markdown docs (.md files)**: Contain detailed explanations, context, and reasoning
+The Cursor rules were not appearing in the app because they lacked the proper MDC (Markdown with metadata) front matter format required by Cursor IDE.
 
-## How It Works
+## Correct MDC Format
 
-### Cursor Rules Provide:
-- Exact git commands to use
-- Quick workflow reminders  
-- Critical "don't do this" warnings
-- Environment URLs
-- Essential procedures
+Cursor rules MUST include YAML front matter with these fields:
 
-### Markdown Docs Provide:
-- WHY we use this workflow
-- Detailed setup instructions
-- Troubleshooting guidance
-- Complete context and reasoning
-- Configuration procedures
+```yaml
+---
+description: Brief description of what this rule does
+globs: File patterns this rule applies to (optional)
+alwaysApply: true/false (whether to always include this rule)
+---
+```
 
-## Created Rules
+## Our Fixed Rules
 
 ### 1. `deployment-workflow-enforcement.mdc`
-**Contains**: Essential git commands, branch usage rules, promotion commands
-**Points to**: Detailed docs for complete procedures and context
+```yaml
+---
+description: Deployment workflow enforcement and branch management for translation-helps project
+globs: 
+alwaysApply: true
+---
+```
+- **Contains**: Essential git commands, branch usage rules, promotion commands
+- **Always applies**: Yes - critical for all development work
+- **Points to**: Detailed docs for complete procedures and context
 
 ### 2. `documentation-authority.mdc`  
-**Contains**: Quick reference commands, key principles, environment URLs
-**Points to**: Full documentation for detailed explanations
-
-## Example Interaction
-
-**You ask**: "How do I start new work?"
-**AI provides**: 
-```bash
-git checkout dev
-git pull origin dev
-git checkout -b feature/descriptive-name
+```yaml
+---
+description: Documentation authority and quick reference commands for development workflow
+globs: 
+alwaysApply: false
+---
 ```
-**And says**: "For complete workflow details, see `docs/development-workflow-guide.md`"
+- **Contains**: Quick reference commands, key principles, environment URLs
+- **Always applies**: No - only when specifically needed
+- **Points to**: Full documentation for detailed explanations
 
-## Benefits
+## How It Works Now
 
-✅ **Immediate action**: Get the right commands instantly
-✅ **Detailed learning**: Reference docs for full understanding  
-✅ **Consistency**: Same commands every time
-✅ **Context**: Understand the reasoning behind the workflow
-✅ **No forgetting**: Rules enforce proper procedures
+**When you ask deployment questions, Cursor will:**
+1. **Load the relevant rule** (based on front matter settings)
+2. **Provide immediate commands** from the rule content
+3. **Reference specific .md docs** for detailed explanations
+
+**Example interaction:**
+- **You ask**: "How do I start new work?"
+- **Cursor provides**: 
+  ```bash
+  git checkout dev
+  git pull origin dev
+  git checkout -b feature/your-feature
+  ```
+- **And says**: "For complete workflow details, see `docs/development-workflow-guide.md`"
+
+## Why This Format Works
+
+1. **Front matter is required** - Cursor uses it to understand when/how to apply rules
+2. **Description helps AI selection** - Cursor's AI can choose relevant rules based on context
+3. **alwaysApply controls loading** - Critical rules always load, others load when needed
+4. **Globs target specific files** - Rules can activate for specific file patterns
+
+## Verification
+
+You should now see these rules in:
+- **Cursor Settings > Rules** - Listed as project rules
+- **Chat context** - Applied automatically based on front matter settings
+- **Command suggestions** - When asking deployment questions
 
 ## File Structure
 
 ```
 .cursor/rules/
-├── deployment-workflow-enforcement.mdc  ← Commands & procedures
-└── documentation-authority.mdc          ← Quick reference
-
-docs/
-├── development-workflow-guide.md        ← Complete workflow explanation
-├── deployment-strategy-netlify-ui.md    ← Detailed deployment setup
-├── deployment-quick-reference.md        ← All commands with context
-└── netlify-config-analysis.md          ← Technical configuration details
+├── deployment-workflow-enforcement.mdc  ← Always applies
+└── documentation-authority.mdc          ← Applies when needed
 ```
 
-## Rule Logic (Corrected)
-
-1. **User asks deployment question**
-2. **Cursor rule provides immediate commands**
-3. **Rule points to relevant .md docs for details**
-4. **User gets both quick action AND full context**
-
-This prevents forgetting the workflow while providing both immediate help and detailed learning resources.
+The rules provide immediate commands while docs provide detailed context - exactly as intended!
