@@ -9,7 +9,15 @@
   max-width: var(--content-max-width-mobile);
   margin: 0 auto;
   position: relative;
-  z-index: 1; /* Default z-index */
+  z-index: 1;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all 150ms ease-in-out;
+}
+
+.scripture-panel:hover {
+  box-shadow: var(--shadow-md);
 }
 
 /* Reduce z-index when FIA modals are open - CSS-only detection */
@@ -202,8 +210,8 @@
 }
 
 .fabButton:hover:not(:disabled) {
-  background: var(--color-primary-dark);
-  transform: translateY(-2px);
+  background: var(--color-primary-hover);
+  transform: translateY(-2px) scale(1.05);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 

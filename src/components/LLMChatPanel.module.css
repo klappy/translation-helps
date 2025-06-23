@@ -3,14 +3,20 @@
 .chatPanel {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Fill parent container height */
-  width: 100%; /* Fill parent container width */
+  height: 100%;
+  width: 100%;
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
-  overflow: hidden; /* Prevent the entire panel from scrolling */
-  font-family: var(--font-family-primary); /* Figtree for UI elements */
+  overflow: hidden;
+  font-family: var(--font-family-primary);
   position: relative;
+  box-shadow: var(--shadow-sm);
+  transition: all 150ms ease-in-out;
+}
+
+.chatPanel:hover {
+  box-shadow: var(--shadow-md);
 }
 
 /* Header - FIXED at top, never scrolls */
