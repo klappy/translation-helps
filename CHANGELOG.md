@@ -1,5 +1,38 @@
 # Changelog
 
+## [3.8.0] - 2025-01-09
+
+### Added
+
+- **Awesome Splash Screen Feature - COMPLETE**
+  - ✅ **Clean Introduction**: Beautiful splash screen that introduces the Translation Helps app with purpose and clarity
+  - ✅ **Feature Showcase**: Grid-based display of key features with emojis and descriptions
+  - ✅ **AI-Built Badge**: Highlights the 100% AI-built nature with animated robot icon
+  - ✅ **Theme Support**: Full light/dark mode compatibility with ETEN Lab branding
+  - ✅ **Smooth Animations**: Staggered fade-in animations with floating background elements
+  - ✅ **Smart Display Logic**: Shows on first visit, can be triggered with `?splash=true`
+  - ✅ **Content Management**: Editable markdown file for easy content updates without code changes
+  - ✅ **Accessibility**: Skip button, reduced motion support, and proper ARIA labels
+
+### Enhanced
+
+- **User Onboarding**: New users get a professional introduction to the app's capabilities
+- **Brand Identity**: Reinforces ETEN Lab branding with consistent visual design
+- **Maintainability**: Content updates via markdown file without touching component code
+- **Performance**: Lazy loading of content with fallback for reliability
+
+### Technical
+
+- **New Components**:
+  - Added `SplashScreen.jsx` with self-contained state management
+  - Added `SplashScreen.module.css` with comprehensive theme-aware styling
+  - Added `public/docs/splash-content.md` for editable content
+- **App Integration**: 
+  - Updated `App.jsx` to manage splash screen display with localStorage tracking
+  - Added URL parameter support for manual triggering
+- **Testing**: Added comprehensive test suite with 100% coverage
+- **Documentation**: Created detailed feature documentation in `docs/splash-screen-feature.md`
+
 ## [3.7.4] - 2025-01-09
 
 ### Fixed
