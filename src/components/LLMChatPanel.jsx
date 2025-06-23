@@ -28,7 +28,7 @@ export function LLMChatPanel() {
   useEffect(() => {
     // Self-activating ALL resources for comprehensive AI context
     ['scripture', 'notes', 'questions', 'words', 'links'].forEach(activateResource);
-  }, [activateResource]);
+  }, []); // Empty dependency array - only run once on mount
 
   const {
     messages,

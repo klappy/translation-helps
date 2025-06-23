@@ -17,7 +17,7 @@ export function FiaPanel({ reference }) {
   useEffect(() => {
     activateResource('fia');
     setHasTriedLoading(true);
-  }, [activateResource]);
+  }, []); // Empty dependency array - only run once on mount
 
   const fiaData = resources.fia;
   const hasFiaContent = fiaData && fiaData.hasContent && 

@@ -5,10 +5,12 @@
  * TRANSFORMATION: Converted to use ResourcesContext for scripture loading
  * PATTERN: Self-activating display component (scripture from ResourcesContext)
  */
-import React, { useState, useEffect, useContext, useMemo, useRef, useImperativeHandle, forwardRef } from "react";
+import React, { useState, useEffect, useContext, useMemo, useRef, useImperativeHandle, forwardRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { ReferenceContext } from "../../context/ReferenceContext";
 import { useResourcesContext } from "../../context/ResourcesContext";
 import { fetchBook, isBookAvailable } from "../../services/scriptureService";
+import { useSwipeNavigation } from "../../hooks/useSwipeNavigation";
 // Simple Verse-Loading Pattern: Get scripture from ResourcesContext
 
 import USFMSemanticRenderer from "./USFMSemanticRenderer";
@@ -23,12 +25,16 @@ import styles from "./ScripturePanelRCL.module.css";
  * @param {function} props.onVerseClick - Callback when a verse is clicked
  */
 const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ reference, onVerseClick }, ref) {
-  const { resources, activateResource } = useResourcesContext();
+  const { resources, activateResource, loadingResources } = useResourcesContext();
   const [showSearch, setShowSearch] = useState(false);
   const [showDebugMode, setShowDebugMode] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [showHelpsSummary, setShowHelpsSummary] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [slideDirection, setSlideDirection] = useState('');
+  const [isSliding, setIsSliding] = useState(false);
+  const [fabStyles, setFabStyles] = useState({});
+  const scripturePanelRef = useRef(null);
   const { 
     organization, 
     languageId, 
@@ -44,18 +50,82 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
   // Self-activate scripture resource
   useEffect(() => {
     activateResource('scripture');
-  }, [activateResource]);
+  }, []); // Empty dependency array - only run once on mount
+
+  // Chapter navigation with swipe gestures (YouVersion-style)
+  const handlePreviousChapter = useCallback(() => {
+    // CRITICAL FIX: Ensure chapter is parsed as integer to prevent string concatenation
+    const currentChapter = parseInt(reference?.chapter, 10) || 1;
+    
+    if (currentChapter > 1 && !isSliding) {
+      setIsSliding(true);
+      setSlideDirection('right');
+      
+      setTimeout(() => {
+        const newChapter = currentChapter - 1;
+        
+        const newReference = {
+          ...currentReference,
+          chapter: newChapter,
+          verse: 1
+        };
+        updateContext({ reference: newReference });
+        
+        setTimeout(() => {
+          setIsSliding(false);
+          setSlideDirection('');
+        }, 300);
+      }, 150);
+    }
+  }, [reference?.chapter, currentReference, updateContext, isSliding]);
+
+  const handleNextChapter = useCallback(() => {
+    // CRITICAL FIX: Ensure chapter is parsed as integer to prevent string concatenation
+    const currentChapter = parseInt(reference?.chapter, 10) || 1;
+    const maxChapters = getMaxChaptersForBook(reference?.bookId);
+    
+    if (currentChapter < maxChapters && !isSliding) {
+      setIsSliding(true);
+      setSlideDirection('left');
+      
+      setTimeout(() => {
+        const newChapter = currentChapter + 1;
+        
+        const newReference = {
+          ...currentReference,
+          chapter: newChapter,
+          verse: 1
+        };
+        updateContext({ reference: newReference });
+        
+        setTimeout(() => {
+          setIsSliding(false);
+          setSlideDirection('');
+        }, 300);
+      }, 150);
+    }
+  }, [reference?.chapter, reference?.bookId, currentReference, updateContext, isSliding]);
+
+  // Swipe navigation hook
+  const swipeRef = useSwipeNavigation({
+    onSwipeLeft: handleNextChapter,
+    onSwipeRight: handlePreviousChapter,
+    enabled: !isNavigating && !!reference?.bookId
+  });
 
   // Get scripture from ResourcesContext (Simple Verse-Loading Pattern)
   const usfmContent = resources.scripture || "";
-  const loading = !resources.scripture && !!reference?.bookId;
+  
+  // ANTI-FRAGILE: Only show loading for scripture specifically, not all resources
+  const hasContentForCurrentBook = usfmContent && usfmContent.includes(`\\id ${reference?.bookId?.toUpperCase()}`);
+  const scriptureLoading = loadingResources.has('scripture') && !hasContentForCurrentBook && !isSliding;
   const error = resources.scripture === null ? "Failed to load scripture" : null;
 
   // Expose data to parent components via ref
   useImperativeHandle(ref, () => ({
     getData: () => ({
       usfmContent,
-      loading,
+      loading: scriptureLoading,
       error,
       reference,
       resourceType: 'scripture'
@@ -105,42 +175,87 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
     resourceAvailability && 
     Object.keys(resourceAvailability).some(type => Object.keys(resourceAvailability[type]).length > 0);
 
-  // Auto-show summary if there are multiple organizations available
-  useEffect(() => {
-    if (shouldShowHelpsSummary && !showHelpsSummary) {
-      const totalOrganizations = new Set();
-      Object.values(resourceAvailability).forEach(typeAvailability => {
-        Object.keys(typeAvailability).forEach(org => totalOrganizations.add(org));
-      });
-      
-      // Auto-show if we have resources from multiple organizations
-      if (totalOrganizations.size > 1) {
-        setShowHelpsSummary(true);
-      }
-    }
-  }, [shouldShowHelpsSummary, resourceAvailability, showHelpsSummary]);
+  // Auto-show summary if there are multiple organizations available (memoized for performance)
+  const totalOrganizations = useMemo(() => {
+    if (!resourceAvailability) return 0;
+    const orgs = new Set();
+    Object.values(resourceAvailability).forEach(typeAvailability => {
+      Object.keys(typeAvailability).forEach(org => orgs.add(org));
+    });
+    return orgs.size;
+  }, [resourceAvailability]);
 
-  // Detect FIA modal state and adjust z-index accordingly
   useEffect(() => {
+    if (shouldShowHelpsSummary && !showHelpsSummary && totalOrganizations > 1) {
+      setShowHelpsSummary(true);
+    }
+  }, [shouldShowHelpsSummary, showHelpsSummary, totalOrganizations]);
+
+  // Detect FIA modal state and adjust z-index accordingly (throttled for performance)
+  useEffect(() => {
+    let timeoutId;
+    
     const checkForModals = () => {
-      const lightboxExists = document.querySelector('.lightbox') !== null;
-      setIsModalOpen(lightboxExists);
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const lightboxExists = document.querySelector('.lightbox') !== null;
+        setIsModalOpen(lightboxExists);
+      }, 50); // Throttle modal detection
     };
 
     // Check immediately
     checkForModals();
 
-    // Set up observer for DOM changes
+    // Set up observer for DOM changes (only watch for class changes on body)
     const observer = new MutationObserver(checkForModals);
     observer.observe(document.body, {
       childList: true,
-      subtree: true,
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ['class'],
+      subtree: false // Don't watch entire subtree for performance
     });
 
-    return () => observer.disconnect();
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      observer.disconnect();
+    };
   }, []);
+
+  // Calculate FAB positioning based on scripture panel dimensions (throttled for performance)
+  useEffect(() => {
+    let timeoutId;
+    
+    const updateFabPosition = () => {
+      if (scripturePanelRef.current) {
+        const rect = scripturePanelRef.current.getBoundingClientRect();
+        const padding = window.innerWidth <= 768 ? 15 : 30;
+        
+        setFabStyles({
+          left: `${rect.left + padding}px`,
+          right: `${window.innerWidth - rect.right + padding}px`,
+          width: `${rect.width - (padding * 2)}px`,
+        });
+      }
+    };
+
+    const throttledUpdate = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(updateFabPosition, 100); // Throttle to 100ms
+    };
+
+    // Update immediately on mount
+    updateFabPosition();
+    
+    // Throttled updates for resize/scroll
+    window.addEventListener('resize', throttledUpdate);
+    window.addEventListener('scroll', throttledUpdate);
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('resize', throttledUpdate);
+      window.removeEventListener('scroll', throttledUpdate);
+    };
+  }, []); // Remove reference dependency - only calculate once on mount
 
   // Loading state is now handled by LoadingOverlay wrapper - no internal loading needed
 
@@ -179,6 +294,7 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
 
   return (
     <section 
+      ref={scripturePanelRef}
       data-testid='scripture-panel-rcl' 
       className={`${styles["scripture-panel"]} ${isModalOpen ? styles["modal-open"] : ""}`}
     >
@@ -220,30 +336,50 @@ const ScripturePanelRCL = React.memo(forwardRef(function ScripturePanelRCL({ ref
             </div>
           )}
 
-          {/* Scripture Content with integrated resource details */}
-          <USFMSemanticRenderer
-            usfm={extractChapterUSFM(usfmContent, reference.chapter)}
-            chapter={reference.chapter}
-            selectedVerse={reference.verse}
-            onVerseClick={handleVerseClick}
-            mode={showDebugMode ? 'debug' : 'preview'}
-            showModeToggle={false}
-            resourceDetails={{
-              organization: (() => {
-                const org = getResourceOrganization ? getResourceOrganization('scripture') : organization;
-                console.warn(`🏢 ScripturePanelRCL: Displaying organization as: ${org}`);
-                console.warn(`🔍 ScripturePanelRCL: getResourceOrganization('scripture') returned: ${getResourceOrganization ? getResourceOrganization('scripture') : 'N/A'}`);
-                console.warn(`🔍 ScripturePanelRCL: Fallback organization: ${organization}`);
-                console.warn(`🔍 ScripturePanelRCL: currentResourceData.organization: ${currentResourceData?.organization || 'N/A'}`);
-                return org;
-              })(),
-              title: currentResourceData?.title || currentResourceData?.description || resourceId?.toUpperCase() || "",
-              version: currentResourceData?.version,
-              rights: "CC BY-SA 4.0" // Default rights, could be enhanced with API data
-            }}
-          />
+          {/* Scripture Content with integrated resource details and swipe navigation */}
+          <div ref={swipeRef} className={`${styles.scriptureSwipeContainer} ${isSliding ? styles[`slide${slideDirection.charAt(0).toUpperCase() + slideDirection.slice(1)}`] : ''}`}>
+            <USFMSemanticRenderer
+              usfm={extractChapterUSFM(usfmContent, reference.chapter)}
+              chapter={reference.chapter}
+              selectedVerse={reference.verse}
+              onVerseClick={handleVerseClick}
+              mode={showDebugMode ? 'debug' : 'preview'}
+              showModeToggle={false}
+              resourceDetails={{
+                organization: getResourceOrganization ? getResourceOrganization('scripture') : organization,
+                title: currentResourceData?.title || currentResourceData?.description || resourceId?.toUpperCase() || "",
+                version: currentResourceData?.version,
+                rights: "CC BY-SA 4.0" // Default rights, could be enhanced with API data
+              }}
+            />
+          </div>
         </>
       ) : null}
+
+      {/* Floating Action Buttons for Chapter Navigation - Always visible when we have a book */}
+      {reference?.bookId && createPortal(
+        <div className={styles.chapterNavFabs} style={fabStyles}>
+          <button
+            onClick={handlePreviousChapter}
+            className={`${styles.fabButton} ${styles.fabPrevious}`}
+            disabled={reference?.chapter <= 1}
+            title="Previous Chapter"
+            aria-label="Previous Chapter"
+          >
+            ‹
+          </button>
+          <button
+            onClick={handleNextChapter}
+            className={`${styles.fabButton} ${styles.fabNext}`}
+            disabled={reference?.chapter >= getMaxChaptersForBook(reference?.bookId)}
+            title="Next Chapter"
+            aria-label="Next Chapter"
+          >
+            ›
+          </button>
+        </div>,
+        document.body
+      )}
     </section>
   );
 }));
@@ -277,6 +413,35 @@ function extractChapterUSFM(usfm, chapter) {
   const endIdx = endMatch ? startIdx + 1 + endMatch.index : usfm.length;
 
   return (headers + usfm.slice(startIdx, endIdx)).trim();
+}
+
+/**
+ * Get maximum chapters for a book (no API call needed)
+ * @param {string} bookId - Book identifier
+ * @returns {number} Maximum chapter count
+ */
+function getMaxChaptersForBook(bookId) {
+  const chapterCounts = {
+    // Old Testament
+    'gen': 50, 'exo': 40, 'lev': 27, 'num': 36, 'deu': 34,
+    'jos': 24, 'jdg': 21, 'rut': 4, '1sa': 31, '2sa': 24,
+    '1ki': 22, '2ki': 25, '1ch': 29, '2ch': 36, 'ezr': 10,
+    'neh': 13, 'est': 10, 'job': 42, 'psa': 150, 'pro': 31,
+    'ecc': 12, 'sng': 8, 'isa': 66, 'jer': 52, 'lam': 5,
+    'ezk': 48, 'dan': 12, 'hos': 14, 'jol': 3, 'amo': 9,
+    'oba': 1, 'jon': 4, 'mic': 7, 'nam': 3, 'hab': 3,
+    'zep': 3, 'hag': 2, 'zec': 14, 'mal': 4,
+    
+    // New Testament
+    'mat': 28, 'mrk': 16, 'luk': 24, 'jhn': 21, 'act': 28,
+    'rom': 16, '1co': 16, '2co': 13, 'gal': 6, 'eph': 6,
+    'php': 4, 'col': 4, '1th': 5, '2th': 3, '1ti': 6,
+    '2ti': 4, 'tit': 3, 'phm': 1, 'heb': 13, 'jas': 5,
+    '1pe': 5, '2pe': 3, '1jn': 5, '2jn': 1, '3jn': 1,
+    'jud': 1, 'rev': 22
+  };
+  
+  return chapterCounts[bookId?.toLowerCase()] || 50;
 }
 
 export default ScripturePanelRCL;

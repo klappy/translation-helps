@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile-First Chapter Navigation Solutions</title>
+    <style>
+        :root {
+            --color-primary: #c1d72e;
+            --color-primary-light: #d1e74e;
+            --color-primary-dark: #a1c70e;
+            --color-background: #000000;
+            --color-surface: #1a1a1a;
+            --color-surface-hover: #2d2d2d;
+            --color-border: #333333;
+            --color-text: #ffffff;
+            --color-text-muted: #999999;
+            --color-text-on-primary: #000000;
+            --spacing-1: 4px;
+            --spacing-2: 8px;
+            --spacing-3: 12px;
+            --spacing-4: 16px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --transition-fast: 150ms ease-in-out;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--color-background);
+            color: var(--color-text);
+            margin: 0;
+            padding: 0;
+        }
+
+        .mobile-frame {
+            width: 375px;
+            height: 667px;
+            margin: 20px auto;
+            border: 2px solid var(--color-border);
+            border-radius: 20px;
+            overflow: hidden;
+            background: var(--color-background);
+            position: relative;
+        }
+
+        .status-bar {
+            height: 44px;
+            background: var(--color-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--color-text-muted);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        h2 {
+            color: var(--color-primary);
+            padding: 20px;
+            margin: 40px 0 20px;
+            text-align: center;
+        }
+
+        .description {
+            text-align: center;
+            color: var(--color-text-muted);
+            padding: 0 20px;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* SOLUTION 1: Integrated Chapter in Breadcrumb */
+        .solution1 .breadcrumbs {
+            padding: 12px;
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: var(--color-background);
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            border: 1px solid var(--color-border);
+        }
+
+        .breadcrumb-item.chapter {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            font-weight: 600;
+            position: relative;
+            padding-right: 28px;
+            cursor: pointer;
+        }
+
+        .breadcrumb-item.chapter::after {
+            content: "▼";
+            position: absolute;
+            right: 10px;
+            font-size: 10px;
+        }
+
+        /* SOLUTION 2: Swipe Gesture Chapter Navigation */
+        .solution2 .scripture-header {
+            padding: 12px;
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .chapter-swipe-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 8px;
+            background: var(--color-background);
+            border-radius: var(--radius-md);
+            margin-top: 8px;
+        }
+
+        .swipe-arrow {
+            color: var(--color-text-muted);
+            font-size: 18px;
+        }
+
+        .current-chapter {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        /* SOLUTION 3: Bottom Sheet Pattern */
+        .solution3 .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            padding: 12px;
+        }
+
+        .chapter-pill-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--color-background);
+            border-radius: var(--radius-md);
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .chapter-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* SOLUTION 4: Floating Action Button */
+        .solution4 .fab-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+
+        .fab-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: none;
+            min-width: 120px;
+        }
+
+        .fab-menu.open {
+            display: block;
+        }
+
+        .fab-menu-item {
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fab-menu-item:hover {
+            background: var(--color-background);
+        }
+
+        /* SOLUTION 5: Smart Context Bar */
+        .solution5 .context-bar {
+            padding: 8px 12px;
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mini-chapter-nav {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+            overflow-x: auto;
+        }
+
+        .mini-chapter {
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+        }
+
+        .mini-chapter.active {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-color: var(--color-primary);
+        }
+
+        /* Scripture content mockup */
+        .scripture-content {
+            padding: 16px;
+            color: var(--color-text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .verse {
+            margin-bottom: 8px;
+        }
+
+        .verse-number {
+            color: var(--color-primary);
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        /* Annotations */
+        .pros-cons {
+            max-width: 800px;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        .pros, .cons {
+            background: var(--color-surface);
+            padding: 20px;
+            border-radius: var(--radius-md);
+        }
+
+        .pros {
+            border: 1px solid var(--color-primary);
+        }
+
+        .cons {
+            border: 1px solid #ef4444;
+        }
+
+        .pros h3 {
+            color: var(--color-primary);
+            margin-top: 0;
+        }
+
+        .cons h3 {
+            color: #ef4444;
+            margin-top: 0;
+        }
+
+        /* Gesture indicator */
+        .gesture-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(193, 215, 46, 0.9);
+            color: var(--color-text-on-primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h2>Mobile-First Chapter Navigation Solutions</h2>
+    <p class="description">
+        Addressing the crowded mobile UI challenge with innovative, space-efficient chapter navigation patterns.
+    </p>
+
+    <!-- Solution 1: Integrated Dropdown -->
+    <div>
+        <h2>Solution 1: Integrated Chapter Selector in Breadcrumb</h2>
+        <div class="mobile-frame solution1">
+            <div class="status-bar">9:41 AM</div>
+            <div class="breadcrumbs">
+                <div class="breadcrumb-item">📖 ULT</div>
+                <div class="breadcrumb-item">📜 Genesis</div>
+                <div class="breadcrumb-item chapter">Ch. 3</div>
+            </div>
+            <div class="scripture-content">
+                <div class="verse">
+                    <span class="verse-number">1</span>
+                    Now the serpent was more crafty than any beast of the field...
+                </div>
+                <div class="verse">
+                    <span class="verse-number">2</span>
+                    The woman said to the serpent, "From the fruit of the trees..."
+                </div>
+            </div>
+        </div>
+        <div class="pros-cons">
+            <div class="pros">
+                <h3>✅ Pros</h3>
+                <ul>
+                    <li>Zero additional vertical space</li>
+                    <li>Integrates with existing UI</li>
+                    <li>Familiar dropdown pattern</li>
+                    <li>Always visible</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h3>❌ Cons</h3>
+                <ul>
+                    <li>Requires tap to open</li>
+                    <li>Modal overlay needed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solution 2: Swipe Gestures -->
+    <div>
+        <h2>Solution 2: Swipe Gesture Navigation</h2>
+        <div class="mobile-frame solution2">
+            <div class="status-bar">9:41 AM</div>
+            <div class="scripture-header">
+                <div class="breadcrumbs" style="display: flex; gap: 8px;">
+                    <div class="breadcrumb-item">📖 ULT</div>
+                    <div class="breadcrumb-item">📜 Genesis</div>
+                </div>
+                <div class="chapter-swipe-indicator">
+                    <span class="swipe-arrow">←</span>
+                    <span class="current-chapter">Chapter 3</span>
+                    <span class="swipe-arrow">→</span>
+                </div>
+            </div>
+            <div class="scripture-content">
+                <div class="verse">
+                    <span class="verse-number">1</span>
+                    Now the serpent was more crafty than any beast of the field...
+                </div>
+            </div>
+            <div class="gesture-hint">← Swipe for chapters →</div>
+        </div>
+        <div class="pros-cons">
+            <div class="pros">
+                <h3>✅ Pros</h3>
+                <ul>
+                    <li>No buttons needed</li>
+                    <li>Natural mobile gesture</li>
+                    <li>Minimal UI footprint</li>
+                    <li>Fast navigation</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h3>❌ Cons</h3>
+                <ul>
+                    <li>Not discoverable</li>
+                    <li>No random access</li>
+                    <li>Gesture conflicts</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solution 3: Bottom Sheet -->
+    <div>
+        <h2>Solution 3: Bottom Navigation Pattern</h2>
+        <div class="mobile-frame solution3">
+            <div class="status-bar">9:41 AM</div>
+            <div class="breadcrumbs" style="padding: 12px; background: var(--color-surface); border-bottom: 1px solid var(--color-border);">
+                <div style="display: flex; gap: 8px;">
+                    <div class="breadcrumb-item">📖 ULT</div>
+                    <div class="breadcrumb-item">📜 Genesis</div>
+                </div>
+            </div>
+            <div class="scripture-content">
+                <div class="verse">
+                    <span class="verse-number">1</span>
+                    Now the serpent was more crafty than any beast of the field...
+                </div>
+            </div>
+            <div class="bottom-nav">
+                <div class="chapter-pill-nav">
+                    <div class="chapter-info">
+                        <span>📍</span>
+                        <span>Chapter 3 of 50</span>
+                    </div>
+                    <span>›</span>
+                </div>
+            </div>
+        </div>
+        <div class="pros-cons">
+            <div class="pros">
+                <h3>✅ Pros</h3>
+                <ul>
+                    <li>Thumb-friendly location</li>
+                    <li>Doesn't crowd header</li>
+                    <li>Can show/hide on scroll</li>
+                    <li>Familiar mobile pattern</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h3>❌ Cons</h3>
+                <ul>
+                    <li>Covers content</li>
+                    <li>Additional tap needed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solution 4: FAB -->
+    <div>
+        <h2>Solution 4: Floating Action Button</h2>
+        <div class="mobile-frame solution4">
+            <div class="status-bar">9:41 AM</div>
+            <div class="breadcrumbs" style="padding: 12px; background: var(--color-surface); border-bottom: 1px solid var(--color-border);">
+                <div style="display: flex; gap: 8px;">
+                    <div class="breadcrumb-item">📖 ULT</div>
+                    <div class="breadcrumb-item">📜 Genesis</div>
+                </div>
+            </div>
+            <div class="scripture-content">
+                <div class="verse">
+                    <span class="verse-number">1</span>
+                    Now the serpent was more crafty than any beast of the field...
+                </div>
+            </div>
+            <div class="fab-container">
+                <div class="fab-menu open">
+                    <div class="fab-menu-item">← Chapter 2</div>
+                    <div class="fab-menu-item">All Chapters</div>
+                    <div class="fab-menu-item">Chapter 4 →</div>
+                </div>
+                <div class="fab">3</div>
+            </div>
+        </div>
+        <div class="pros-cons">
+            <div class="pros">
+                <h3>✅ Pros</h3>
+                <ul>
+                    <li>Minimal space usage</li>
+                    <li>Always accessible</li>
+                    <li>Can hide on scroll</li>
+                    <li>Material Design pattern</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h3>❌ Cons</h3>
+                <ul>
+                    <li>Covers content</li>
+                    <li>Not iOS native</li>
+                    <li>Extra tap required</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solution 5: Smart Context Bar -->
+    <div>
+        <h2>Solution 5: Smart Collapsible Chapter Bar</h2>
+        <div class="mobile-frame solution5">
+            <div class="status-bar">9:41 AM</div>
+            <div class="breadcrumbs" style="padding: 12px; background: var(--color-surface); border-bottom: 1px solid var(--color-border);">
+                <div style="display: flex; gap: 8px;">
+                    <div class="breadcrumb-item">📖 ULT</div>
+                    <div class="breadcrumb-item">📜 Genesis</div>
+                </div>
+            </div>
+            <div class="context-bar">
+                <span style="font-size: 12px; color: var(--color-text-muted);">Ch:</span>
+                <div class="mini-chapter-nav">
+                    <div class="mini-chapter">1</div>
+                    <div class="mini-chapter">2</div>
+                    <div class="mini-chapter active">3</div>
+                    <div class="mini-chapter">4</div>
+                    <div class="mini-chapter">5</div>
+                    <div class="mini-chapter">6</div>
+                    <div class="mini-chapter">7</div>
+                    <div class="mini-chapter">8</div>
+                </div>
+            </div>
+            <div class="scripture-content">
+                <div class="verse">
+                    <span class="verse-number">1</span>
+                    Now the serpent was more crafty than any beast of the field...
+                </div>
+            </div>
+        </div>
+        <div class="pros-cons">
+            <div class="pros">
+                <h3>✅ Pros</h3>
+                <ul>
+                    <li>Minimal height (40px)</li>
+                    <li>Direct chapter access</li>
+                    <li>Can hide on scroll</li>
+                    <li>Horizontally scrollable</li>
+                </ul>
+            </div>
+            <div class="cons">
+                <h3>❌ Cons</h3>
+                <ul>
+                    <li>Still adds height</li>
+                    <li>Small touch targets</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div style="max-width: 800px; margin: 60px auto; padding: 40px; background: var(--color-surface); border-radius: var(--radius-lg); text-align: center;">
+        <h2 style="color: var(--color-primary);">Recommendation: Solution 1 + Smart Scrolling</h2>
+        <p style="line-height: 1.6; margin: 20px 0;">
+            <strong>Integrate chapter selection into the existing breadcrumb</strong> with these enhancements:
+        </p>
+        <ul style="text-align: left; max-width: 600px; margin: 20px auto; line-height: 1.8;">
+            <li>Chapter selector becomes a dropdown in the breadcrumb (zero additional space)</li>
+            <li>Hide breadcrumbs on scroll down, show on scroll up</li>
+            <li>Optional: Add subtle swipe gestures for power users</li>
+            <li>Long-press on scripture text shows chapter jump menu</li>
+        </ul>
+        <p style="margin-top: 30px; color: var(--color-text-muted);">
+            This approach adds <strong>zero pixels</strong> to the mobile UI while maintaining full chapter navigation functionality.
+        </p>
+    </div>
+</body>
+</html>

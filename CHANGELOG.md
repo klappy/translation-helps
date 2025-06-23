@@ -2,6 +2,84 @@
 
 ## [Unreleased]
 
+## [3.7.0] - 2025-01-09
+
+### Added
+
+- **Chapter Navigation System - COMPLETE**
+  - ✅ **Enhanced Breadcrumb Navigation**: Breadcrumb now displays "BookName Chapter:Verse" format (e.g., "Genesis 3:16")
+  - ✅ **Floating Action Buttons (FABs)**: YouVersion-style chapter navigation with Previous (‹) and Next (›) buttons
+  - ✅ **Swipe Gesture Support**: Mobile-optimized horizontal swipes for chapter navigation with configurable sensitivity
+  - ✅ **Smart Book Selector**: Auto-expansion of current book with smart scrolling and chapter highlighting
+  - ✅ **Visual Feedback**: Current chapter highlighted with theme colors and proper contrast ratios
+  - ✅ **Responsive Design**: 56px desktop, 48px mobile FAB buttons for optimal thumb access
+  - ✅ **Accessibility**: Full keyboard navigation, ARIA labels, and screen reader support
+  - ✅ **Animation System**: Smooth slide transitions (300ms) with reduced motion support
+
+### Fixed
+
+- **Critical Navigation Bugs - RESOLVED**
+  - ✅ **String Concatenation Bug**: Fixed chapter navigation where 4:1 → Next went to chapter 41 instead of 5:1
+  - ✅ **Integer Parsing**: URL parsing now converts chapter/verse to integers preventing string arithmetic errors
+  - ✅ **Resource Synchronization**: All help panels now update when navigating between chapters/verses
+  - ✅ **Tab Click Misalignment**: Fixed click targets being shifted causing wrong tab activation
+  - ✅ **Context Dependency**: Added chapter and verse to ResourcesContext dependency array for proper updates
+
+- **Performance and UX Improvements**
+  - ✅ **Anti-Fragile Loading**: Removed global loading state that blocked individual panels
+  - ✅ **Independent Resource Loading**: Each resource loads independently without blocking others
+  - ✅ **Hook Order Violations**: Fixed conditional hook calls in USFMSemanticRenderer
+  - ✅ **React Keys**: Added unique composite keys to TranslationWordsPanel
+  - ✅ **Loading Animations**: Eliminated unnecessary loading spinners during chapter transitions
+
+### Enhanced
+
+- **Navigation UX Improvements**
+  - ✅ **Instant Breadcrumb Toggle**: Clicking breadcrumb provides instant toggle without slide animations
+  - ✅ **Context Awareness**: Book selector auto-opens current book and scrolls to position
+  - ✅ **Close Button Behavior**: X button goes directly to complete state instead of back navigation
+  - ✅ **Contrast Optimization**: Fixed chapter count text contrast on selected book backgrounds
+  - ✅ **Mobile Optimization**: Improved mobile layout with proper touch target sizing
+
+- **Technical Architecture**
+  - ✅ **Portal Rendering**: FAB buttons use React Portal for optimal viewport positioning
+  - ✅ **Dynamic Positioning**: JavaScript-calculated positioning for perfect panel alignment
+  - ✅ **Event Cleanup**: Proper event listener management for memory efficiency
+  - ✅ **Cross-Organization Support**: Maintained full cross-organization resource functionality
+
+### Technical
+
+- **New Components and Hooks**
+  - Added `useSwipeNavigation.js` hook for gesture detection
+  - Enhanced `BookSelector.jsx` with auto-expansion and smart scrolling
+  - Updated `ScripturePanelNavigation.jsx` with enhanced breadcrumb behavior
+  - Created comprehensive FAB button system with dynamic positioning
+
+- **Bug Fixes and Optimizations**
+  - Fixed integer parsing in `contextHelpers.js` for both legacy and new URL formats
+  - Updated ResourcesContext dependency array to watch full reference changes
+  - Simplified HelpsTabs button structure to fix click target alignment
+  - Added throttling for FAB positioning and modal detection (100ms/50ms)
+
+- **Testing and Documentation**
+  - Created comprehensive test suite for `useSwipeNavigation` hook
+  - Added tests for integer parsing bug prevention
+  - Updated component documentation with new navigation features
+  - Created detailed chapter navigation system documentation
+
+### Breaking Changes
+
+- **URL Format**: Navigation URLs now require integer chapter/verse values
+- **Component Structure**: Simplified tab button structure may affect custom styling
+- **CSS Classes**: Removed unused CSS classes from HelpsTabs simplification
+
+### Migration Notes
+
+- Integer parsing is now enforced in URL helpers
+- Tab button styling should use direct child selectors
+- FAB positioning uses dynamic JavaScript calculation
+- Swipe gestures require touch event support
+
 ## [3.6.0] - 2025-01-09
 
 ### Fixed

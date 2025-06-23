@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reused Navigation Patterns - Slide Down & Existing Components</title>
+    <style>
+        :root {
+            --color-primary: #c1d72e;
+            --color-primary-light: #d1e74e;
+            --color-primary-dark: #a1c70e;
+            --color-background: #000000;
+            --color-surface: #1a1a1a;
+            --color-surface-hover: #2d2d2d;
+            --color-surface-secondary: #2a2a2a;
+            --color-border: #333333;
+            --color-text: #ffffff;
+            --color-text-muted: #999999;
+            --color-text-on-primary: #000000;
+            --spacing-1: 4px;
+            --spacing-2: 8px;
+            --spacing-3: 12px;
+            --spacing-4: 16px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-full: 9999px;
+            --transition-fast: 150ms ease-in-out;
+            --transition-normal: 250ms ease-in-out;
+            --shadow-lg: 0 4px 16px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0a0a0a;
+            color: var(--color-text);
+            margin: 0;
+            padding: 20px 0;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            color: var(--color-primary);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--color-text-muted);
+            margin-bottom: 40px;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+            gap: 40px;
+            justify-items: center;
+        }
+
+        /* Mobile Frame */
+        .mobile-frame {
+            width: 375px;
+            height: 812px;
+            border: 2px solid var(--color-border);
+            border-radius: 30px;
+            overflow: hidden;
+            background: var(--color-background);
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-bar {
+            height: 44px;
+            background: var(--color-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--color-text-muted);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        /* Navigation Header */
+        .nav-header {
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            padding: 12px;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: var(--color-background);
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            border: 1px solid var(--color-border);
+        }
+
+        /* FUSED Book:Chapter:Verse Pill */
+        .fused-bcv-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: all var(--transition-fast);
+            border: 1px solid var(--color-primary);
+        }
+
+        .fused-bcv-pill:hover {
+            background: var(--color-primary-dark);
+            border-color: var(--color-primary-dark);
+            transform: scale(1.05);
+        }
+
+        .fused-bcv-pill::after {
+            content: "▼";
+            font-size: 10px;
+            margin-left: 2px;
+            opacity: 0.8;
+            transition: transform var(--transition-fast);
+        }
+
+        .fused-bcv-pill.open::after {
+            transform: rotate(180deg);
+        }
+
+        /* Slide Down Container - Reusing existing pattern */
+        .slide-down-container {
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height var(--transition-normal) ease-out;
+        }
+
+        .slide-down-container.open {
+            max-height: 400px;
+        }
+
+        /* Existing Book Selector Styles - Reused */
+        .book-selector {
+            padding: 16px;
+        }
+
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .book-card {
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-align: center;
+        }
+
+        .book-card:hover {
+            background: var(--color-surface-hover);
+            border-color: var(--color-primary);
+            transform: translateY(-2px);
+        }
+
+        .book-card.current {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-color: var(--color-primary);
+        }
+
+        .book-card.expanded {
+            grid-column: 1 / -1;
+            background: var(--color-surface-secondary);
+            border-color: var(--color-primary);
+        }
+
+        .book-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .book-meta {
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+
+        /* Chapter Grid within expanded book */
+        .chapter-grid-inline {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .chapter-btn-inline {
+            aspect-ratio: 1;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .chapter-btn-inline:hover {
+            background: var(--color-surface-hover);
+            border-color: var(--color-primary);
+            transform: scale(1.05);
+        }
+
+        .chapter-btn-inline.current {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        /* Scripture content */
+        .scripture-content {
+            padding: 16px;
+            overflow-y: auto;
+            height: calc(100% - 160px);
+        }
+
+        .verse {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .verse-number {
+            color: var(--color-primary);
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        /* Demo labels */
+        .demo-label {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--color-text-muted);
+            font-size: 14px;
+        }
+
+        .feature-list {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .feature-list h3 {
+            color: var(--color-primary);
+            margin-bottom: 16px;
+        }
+
+        .feature-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: var(--color-primary);
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        /* Comparison boxes */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .before, .after {
+            background: var(--color-surface);
+            padding: 20px;
+            border-radius: var(--radius-md);
+        }
+
+        .before {
+            border: 1px solid #ef4444;
+        }
+
+        .after {
+            border: 1px solid var(--color-primary);
+        }
+
+        .before h4 {
+            color: #ef4444;
+            margin-top: 0;
+        }
+
+        .after h4 {
+            color: var(--color-primary);
+            margin-top: 0;
+        }
+
+        /* Space savings visualization */
+        .space-savings {
+            background: var(--color-surface-secondary);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .space-demo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .old-breadcrumb {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .old-item {
+            padding: 6px 12px;
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .arrow {
+            font-size: 24px;
+            color: var(--color-primary);
+        }
+
+        .new-breadcrumb {
+            padding: 6px 12px;
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>Reused Navigation Patterns</h1>
+        <p class="subtitle">Slide-down navigation with existing components + fused breadcrumb for space efficiency</p>
+
+        <!-- Space Savings Visualization -->
+        <div class="space-savings">
+            <h3 style="color: var(--color-primary); margin-top: 0;">Space Savings with Fused Breadcrumb</h3>
+            <div class="space-demo">
+                <div class="old-breadcrumb">
+                    <div class="old-item">🌐 English</div>
+                    <span>›</span>
+                    <div class="old-item">📖 ULT</div>
+                    <span>›</span>
+                    <div class="old-item">🏝️ Titus</div>
+                    <span>›</span>
+                    <div class="old-item">2:4</div>
+                </div>
+                <div class="arrow">→</div>
+                <div class="new-breadcrumb">🏝️ Tit 2:4</div>
+            </div>
+            <p style="color: var(--color-text-muted); margin-bottom: 0;">
+                <strong>75% space reduction</strong> - From 4 breadcrumb items to 1 fused element
+            </p>
+        </div>
+
+        <div class="demo-grid">
+            <!-- State 1: Collapsed Navigation -->
+            <div>
+                <div class="mobile-frame">
+                    <div class="status-bar">9:41 AM</div>
+                    <div class="nav-header">
+                        <div class="breadcrumbs">
+                            <div class="breadcrumb-item">🌐 English</div>
+                            <div class="breadcrumb-item">📖 ULT</div>
+                            <div class="fused-bcv-pill">🏝️ Tit 2:4</div>
+                        </div>
+                    </div>
+                    
+                    <div class="scripture-content">
+                        <div class="verse">
+                            <span class="verse-number">3</span>
+                            Older women likewise are to be reverent in behavior, not slanderers or slaves to much wine...
+                        </div>
+                        <div class="verse">
+                            <span class="verse-number">4</span>
+                            They are to train the young women to love their husbands and children...
+                        </div>
+                        <div class="verse">
+                            <span class="verse-number">5</span>
+                            To be self-controlled, pure, working at home, kind, and submissive to their own husbands...
+                        </div>
+                    </div>
+                </div>
+                <p class="demo-label">Collapsed - Clean & Compact</p>
+            </div>
+
+            <!-- State 2: Expanded with Book Selector -->
+            <div>
+                <div class="mobile-frame">
+                    <div class="status-bar">9:41 AM</div>
+                    <div class="nav-header">
+                        <div class="breadcrumbs">
+                            <div class="breadcrumb-item">🌐 English</div>
+                            <div class="breadcrumb-item">📖 ULT</div>
+                            <div class="fused-bcv-pill open">🏝️ Tit 2:4</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide Down Container - Reusing existing pattern -->
+                    <div class="slide-down-container open">
+                        <div class="book-selector">
+                            <!-- Book Grid with current book expanded -->
+                            <div class="book-grid">
+                                <div class="book-card">
+                                    <div class="book-title">📜 Genesis</div>
+                                    <div class="book-meta">50 chapters</div>
+                                </div>
+                                <div class="book-card">
+                                    <div class="book-title">📜 Exodus</div>
+                                    <div class="book-meta">40 chapters</div>
+                                </div>
+                                <div class="book-card">
+                                    <div class="book-title">✝️ Matthew</div>
+                                    <div class="book-meta">28 chapters</div>
+                                </div>
+                                
+                                <!-- Current book expanded with chapters -->
+                                <div class="book-card expanded current">
+                                    <div class="book-title">🏝️ Titus</div>
+                                    <div class="book-meta">3 chapters • Currently: 2:4</div>
+                                    
+                                    <!-- Inline chapter selection -->
+                                    <div class="chapter-grid-inline">
+                                        <div class="chapter-btn-inline">1</div>
+                                        <div class="chapter-btn-inline current">2</div>
+                                        <div class="chapter-btn-inline">3</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="book-card">
+                                    <div class="book-title">📚 Hebrews</div>
+                                    <div class="book-meta">13 chapters</div>
+                                </div>
+                                <div class="book-card">
+                                    <div class="book-title">📜 Revelation</div>
+                                    <div class="book-meta">22 chapters</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="scripture-content" style="height: calc(100% - 560px);">
+                        <div class="verse">
+                            <span class="verse-number">4</span>
+                            They are to train the young women...
+                        </div>
+                    </div>
+                </div>
+                <p class="demo-label">Expanded - Reusing Existing BookSelector</p>
+            </div>
+
+            <!-- State 3: Alternative Fused Design -->
+            <div>
+                <div class="mobile-frame">
+                    <div class="status-bar">9:41 AM</div>
+                    <div class="nav-header">
+                        <div class="breadcrumbs">
+                            <div class="fused-bcv-pill" style="margin-right: auto;">📖 ULT • 🏝️ Tit 2:4</div>
+                            <div class="breadcrumb-item">🌐 EN</div>
+                        </div>
+                    </div>
+                    
+                    <div class="scripture-content">
+                        <div class="verse">
+                            <span class="verse-number">3</span>
+                            Older women likewise are to be reverent in behavior...
+                        </div>
+                        <div class="verse">
+                            <span class="verse-number">4</span>
+                            They are to train the young women to love their husbands and children...
+                        </div>
+                    </div>
+                </div>
+                <p class="demo-label">Ultra-Compact - Resource + Book + Chapter:Verse</p>
+            </div>
+
+            <!-- State 4: Desktop View -->
+            <div style="width: 600px; height: 400px; border: 2px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-background);">
+                <div class="nav-header">
+                    <div class="breadcrumbs">
+                        <div class="breadcrumb-item">🌐 English</div>
+                        <div class="breadcrumb-item">📖 ULT</div>
+                        <div class="fused-bcv-pill open">🏝️ Tit 2:4</div>
+                    </div>
+                </div>
+                
+                <div class="slide-down-container open">
+                    <div class="book-selector">
+                        <div class="book-grid" style="grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));">
+                            <div class="book-card">
+                                <div class="book-title">📜 Genesis</div>
+                                <div class="book-meta">50 ch</div>
+                            </div>
+                            <div class="book-card">
+                                <div class="book-title">📜 Exodus</div>
+                                <div class="book-meta">40 ch</div>
+                            </div>
+                            <div class="book-card expanded current">
+                                <div class="book-title">🏝️ Titus</div>
+                                <div class="book-meta">3 chapters</div>
+                                <div class="chapter-grid-inline" style="grid-template-columns: repeat(3, 1fr);">
+                                    <div class="chapter-btn-inline">1</div>
+                                    <div class="chapter-btn-inline current">2</div>
+                                    <div class="chapter-btn-inline">3</div>
+                                </div>
+                            </div>
+                            <div class="book-card">
+                                <div class="book-title">📚 Hebrews</div>
+                                <div class="book-meta">13 ch</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="demo-label">Desktop - Same Pattern, More Space</p>
+        </div>
+
+        <div class="comparison">
+            <div class="before">
+                <h4>❌ Previous Approach</h4>
+                <ul>
+                    <li>Custom modal component</li>
+                    <li>Desktop-centric overlay</li>
+                    <li>New code to maintain</li>
+                    <li>4 separate breadcrumb items</li>
+                    <li>Confusing C:V → Book navigation</li>
+                </ul>
+            </div>
+            <div class="after">
+                <h4>✅ Improved Approach</h4>
+                <ul>
+                    <li>Reuses existing BookSelector</li>
+                    <li>Mobile-first slide-down pattern</li>
+                    <li>Zero new components needed</li>
+                    <li>Single fused breadcrumb element</li>
+                    <li>Intuitive book + chapter access</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature-list">
+            <h3>Key Benefits of This Approach</h3>
+            <ul>
+                <li><strong>Reuses Existing Components:</strong> BookSelector already has chapter selection built-in</li>
+                <li><strong>Mobile-First Design:</strong> Slide-down pattern matches existing navigation steps</li>
+                <li><strong>Space Efficient:</strong> Fused breadcrumb saves 75% of horizontal space</li>
+                <li><strong>Auto-Focused:</strong> Current book expanded by default with chapters visible</li>
+                <li><strong>Quick Book Switching:</strong> See all books and chapters in one view</li>
+                <li><strong>Consistent UX:</strong> Same interaction pattern as language/resource selection</li>
+                <li><strong>Zero New Code:</strong> Just modify existing components instead of building new ones</li>
+                <li><strong>Responsive:</strong> Works perfectly on mobile and desktop</li>
+            </ul>
+        </div>
+
+        <div class="feature-list">
+            <h3>Fused Breadcrumb Options</h3>
+            <ul>
+                <li><strong>Option 1:</strong> `🏝️ Tit 2:4` - Book emoji + abbreviated name + chapter:verse</li>
+                <li><strong>Option 2:</strong> `📖 ULT • 🏝️ Tit 2:4` - Resource + book + chapter:verse</li>
+                <li><strong>Option 3:</strong> `Titus 2:4` - Simple text-only approach</li>
+                <li><strong>Option 4:</strong> `🏝️ Tit 2` - Just book + chapter (verse in content)</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 60px; padding: 40px; background: var(--color-surface); border-radius: var(--radius-lg); text-align: center;">
+            <h2 style="color: var(--color-primary);">Recommendation: Slide-Down + Fused Breadcrumb</h2>
+            <p style="max-width: 600px; margin: 20px auto; line-height: 1.6;">
+                This approach reuses proven components, follows existing UX patterns, and dramatically reduces UI clutter. 
+                The slide-down navigation feels natural on mobile, and the fused breadcrumb saves precious screen space 
+                while maintaining full functionality.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -47,7 +47,7 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
     activateResource('words');
     activateResource('links');
     setHasTriedLoading(true);
-  }, [activateResource]);
+  }, []); // Empty dependency array - only run once on mount
 
   const words = resources.words || [];
   const links = resources.links || [];
@@ -250,14 +250,14 @@ export function TranslationWordsPanel({ reference, onWordClick }) {
       </h3>
 
       <div className={styles.wordsList}>
-        {words.map((word) => {
+        {words.map((word, index) => {
           const isClickable = onWordClick || (handleRcLinkClick && word.rcUri);
           // Use existing summary if available, otherwise extract from content
           const summary = word.summary || extractSummary(word.content);
           
           return (
             <div
-              key={word.id}
+              key={`word-${index}-${word.id || word.title || word.term || 'unknown'}`}
               className={`${styles.wordCard} ${!isClickable ? styles.nonClickable : ""}`}
               onClick={() => handleWordClick(word)}
             >

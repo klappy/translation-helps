@@ -89,6 +89,24 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+.bookItem.current {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.bookItem.current:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.bookItem.current .bookName,
+.bookItem.current .bookId {
+  color: var(--color-text-on-primary);
+}
+
+.bookItem.current .bookArrow {
+  color: var(--color-text-on-primary);
+}
+
 .bookInfo {
   display: flex;
   flex-direction: column;
@@ -127,6 +145,27 @@
   flex: 1;
 }
 
+.closeButton {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 14px;
+}
+
+.closeButton:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+  color: var(--color-text);
+}
+
 .manifestIndicator {
   font-size: 0.875rem;
   font-weight: 400;
@@ -139,6 +178,19 @@
   font-weight: 400;
   color: var(--color-text-muted);
   opacity: 0.8;
+}
+
+/* Fix contrast for chapter count when on selected book */
+.bookItem.current .chapterCount {
+  color: var(--color-text-on-primary);
+  opacity: 1;
+}
+
+.currentIndicator {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-on-primary);
+  opacity: 0.9;
 }
 
 /* Chapter Grid (expandable) */
@@ -185,6 +237,20 @@
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.chapterButton.currentChapter {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  box-shadow: 0 2px 8px rgba(193, 215, 46, 0.3);
+}
+
+.chapterButton.currentChapter:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  transform: translateY(-1px);
 }
 
 /* Slide down animation for chapter grid */

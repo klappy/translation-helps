@@ -3,7 +3,7 @@
  * Book selection component with expandable inline chapter selection
  * Uses manifest data to show only available books
  */
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useEffect, useRef } from 'react';
 import { AVAILABLE_BOOKS } from '../../../utils/defaultReference';
 import { ReferenceContext } from '../../../context/ReferenceContext';
 // Note: ManifestsContext removed - now using resource data from ReferenceContext
@@ -22,10 +22,21 @@ const getBookCategory = (book) => {
   return otBooks.includes(book.id) ? 'Old Testament' : 'New Testament';
 };
 
-export function BookSelector({ onSelect, onBack }) {
+export function BookSelector({ 
+  onSelect, 
+  onBack, 
+  autoExpandCurrent = false,
+  currentBookId = null,
+  currentChapter = null,
+  showChapterSelection = false 
+}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortMode, setSortMode] = useState('traditional'); // 'traditional' or 'alphabetical'
-  const [expandedBook, setExpandedBook] = useState(null); // Track which book is expanded
+  const [expandedBook, setExpandedBook] = useState(
+    autoExpandCurrent && currentBookId ? currentBookId : null
+  ); // Track which book is expanded
+  
+  const currentBookRef = useRef(null); // Ref to scroll to current book
 
   const { languageId, getResourceId, getResourceOrganization, currentResourceData } = useContext(ReferenceContext);
 
@@ -149,6 +160,19 @@ export function BookSelector({ onSelect, onBack }) {
     return groups;
   }, [filteredBooks]);
 
+  // Auto-scroll to current book when component opens
+  useEffect(() => {
+    if (autoExpandCurrent && currentBookId && currentBookRef.current) {
+      // Small delay to ensure the component is fully rendered
+      setTimeout(() => {
+        currentBookRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 100);
+    }
+  }, [autoExpandCurrent, currentBookId]);
+
   // Show loading state if resource data is not available
   if (!resourceAvailable) {
     return (
@@ -169,18 +193,18 @@ export function BookSelector({ onSelect, onBack }) {
     <div className={styles.selectorContainer}>
       {/* Header */}
       <div className={styles.header}>
-        <button onClick={onBack} className={styles.backButton}>
-          ← Back
-        </button>
+        <div className={styles.spacer} />
         <h3 className={styles.title}>
-          Select Book
+          Select Book & Chapter
           {currentResourceData && (
             <span className={styles.resourceIndicator}>
               ({availableBooks.length} available)
             </span>
           )}
         </h3>
-        <div className={styles.spacer} />
+        <button onClick={onBack} className={styles.closeButton}>
+          ✕
+        </button>
       </div>
 
       {/* Search */}
@@ -221,10 +245,16 @@ export function BookSelector({ onSelect, onBack }) {
               </div>
               
               {books.map(book => (
-                <div key={book.id} className={styles.bookSection}>
+                <div 
+                  key={book.id} 
+                  className={styles.bookSection}
+                  ref={currentBookId === book.id ? currentBookRef : null}
+                >
                   <button
                     onClick={() => handleBookClick(book)}
-                    className={`${styles.bookItem} ${expandedBook === book.id ? styles.expanded : ''}`}
+                    className={`${styles.bookItem} ${expandedBook === book.id ? styles.expanded : ''} ${
+                      currentBookId === book.id ? styles.current : ''
+                    }`}
                   >
                     <div className={styles.bookInfo}>
                       <div className={styles.bookName}>
@@ -243,15 +273,22 @@ export function BookSelector({ onSelect, onBack }) {
                   {/* Expandable Chapter Grid */}
                   {expandedBook === book.id && (
                     <div className={styles.chapterGrid}>
-                      {Array.from({ length: getMaxChaptersForBook(book.id) }, (_, i) => i + 1).map(chapterNum => (
-                        <button
-                          key={chapterNum}
-                          onClick={() => handleChapterSelect(book.id, chapterNum)}
-                          className={styles.chapterButton}
-                        >
-                          {chapterNum}
-                        </button>
-                      ))}
+                      {Array.from({ length: getMaxChaptersForBook(book.id) }, (_, i) => i + 1).map(chapterNum => {
+                        // Debug: Check types and values
+                        const isCurrentChapter = currentBookId === book.id && Number(currentChapter) === chapterNum;
+                        
+                        return (
+                          <button
+                            key={chapterNum}
+                            onClick={() => handleChapterSelect(book.id, chapterNum)}
+                            className={`${styles.chapterButton} ${
+                              isCurrentChapter ? styles.currentChapter : ''
+                            }`}
+                          >
+                            {chapterNum}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

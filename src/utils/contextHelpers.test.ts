@@ -102,7 +102,7 @@ describe('contextHelpers - New URL Format', () => {
       expect(context).toEqual({
         hasUrlParams: true,
         isNewFormat: true,
-        reference: { bookId: 'tit', chapter: '1', verse: '1' },
+        reference: { bookId: 'tit', chapter: 1, verse: 1 },
         scriptures: ['/unfoldingWord/en/ult/tit/1/1'],
         resources: ['/Door43-Catalog/es/tn/', '/unfoldingWord/fr/tq/'],
         organization: 'unfoldingWord',
@@ -122,7 +122,7 @@ describe('contextHelpers - New URL Format', () => {
         organization: 'unfoldingWord',
         languageId: 'en',
         resourceId: 'ult',
-        reference: { bookId: 'tit', chapter: '1', verse: '1' },
+        reference: { bookId: 'tit', chapter: 1, verse: 1 },
         scriptures: [],
         resources: []
       });
@@ -163,9 +163,46 @@ describe('contextHelpers - Legacy Format', () => {
     expect(context.resourceId).toBe('tn');
     expect(context.reference).toEqual({
       bookId: 'gen',
-      chapter: '1',
-      verse: '1'
+      chapter: 1,
+      verse: 1
     });
     expect(context.isNewFormat).toBe(false);
+  });
+
+  it('should parse chapter and verse as integers to prevent string concatenation bug', () => {
+    window.location.search = '?owner=unfoldingWord&rc=/en/ult/tit/4/1';
+
+    const context = contextFromQuery();
+
+    expect(context.reference.chapter).toBe(4);
+    expect(context.reference.verse).toBe(1);
+    expect(typeof context.reference.chapter).toBe('number');
+    expect(typeof context.reference.verse).toBe('number');
+  });
+
+  it('should handle new format integer parsing correctly', () => {
+    window.location.search = '?scriptures=[/unfoldingWord/en/ult/tit/4/1]';
+
+    const context = contextFromQuery();
+
+    expect(context.reference.chapter).toBe(4);
+    expect(context.reference.verse).toBe(1);
+    expect(typeof context.reference.chapter).toBe('number');
+    expect(typeof context.reference.verse).toBe('number');
+  });
+
+  it('should prevent the 4:1 -> 41 navigation bug', () => {
+    // Test the specific case that was causing the bug
+    window.location.search = '?owner=unfoldingWord&rc=/en/ult/tit/4/1';
+
+    const context = contextFromQuery();
+
+    // Simulate chapter navigation logic
+    const currentChapter = parseInt(context.reference.chapter, 10) || 1;
+    const nextChapter = currentChapter + 1;
+
+    expect(currentChapter).toBe(4);
+    expect(nextChapter).toBe(5); // Should be 5, not 41
+    expect(nextChapter.toString()).toBe('5'); // Ensure it stringifies correctly
   });
 }); 

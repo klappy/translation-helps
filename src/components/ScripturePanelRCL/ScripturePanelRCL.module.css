@@ -158,3 +158,142 @@
   color: var(--color-text-muted);
   font-style: italic;
 }
+
+/* Scripture swipe container */
+.scriptureSwipeContainer {
+  height: 100%;
+  overflow: auto;
+  touch-action: pan-y; /* Allow vertical scrolling, enable horizontal swipe detection */
+  position: relative;
+}
+
+/* Chapter Navigation Floating Action Buttons */
+.chapterNavFabs {
+  position: fixed !important;
+  bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0;
+  z-index: 9999; /* Highest z-index to ensure visibility */
+  pointer-events: none; /* Allow clicks to pass through container */
+  /* Positioning and width will be set dynamically via JavaScript */
+  transform: translateZ(0); /* Force hardware acceleration */
+  backface-visibility: hidden; /* Prevent flicker */
+}
+
+.fabButton {
+  pointer-events: auto; /* Re-enable clicks on buttons */
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all var(--transition-fast);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.fabButton:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.fabButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.fabButton:disabled {
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.fabPrevious {
+  /* Additional styles for previous button if needed */
+}
+
+.fabNext {
+  /* Additional styles for next button if needed */
+}
+
+/* Mobile adjustments for FABs */
+@media (max-width: 768px) {
+  .chapterNavFabs {
+    bottom: 15px;
+  }
+  
+  .fabButton {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+}
+
+/* Desktop adjustments for FABs */
+@media (min-width: 769px) {
+  .chapterNavFabs {
+    bottom: 30px;
+  }
+  
+  .fabButton {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .fabButton:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* Chapter slide animations */
+.slideLeft {
+  animation: slideOutLeft 0.3s ease-out;
+}
+
+.slideRight {
+  animation: slideOutRight 0.3s ease-out;
+}
+
+@keyframes slideOutLeft {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-20px);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(20px);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

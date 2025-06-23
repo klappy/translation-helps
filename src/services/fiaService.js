@@ -12,6 +12,10 @@ const DCS_BASE_URL = 'https://git.door43.org';
 // Cache for metadata.json files
 const metadataCache = new Map();
 
+// Cache for FIA resource discovery to prevent duplicate API calls
+const discoveryCache = new Map();
+const activeDiscoveryRequests = new Map();
+
 /**
  * Fetch and parse Scripture Burrito metadata.json
  * @param {string} metadataUrl - URL to metadata.json file
@@ -47,6 +51,34 @@ async function fetchMetadata(metadataUrl) {
  * @returns {Promise<Object>} Available FIA resources
  */
 export async function discoverFiaResources(language = 'en') {
+  const cacheKey = `fia-discovery-${language}`;
+  
+  // Return cached result if available
+  if (discoveryCache.has(cacheKey)) {
+    console.log(`🔄 FIA: Using cached discovery for ${language}`);
+    return discoveryCache.get(cacheKey);
+  }
+  
+  // If there's an active request for this language, wait for it
+  if (activeDiscoveryRequests.has(cacheKey)) {
+    console.log(`⏳ FIA: Waiting for active discovery request for ${language}`);
+    return await activeDiscoveryRequests.get(cacheKey);
+  }
+  
+  // Create new discovery request
+  const discoveryPromise = _discoverFiaResourcesInternal(language);
+  activeDiscoveryRequests.set(cacheKey, discoveryPromise);
+  
+  try {
+    const result = await discoveryPromise;
+    discoveryCache.set(cacheKey, result);
+    return result;
+  } finally {
+    activeDiscoveryRequests.delete(cacheKey);
+  }
+}
+
+async function _discoverFiaResourcesInternal(language = 'en') {
   try {
     console.log(`🔍 FIA: Discovering resources for ${language}`);
     

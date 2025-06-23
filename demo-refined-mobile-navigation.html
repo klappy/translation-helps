@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refined Mobile Navigation - C:V Pill & FAB Pattern</title>
+    <style>
+        :root {
+            --color-primary: #c1d72e;
+            --color-primary-light: #d1e74e;
+            --color-primary-dark: #a1c70e;
+            --color-background: #000000;
+            --color-surface: #1a1a1a;
+            --color-surface-hover: #2d2d2d;
+            --color-surface-secondary: #2a2a2a;
+            --color-border: #333333;
+            --color-text: #ffffff;
+            --color-text-muted: #999999;
+            --color-text-on-primary: #000000;
+            --spacing-1: 4px;
+            --spacing-2: 8px;
+            --spacing-3: 12px;
+            --spacing-4: 16px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-full: 9999px;
+            --transition-fast: 150ms ease-in-out;
+            --transition-normal: 250ms ease-in-out;
+            --shadow-lg: 0 4px 16px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0a0a0a;
+            color: var(--color-text);
+            margin: 0;
+            padding: 20px 0;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            color: var(--color-primary);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--color-text-muted);
+            margin-bottom: 40px;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+            gap: 40px;
+            justify-items: center;
+        }
+
+        /* Mobile Frame */
+        .mobile-frame {
+            width: 375px;
+            height: 812px;
+            border: 2px solid var(--color-border);
+            border-radius: 30px;
+            overflow: hidden;
+            background: var(--color-background);
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-bar {
+            height: 44px;
+            background: var(--color-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--color-text-muted);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        /* Navigation Header */
+        .nav-header {
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            padding: 12px;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: var(--color-background);
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            border: 1px solid var(--color-border);
+        }
+
+        /* C:V Pill - Expandable */
+        .cv-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: all var(--transition-fast);
+        }
+
+        .cv-pill:hover {
+            background: var(--color-primary-dark);
+            transform: scale(1.05);
+        }
+
+        .cv-pill::after {
+            content: "▼";
+            font-size: 10px;
+            margin-left: 2px;
+            opacity: 0.8;
+        }
+
+        /* Chapter Selector Overlay */
+        .chapter-overlay {
+            position: absolute;
+            top: 100px;
+            left: 12px;
+            right: 12px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .chapter-overlay.open {
+            display: block;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chapter-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            padding: 16px;
+        }
+
+        .chapter-btn {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .chapter-btn:hover {
+            background: var(--color-surface-hover);
+            border-color: var(--color-primary);
+            transform: scale(1.1);
+        }
+
+        .chapter-btn.active {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-color: var(--color-primary);
+        }
+
+        /* Scripture Content */
+        .scripture-content {
+            padding: 16px;
+            padding-bottom: 120px; /* Extra padding for FAB */
+            overflow-y: auto;
+            height: calc(100% - 100px);
+        }
+
+        .verse {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .verse-number {
+            color: var(--color-primary);
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        /* Swipe Indicator */
+        .swipe-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(193, 215, 46, 0.9);
+            color: var(--color-text-on-primary);
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .swipe-indicator.left {
+            left: 20px;
+        }
+
+        .swipe-indicator.right {
+            right: 20px;
+        }
+
+        .swipe-indicator.show {
+            opacity: 1;
+        }
+
+        /* FAB System */
+        .fab-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+        }
+
+        .fab-main {
+            width: 56px;
+            height: 56px;
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            position: relative;
+            z-index: 2;
+        }
+
+        .fab-main:hover {
+            transform: scale(1.1);
+            background: var(--color-primary-dark);
+        }
+
+        .fab-main.open {
+            transform: rotate(45deg);
+        }
+
+        /* FAB Menu Items */
+        .fab-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all var(--transition-normal);
+        }
+
+        .fab-menu.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .fab-item {
+            width: 48px;
+            height: 48px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            transform: scale(0);
+        }
+
+        .fab-menu.open .fab-item {
+            transform: scale(1);
+        }
+
+        .fab-menu.open .fab-item:nth-child(1) {
+            transition-delay: 0ms;
+        }
+
+        .fab-menu.open .fab-item:nth-child(2) {
+            transition-delay: 50ms;
+        }
+
+        .fab-menu.open .fab-item:nth-child(3) {
+            transition-delay: 100ms;
+        }
+
+        .fab-menu.open .fab-item:nth-child(4) {
+            transition-delay: 150ms;
+        }
+
+        .fab-item:hover {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            transform: scale(1.1);
+        }
+
+        /* FAB Labels */
+        .fab-label {
+            position: absolute;
+            right: 60px;
+            background: var(--color-surface-secondary);
+            color: var(--color-text);
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition-fast);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .fab-item:hover .fab-label {
+            opacity: 1;
+        }
+
+        /* Attribution Footer */
+        .attribution {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--color-text-muted);
+            text-align: center;
+        }
+
+        /* Demo Labels */
+        .demo-label {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--color-text-muted);
+            font-size: 14px;
+        }
+
+        .feature-list {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .feature-list h3 {
+            color: var(--color-primary);
+            margin-bottom: 16px;
+        }
+
+        .feature-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: var(--color-primary);
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        /* Interaction hints */
+        .interaction-hint {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .interaction-hint.show {
+            opacity: 1;
+        }
+
+        /* Verse selection for context */
+        .verse.selected {
+            background: rgba(193, 215, 46, 0.1);
+            border-left: 3px solid var(--color-primary);
+            padding-left: 13px;
+            margin-left: -16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>Refined Mobile Navigation</h1>
+        <p class="subtitle">C:V Pill Expansion + Swipe Gestures + FAB for Translation Helps</p>
+
+        <div class="demo-grid">
+            <!-- State 1: Default View -->
+            <div>
+                <div class="mobile-frame">
+                    <div class="status-bar">9:41 AM</div>
+                    <div class="nav-header">
+                        <div class="breadcrumbs">
+                            <div class="breadcrumb-item">🌐 English</div>
+                            <div class="breadcrumb-item">📖 ULT</div>
+                            <div class="breadcrumb-item">📜 Genesis</div>
+                            <div class="cv-pill">3:16</div>
+                        </div>
+                    </div>
+                    
+                    <div class="scripture-content">
+                        <div class="verse">
+                            <span class="verse-number">14</span>
+                            The LORD God said to the serpent, "Because you have done this, cursed are you above all livestock and above all beasts of the field..."
+                        </div>
+                        <div class="verse">
+                            <span class="verse-number">15</span>
+                            I will put enmity between you and the woman, and between your offspring and her offspring; he shall bruise your head, and you shall bruise his heel."
+                        </div>
+                        <div class="verse selected">
+                            <span class="verse-number">16</span>
+                            To the woman he said, "I will surely multiply your pain in childbearing; in pain you shall bring forth children..."
+                        </div>
+                        <div class="verse">
+                            <span class="verse-number">17</span>
+                            And to Adam he said, "Because you have listened to the voice of your wife and have eaten of the tree..."
+                        </div>
+                    </div>
+
+                    <!-- FAB System -->
+                    <div class="fab-container">
+                        <div class="fab-menu">
+                            <div class="fab-item">
+                                <span>💬</span>
+                                <div class="fab-label">AI Assistant</div>
+                            </div>
+                            <div class="fab-item">
+                                <span>❓</span>
+                                <div class="fab-label">Questions</div>
+                            </div>
+                            <div class="fab-item">
+                                <span>📝</span>
+                                <div class="fab-label">Notes</div>
+                            </div>
+                            <div class="fab-item">
+                                <span>📚</span>
+                                <div class="fab-label">Words</div>
+                            </div>
+                        </div>
+                        <div class="fab-main">+</div>
+                    </div>
+
+                    <div class="attribution">
+                        ULT • unfoldingWord • CC BY-SA 4.0
+                    </div>
+                </div>
+                <p class="demo-label">Default View - Compact C:V Pill</p>
+            </div>
+
+            <!-- State 2: Chapter Selector Open -->
+            <div>
+                <div class="mobile-frame">
+                    <div class="status-bar">9:41 AM</div>
+                    <div class="nav-header">
+                        <div class="breadcrumbs">
+                            <div class="breadcrumb-item">🌐 English</div>
+                            <div class="breadcrumb-item">📖 ULT</div>
+                            <div class="breadcrumb-item">📜 Genesis</div>
+                            <div class="cv-pill" style="background: var(--color-primary-dark);">3:16</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chapter Overlay -->
+                    <div class="chapter-overlay open">
+                        <div class="chapter-grid">
+                            <div class="chapter-btn">1</div>
+                            <div class="chapter-btn">2</div>
+                            <div class="chapter-btn active">3</div>
+                            <div class="chapter-btn">4</div>
+                            <div class="chapter-btn">5</div>
+                            <div class="chapter-btn">6</div>
+                            <div class="chapter-btn">7</div>
+                            <div class="chapter-btn">8</div>
+                            <div class="chapter-btn">9</div>
+                            <div class="chapter-btn">10</div>
+                            <div class="chapter-btn">11</div>
+                            <div class="chapter-btn">12</div>
+                            <div class="chapter-btn">13</div>
+                            <div class="chapter-btn">14</div>
+                            <div class="chapter-btn">15</div>
+                            <div class="chapter-btn">16</div>
+                            <div class="chapter-btn">17</div>
+                            <div class="chapter-btn">18</div>
+                            <div class="chapter-btn">19</div>
+                            <div class="chapter-btn">20</div>
+                            <div class="chapter-btn">21</div>
+                            <div class="chapter-btn">22</div>
+                            <div class="chapter-btn">23</div>
+                            <div class="chapter-btn">24</div>
+                            <div class="chapter-btn">25</div>
+                            <div class="chapter-btn">26</div>
+                            <div class="chapter-btn">27</div>
+                            <div class="chapter-btn">28</div>
+                            <div class="chapter-btn">29</div>
+                            <div class="chapter-btn">30</div>
+                            <div class="chapter-btn">31</div>
+                            <div class="chapter-btn">32</div>
+                            <div class="chapter-btn">33</div>
+                            <div class="chapter-btn">34</div>
+                            <div class="chapter-btn">35</div>
+                            <div class="chapter-btn">36</div>
+                            <div class="chapter-btn">37</div>
+                            <div class="chapter-btn">38</div>
+                            <div class="chapter-btn">39</div>
+                            <div class="chapter-btn">40</div>
+                            <div class="chapter-btn">41</div>
+                            <div class="chapter-btn">42</div>
+                            <div class="chapter-btn">43</div>
+                            <div class="chapter-btn">44</div>
+                            <div class="chapter-btn">45</div>
+                            <div class="chapter-btn">46</div>
+                            <div class="chapter-btn">47</div>
+                            <div class="chapter-btn">48</div>
+                            <div class="chapter-btn">49</div>
+                            <div class="chapter-btn">50</div>
+                        </div>
+                    </div>
+                    
+                    <div class="scripture-content" style="opacity: 0.3;">
+                        <div class="verse">
+                            <span class="verse-number">14</span>
+                            The LORD God said to the serpent...
+                        </div>
+                    </div>
+
+                    <div class="fab-container">
+                        <div class="fab-main">+</div>
+                    </div>
+
+                    <div class="attribution">
+                        ULT • unfoldingWord • CC BY-SA 4.0
+                    </div>
+                </div>
+                <p class="demo-label">C:V Pill Clicked - Chapter Selector</p>
+            </div>
+
+            <!-- State 3: Swipe Gesture -->
+            <div>
+                <div class="mobile-frame">
+                    <div class="status-bar">9:41 AM</div>
+                    <div class="nav-header">
+                        <div class="breadcrumbs">
+                            <div class="breadcrumb-item">🌐 English</div>
+                            <div class="breadcrumb-item">📖 ULT</div>
+                            <div class="breadcrumb-item">📜 Genesis</div>
+                            <div class="cv-pill">3:16</div>
+                        </div>
+                    </div>
+                    
+                    <div class="scripture-content">
+                        <div class="verse">
+                            <span class="verse-number">14</span>
+                            The LORD God said to the serpent...
+                        </div>
+                    </div>
+
+                    <!-- Swipe Indicators -->
+                    <div class="swipe-indicator left show">← Chapter 2</div>
+                    <div class="swipe-indicator right show">Chapter 4 →</div>
+
+                    <div class="fab-container">
+                        <div class="fab-main">+</div>
+                    </div>
+
+                    <div class="attribution">
+                        ULT • unfoldingWord • CC BY-SA 4.0
+                    </div>
+                </div>
+                <p class="demo-label">Swipe Gesture Preview</p>
+            </div>
+
+            <!-- State 4: FAB Expanded -->
+            <div>
+                <div class="mobile-frame">
+                    <div class="status-bar">9:41 AM</div>
+                    <div class="nav-header">
+                        <div class="breadcrumbs">
+                            <div class="breadcrumb-item">🌐 English</div>
+                            <div class="breadcrumb-item">📖 ULT</div>
+                            <div class="breadcrumb-item">📜 Genesis</div>
+                            <div class="cv-pill">3:16</div>
+                        </div>
+                    </div>
+                    
+                    <div class="scripture-content">
+                        <div class="verse selected">
+                            <span class="verse-number">16</span>
+                            To the woman he said, "I will surely multiply your pain in childbearing; in pain you shall bring forth children..."
+                        </div>
+                        <div class="verse">
+                            <span class="verse-number">17</span>
+                            And to Adam he said, "Because you have listened to the voice of your wife..."
+                        </div>
+                    </div>
+
+                    <!-- FAB System Expanded -->
+                    <div class="fab-container">
+                        <div class="fab-menu open">
+                            <div class="fab-item">
+                                <span>💬</span>
+                                <div class="fab-label">AI Assistant</div>
+                            </div>
+                            <div class="fab-item">
+                                <span>❓</span>
+                                <div class="fab-label">Questions</div>
+                            </div>
+                            <div class="fab-item">
+                                <span>📝</span>
+                                <div class="fab-label">Notes</div>
+                            </div>
+                            <div class="fab-item">
+                                <span>📚</span>
+                                <div class="fab-label">Words</div>
+                            </div>
+                        </div>
+                        <div class="fab-main open">+</div>
+                    </div>
+
+                    <div class="attribution">
+                        ULT • unfoldingWord • CC BY-SA 4.0
+                    </div>
+                </div>
+                <p class="demo-label">FAB Expanded - Translation Helps</p>
+            </div>
+        </div>
+
+        <div class="feature-list">
+            <h3>Key Features Implemented</h3>
+            <ul>
+                <li><strong>C:V Pill Expansion:</strong> Click the chapter:verse pill to open chapter selector - no more confusing navigation back to books!</li>
+                <li><strong>Existing Component Reuse:</strong> The chapter grid uses the same component as book selection for consistency</li>
+                <li><strong>Swipe Gestures:</strong> Swipe left/right to navigate chapters (like YouVersion Bible App)</li>
+                <li><strong>FAB for Translation Helps:</strong> Floating action button provides quick access to all helps without tabs</li>
+                <li><strong>Smart Padding:</strong> Scripture content has bottom padding to prevent FAB overlap</li>
+                <li><strong>Attribution Relocated:</strong> Moved to fixed footer to ensure consistent spacing</li>
+                <li><strong>Verse Context:</strong> Selected verse is highlighted when accessing helps</li>
+                <li><strong>Smooth Animations:</strong> All interactions have subtle, performant animations</li>
+            </ul>
+        </div>
+
+        <div class="feature-list">
+            <h3>Mobile UX Benefits</h3>
+            <ul>
+                <li><strong>Zero Additional Height:</strong> C:V pill uses existing breadcrumb space</li>
+                <li><strong>Familiar Patterns:</strong> Swipe gestures match popular Bible apps</li>
+                <li><strong>One-Handed Use:</strong> FAB is thumb-accessible in bottom-right</li>
+                <li><strong>No Tab Switching:</strong> All helps accessible from single FAB menu</li>
+                <li><strong>Clean Reading View:</strong> Maximum space for scripture content</li>
+                <li><strong>Progressive Disclosure:</strong> UI elements appear only when needed</li>
+            </ul>
+        </div>
+
+        <div class="feature-list">
+            <h3>Implementation Notes</h3>
+            <ul>
+                <li><strong>Touch Events:</strong> Use native touch events for swipe detection</li>
+                <li><strong>Haptic Feedback:</strong> Subtle vibration on chapter change (if supported)</li>
+                <li><strong>Gesture Hints:</strong> Show swipe indicators on first use</li>
+                <li><strong>FAB State:</strong> Remember open/closed state per session</li>
+                <li><strong>Scroll Position:</strong> Maintain verse position when changing chapters</li>
+                <li><strong>Accessibility:</strong> All gestures have button alternatives</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

@@ -129,8 +129,8 @@ function contextFromQueryNew(scripturesParam, resourcesParam) {
     if (parsed) {
       reference = {
         bookId: parsed.bookId || null,
-        chapter: parsed.chapter || null,
-        verse: parsed.verse || null
+        chapter: parsed.chapter ? parseInt(parsed.chapter, 10) : null,
+        verse: parsed.verse ? parseInt(parsed.verse, 10) : null
       };
       primaryScripture = {
         organization: parsed.organization,
@@ -184,8 +184,8 @@ function contextFromQueryLegacy() {
     resourceId: resourceId,
     reference: {
       bookId: bookId || null,
-      chapter: chapter || null,
-      verse: verse || null,
+      chapter: chapter ? parseInt(chapter, 10) : null,
+      verse: verse ? parseInt(verse, 10) : null,
     },
     // New format compatibility (empty arrays)
     scriptures: [],

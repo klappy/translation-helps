@@ -22,7 +22,7 @@ export const RcLinkContext = createContext();
 
 export function MainView() {
   const { reference, organization, languageId, updateContext, updateResourceInArray } = useContext(ReferenceContext);
-  const { isLoading } = useResourcesContext();
+  // ANTI-FRAGILE: No global loading state - each panel handles its own loading
   // Simple Verse-Loading Pattern: No refs needed - ResourcesContext handles everything
   const [activeHelpsTab, setActiveHelpsTab] = useState("tn");
   const [activeMobileTab, setActiveMobileTab] = useState("scripture");

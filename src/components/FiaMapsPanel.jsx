@@ -27,7 +27,7 @@ export function FiaMapsPanel() {
   // Self-activate FIA resources
   useEffect(() => {
     activateResource('fia');
-  }, [activateResource]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Load chapter maps when reference changes
   useEffect(() => {

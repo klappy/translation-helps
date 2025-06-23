@@ -17,17 +17,16 @@ export function TranslationNotesPanel({ reference }) {
   const [hasTriedLoading, setHasTriedLoading] = useState(false);
   const { handleRcLinkClick } = useContext(RcLinkContext) || {};
 
-  // Self-activate this resource type
+  // Self-activate this resource type (only once on mount)
   useEffect(() => {
-    console.log('🎯 TranslationNotesPanel: Self-activating notes resource');
     activateResource('notes');
     setHasTriedLoading(true);
-  }, [activateResource]);
+  }, []); // Empty dependency array - only run once on mount
 
   const notes = resources.notes || [];
   const hasNotes = notes && notes.length > 0;
 
-  console.log('🎯 TranslationNotesPanel: Rendering with', notes.length, 'notes');
+  // Render with available notes
 
   // Handle breadcrumb navigation
   const handleStartNavigation = (step = 'language') => {

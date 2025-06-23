@@ -22,7 +22,7 @@ export function TWLPanel({ reference }) {
   useEffect(() => {
     console.log('🎯 TWLPanel: Self-activating links resource');
     activateResource('links');
-  }, [activateResource]);
+  }, []); // Empty dependency array - only run once on mount
 
   const links = resources.links || [];
   const hasLinks = links && links.length > 0;

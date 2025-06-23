@@ -22,7 +22,7 @@ export function TranslationQuestionsPanel({ reference }) {
     console.log('🎯 TranslationQuestionsPanel: Self-activating questions resource');
     activateResource('questions');
     setHasTriedLoading(true);
-  }, [activateResource]);
+  }, []); // Empty dependency array - only run once on mount
 
   const questions = resources.questions || [];
   const hasQuestions = questions && questions.length > 0;

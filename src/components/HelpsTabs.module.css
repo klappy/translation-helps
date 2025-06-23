@@ -54,6 +54,9 @@
   min-height: var(--touch-target-min);
   /* Ensure minimum touch target on mobile */
   min-width: var(--touch-target-min);
+  /* CRITICAL: Ensure proper click boundaries */
+  pointer-events: auto;
+  z-index: 1;
 }
 
 .tabButton:hover {
@@ -78,12 +81,7 @@
   background-color: var(--color-primary-hover);
 }
 
-/* Tab Label */
-.tabLabel {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-}
+/* Tab Label - REMOVED: Simplified structure */
 
 /* Count Badge - IMPROVED: Better contrast and color usage */
 .countBadge {
@@ -163,13 +161,7 @@
   position: relative;
 }
 
-/* Icon and text content layout */
-.iconTextContent {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  flex-shrink: 0;
-}
+/* Icon and text content layout - REMOVED: Simplified structure */
 
 /* Desktop and mobile label switching */
 .desktopLabel {
@@ -201,17 +193,13 @@
     min-height: var(--touch-target-min);
   }
 
-  .iconTextContent {
-    gap: var(--spacing-1);
-  }
-
   /* Keep both icon and text visible on tablet */
-  .iconTextContent .desktopLabel {
+  .desktopLabel {
     display: block;
     font-size: var(--font-size-xs);
   }
 
-  .iconTextContent .mobileLabel {
+  .mobileLabel {
     display: none;
   }
 
@@ -232,24 +220,12 @@
     gap: 2px;
   }
 
-  .tabLabel {
-    flex-direction: column;
-    gap: 2px;
-    align-items: center;
-  }
-
-  .iconTextContent {
-    flex-direction: column;
-    gap: 2px;
-    align-items: center;
-  }
-
   /* Switch to mobile labels on very small screens */
-  .iconTextContent .desktopLabel {
+  .desktopLabel {
     display: none !important;
   }
 
-  .iconTextContent .mobileLabel {
+  .mobileLabel {
     display: block !important;
     font-size: 10px;
     line-height: 1;
@@ -271,7 +247,7 @@
     padding: var(--spacing-1);
   }
 
-  .iconTextContent .mobileLabel {
+  .mobileLabel {
     font-size: 9px;
   }
 

@@ -7,7 +7,7 @@
  * PATTERN: Single source of truth with self-activating panels
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { useReferenceContext } from "./ReferenceContext";
 import { loadResourceForType } from "../utils/loadResourceForType";
 
@@ -22,9 +22,18 @@ export const useResourcesContext = () => {
 };
 
 export function ResourcesProvider({ children }) {
-  const { reference, organization, languageId, resourceId } = useReferenceContext();
+  const { 
+    reference, 
+    organization, 
+    languageId, 
+    resourceId,
+    getResourceOrganization,
+    getResourceLanguage, 
+    getResourceId,
+    currentResourceData,
+    mixedResources
+  } = useReferenceContext();
   const [resources, setResources] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
   const [loadingResources, setLoadingResources] = useState(new Set());
   
   // Parse URL parameters for initial active resources and configurations
@@ -51,130 +60,134 @@ export function ResourcesProvider({ children }) {
     return new Set(['scripture', 'notes', 'questions']);
   });
   
-  // Parse URL for resource configurations (cross-organization support)
-  const [resourceConfigs, setResourceConfigs] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const configs = { 
-      scripture: { organization: 'unfoldingWord', languageId: 'en', resourceId: 'ult' } 
-    };
-    
-    // Parse scriptures parameter: [/unfoldingWord/en/ult/tit/1/1]
-    const scripturesParam = params.get('scriptures');
-    if (scripturesParam) {
-      const scriptureMatch = scripturesParam.match(/\[\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(\d+)\/(\d+)\]/);
-      if (scriptureMatch) {
-        const [, org, lang, resource] = scriptureMatch;
-        configs.scripture = { organization: org, languageId: lang, resourceId: resource };
-      }
-    }
-    
-    // Parse resources parameter: [/unfoldingWord/en/tn,/unfoldingWord/en/tq]
-    const resourcesParam = params.get('resources');
-    if (resourcesParam) {
-      const resourceMatches = resourcesParam.match(/\/([^\/,\]]+)\/([^\/,\]]+)\/([^\/,\]]+)/g);
-      if (resourceMatches) {
-        resourceMatches.forEach(match => {
-          const [, org, lang, type] = match.match(/\/([^\/]+)\/([^\/]+)\/([^\/]+)/);
-          // Map URL types to internal types and store configs
-          const resourceType = type === 'tn' ? 'notes' : 
-                              type === 'tq' ? 'questions' : 
-                              type === 'tw' ? 'words' : 
-                              type === 'twl' ? 'links' : 
-                              type;
-          configs[resourceType] = { organization: org, languageId: lang };
-        });
-      }
-    } else {
-      // Default resource configs
-      configs.notes = { organization: 'unfoldingWord', languageId: 'en' };
-      configs.questions = { organization: 'unfoldingWord', languageId: 'en' };
-    }
-    
-    return configs;
-  });
-  
-  // Single useEffect - loads ONLY active resources for current verse
+  // ANTI-FRAGILE: Load resources independently but in one batch to prevent infinite loops
   useEffect(() => {
-    if (!reference?.bookId || !reference?.chapter || !reference?.verse) {
-      // No reference, skipping load
-      setIsLoading(false);
+    if (!reference?.bookId) {
+      setResources({});
       setLoadingResources(new Set());
       return;
     }
     
-    // Set loading state
-    setIsLoading(true);
     const resourcesToLoad = Array.from(activeResources);
-    setLoadingResources(new Set(resourcesToLoad));
-      
-    // Loading resources for verse with active resources
+    if (resourcesToLoad.length === 0) {
+      setLoadingResources(new Set());
+      return;
+    }
     
-    // Load resources with simple config - let services handle their own complexity
+    // Loading resources for current reference
+    
+    // Mark all resources as loading
+    setLoadingResources(new Set(resourcesToLoad));
+    
+    // Load all resources in parallel but update independently - ANTI-FRAGILE
     Promise.allSettled(
-      resourcesToLoad.map(type => {
-        const config = resourceConfigs[type] || { organization: 'unfoldingWord', languageId: 'en' };
-        // Loading resource with config
-        return loadResourceForType(type, reference, config);
-      })
-    ).then(results => {
-      const newResources = {};
-      
-      resourcesToLoad.forEach((type, index) => {
-        const result = results[index];
-        if (result.status === 'fulfilled') {
-          newResources[type] = result.value;
-          // Resource loaded
-        } else {
-          newResources[type] = null;
-          console.error(`❌ ${type} failed:`, result.reason);
+      resourcesToLoad.map(async (type) => {
+        try {
+          // Calculate config directly from state values
+          let resourceOrg = organization;
+          let resourceLang = languageId;
+          let resourceRes = resourceId;
+          
+          // Check mixedResources for overrides
+          if (mixedResources[type]) {
+            resourceOrg = mixedResources[type].organization || resourceOrg;
+            resourceLang = mixedResources[type].languageId || resourceLang;
+            resourceRes = mixedResources[type].resourceId || resourceRes;
+          }
+          
+          // Default resource IDs for translation helps
+          if (type === 'notes') resourceRes = 'tn';
+          else if (type === 'questions') resourceRes = 'tq';
+          else if (type === 'words') resourceRes = 'tw';
+          else if (type === 'links') resourceRes = 'twl';
+          
+          const config = {
+            organization: resourceOrg,
+            languageId: resourceLang,
+            resourceId: resourceRes
+          };
+          
+          // Add resource data if available for scripture
+          if (type === 'scripture' && currentResourceData) {
+            config.resourceData = currentResourceData;
+          }
+          
+          // Loading resource configuration
+          
+          const result = await loadResourceForType(type, reference, config);
+          
+          // Update this resource immediately when it loads - ANTI-FRAGILE
+          setResources(prev => ({
+            ...prev,
+            [type]: result,
+            reference: {
+              bookId: reference.bookId,
+              chapter: reference.chapter,
+              verse: reference.verse,
+              citation: `${reference.bookId} ${reference.chapter}:${reference.verse}`
+            }
+          }));
+          
+          // Remove from loading immediately when done
+          setLoadingResources(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(type);
+            return newSet;
+          });
+          
+          // Resource loaded successfully
+          return { type, result };
+          
+        } catch (error) {
+          // Resource loading failed - continue with others
+          
+          // Set failed resource to null immediately - ANTI-FRAGILE
+          setResources(prev => ({
+            ...prev,
+            [type]: null
+          }));
+          
+          // Remove from loading even if failed
+          setLoadingResources(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(type);
+            return newSet;
+          });
+          
+          return { type, result: null, error };
         }
-      });
-      
-      // Add reference metadata for LLM context
-      newResources.reference = {
-        bookId: reference.bookId,
-        chapter: reference.chapter,
-        verse: reference.verse,
-        citation: `${reference.bookId} ${reference.chapter}:${reference.verse}`
-      };
-      
-      // Setting new resources
-      setResources(newResources);
-      setIsLoading(false);
+      })
+    ).then(() => {
+      // Final cleanup - ensure loading state is clear
       setLoadingResources(new Set());
-    }).catch(error => {
-      console.error('❌ ResourcesContext: Failed to load resources:', error);
-      setIsLoading(false);
-      setLoadingResources(new Set());
+      // All resources processed
     });
-  }, [reference?.bookId, reference?.chapter, activeResources]); // Only reload on book/chapter change, not verse
+  }, [reference?.bookId, reference?.chapter, reference?.verse, activeResources, organization, languageId, resourceId, currentResourceData, mixedResources]); // Watch full reference for chapter/verse changes
   
   // Panel self-activation: Panels can request resources they need
   const activateResource = useCallback((resourceType) => {
-    // Activating resource type
     setActiveResources(prev => {
       // Only trigger update if the resource isn't already active
       if (prev.has(resourceType)) {
-        // Resource already active, skipping
         return prev; // No change, won't trigger useEffect
       }
       
+      // Activating new resource type
       const newSet = new Set(prev);
       newSet.add(resourceType);
       return newSet;
     });
-  }, []);
+  }, []); // Empty dependency array to prevent recreation
   
-  return (
-    <ResourcesContext.Provider value={{ 
-      resources, 
-      activateResource, 
-      isLoading, 
-      loadingResources 
-    }}>
-      {children}
-    </ResourcesContext.Provider>
-  );
+      return (
+      <ResourcesContext.Provider value={{ 
+        resources, 
+        activateResource, 
+        loadingResources 
+      }}>
+        {children}
+      </ResourcesContext.Provider>
+    );
 }
 
 // Legacy exports for compatibility during transition

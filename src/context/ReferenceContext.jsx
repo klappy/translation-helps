@@ -4,7 +4,7 @@
  * Enhanced with cross-organization resource support and new URL format
  */
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { DEFAULT_REFERENCE } from "../utils/defaultReference";
 import { updateQueryFromContext, contextFromQuery, buildResourcePath } from "../utils/contextHelpers";
 import logger from '../utils/logger';
@@ -277,7 +277,7 @@ export function ReferenceProvider({ children }) {
   };
 
   // Helper function to get resource data for a specific type from arrays
-  const getResourceFromArray = (resourceType) => {
+  const getResourceFromArray = useCallback((resourceType) => {
     // Check resources array first (contains string paths)
     const resourcePath = resources.find(r => typeof r === 'string' && r.includes(`/${resourceType}/`));
     if (resourcePath) {
@@ -308,7 +308,7 @@ export function ReferenceProvider({ children }) {
     
     // Fall back to mixedResources
     return mixedResources[resourceType];
-  };
+  }, [resources, scriptures, mixedResources]);
 
   // Update context with backward compatibility
   const updateContext = (updates) => {
@@ -427,7 +427,7 @@ export function ReferenceProvider({ children }) {
   };
 
   // Helper function to get the effective organization for a resource type
-  const getResourceOrganization = (resourceType = 'scripture') => {
+  const getResourceOrganization = useCallback((resourceType = 'scripture') => {
     // Check new format first
     const resourceFromArray = getResourceFromArray(resourceType);
     if (resourceFromArray?.organization) {
@@ -447,10 +447,10 @@ export function ReferenceProvider({ children }) {
     
     // Fall back to global organization
     return organization;
-  };
+  }, [organization, resourceOrganization, mixedResources, resources, scriptures]);
 
   // Helper function to get the effective language for a resource type
-  const getResourceLanguage = (resourceType = 'scripture') => {
+  const getResourceLanguage = useCallback((resourceType = 'scripture') => {
     // Check new format first
     const resourceFromArray = getResourceFromArray(resourceType);
     if (resourceFromArray?.languageId) {
@@ -464,10 +464,10 @@ export function ReferenceProvider({ children }) {
     
     // Fall back to global language
     return languageId;
-  };
+  }, [languageId, mixedResources, resources, scriptures]);
 
   // Helper function to get the effective resource ID for a resource type
-  const getResourceId = (resourceType = 'scripture') => {
+  const getResourceId = useCallback((resourceType = 'scripture') => {
     // Check new format first
     const resourceFromArray = getResourceFromArray(resourceType);
     if (resourceFromArray?.resourceId) {
@@ -488,7 +488,7 @@ export function ReferenceProvider({ children }) {
     };
     
     return defaultResourceIds[resourceType] || resourceId;
-  };
+  }, [resourceId, advancedMode, mixedResources, resources, scriptures]);
 
   // Helper function to check if we're using mixed organizations
   const isUsingMixedOrganizations = () => {

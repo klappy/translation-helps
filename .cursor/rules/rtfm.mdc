@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# READ THE Freaking Manual!
+
+There are docs, starting with the README.md and AGENTS.md that guide you to every other document, ARCHITECTURE.md, and the plethora of docs in the /docs folder! 
+
+## DO NOT DEVIATE FROM DECISIONS MADE!
+
+Everything was written for a reason! Follow the docs! Consult the user for confirmation if you need to violate it and recommend updating docs before continuing!

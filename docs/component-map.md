@@ -97,6 +97,7 @@ This document lists and describes the major components in the viewer and their r
 | `useWizardState`        | `src-new/components/NavigationWizard/hooks/useWizardState.js`        | Wizard state management hook                |
 | `useNavigationHistory`  | `src-new/components/NavigationWizard/hooks/useNavigationHistory.js`  | Navigation history tracking hook            |
 | `useKeyboardNavigation` | `src-new/components/NavigationWizard/hooks/useKeyboardNavigation.js` | Keyboard navigation support hook            |
+| `useSwipeNavigation`    | `src/hooks/useSwipeNavigation.js`                                    | YouVersion-style swipe gesture detection for chapter navigation |
 
 ---
 

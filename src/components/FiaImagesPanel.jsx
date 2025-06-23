@@ -19,7 +19,7 @@ export function FiaImagesPanel() {
   // Self-activate FIA resources
   useEffect(() => {
     activateResource('fia');
-  }, [activateResource]);
+  }, []); // Empty dependency array - only run once on mount
 
   const fiaData = resources.fia;
   const images = fiaData?.images || [];

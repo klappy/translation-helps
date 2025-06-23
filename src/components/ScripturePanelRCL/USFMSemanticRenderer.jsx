@@ -95,9 +95,9 @@ export default function USFMSemanticRenderer({
     [onVerseClick, chapter]
   );
 
-  // Add selected class to verses
+  // Add selected class to verses - ALWAYS call this hook
   useEffect(() => {
-    if (selectedVerse === null) return;
+    if (selectedVerse === null || !renderedHTML) return;
 
     const verseElements = document.querySelectorAll("v");
     verseElements.forEach((verseElement) => {
@@ -113,66 +113,10 @@ export default function USFMSemanticRenderer({
     });
   }, [selectedVerse, renderedHTML]);
 
-  // Render loading state
-  if (isLoading) {
-    return (
-      <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer">
-        <div className={styles["loading-state"]}>Parsing USFM content...</div>
-      </div>
-    );
-  }
-
-  // Render error state
-  if (error) {
-    return (
-      <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer">
-        <div className={styles["error-state"]}>
-          <strong>USFM Parsing Error:</strong>
-          <br />
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  // Render empty state - MUST preserve empty textContent for specification compliance
-  if (!usfm.trim()) {
-    return (
-      <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer">
-        {showModeToggle && (
-          <div className={styles["mode-toggle"]}>
-            <button
-              className={`${styles["mode-button"]} ${
-                currentMode === "preview" ? styles.active : ""
-              }`}
-              onClick={() => handleModeChange("preview")}
-              type='button'
-            >
-              Preview
-            </button>
-            <button
-              className={`${styles["mode-button"]} ${currentMode === "full" ? styles.active : ""}`}
-              onClick={() => handleModeChange("full")}
-              type='button'
-            >
-              Full
-            </button>
-            <button
-              className={`${styles["mode-button"]} ${currentMode === "debug" ? styles.active : ""}`}
-              onClick={() => handleModeChange("debug")}
-              type='button'
-            >
-              Debug
-            </button>
-          </div>
-        )}
-        <div className={styles["usfm-content"]} />
-      </div>
-    );
-  }
-
-  // Collapsible notes effect
+  // Collapsible notes effect - ALWAYS call this hook
   useEffect(() => {
+    if (!renderedHTML) return;
+    
     // Wait for HTML to be rendered
     const container = document.querySelector(`.${styles["usfm-content"]}`);
     if (!container) return;
@@ -242,6 +186,66 @@ export default function USFMSemanticRenderer({
       });
     };
   }, [renderedHTML]);
+
+  // Render loading state
+  if (isLoading) {
+    return (
+      <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer">
+        <div className={styles["loading-state"]}>Parsing USFM content...</div>
+      </div>
+    );
+  }
+
+  // Render error state
+  if (error) {
+    return (
+      <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer">
+        <div className={styles["error-state"]}>
+          <strong>USFM Parsing Error:</strong>
+          <br />
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  // Render empty state - MUST preserve empty textContent for specification compliance
+  if (!usfm.trim()) {
+    return (
+      <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer">
+        {showModeToggle && (
+          <div className={styles["mode-toggle"]}>
+            <button
+              className={`${styles["mode-button"]} ${
+                currentMode === "preview" ? styles.active : ""
+              }`}
+              onClick={() => handleModeChange("preview")}
+              type='button'
+            >
+              Preview
+            </button>
+            <button
+              className={`${styles["mode-button"]} ${currentMode === "full" ? styles.active : ""}`}
+              onClick={() => handleModeChange("full")}
+              type='button'
+            >
+              Full
+            </button>
+            <button
+              className={`${styles["mode-button"]} ${currentMode === "debug" ? styles.active : ""}`}
+              onClick={() => handleModeChange("debug")}
+              type='button'
+            >
+              Debug
+            </button>
+          </div>
+        )}
+        <div className={styles["usfm-content"]} />
+      </div>
+    );
+  }
+
+
 
   return (
     <div className={styles["usfm-semantic-renderer"]} data-testid="usfm-renderer" {...props}>

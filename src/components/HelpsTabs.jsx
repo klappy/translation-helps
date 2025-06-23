@@ -28,7 +28,7 @@ const STATIC_TABS = [
 export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
   const [activeTab, setActiveTab] = useState("tn");
   const [dynamicTabs, setDynamicTabs] = useState([]);
-  const { resources, isLoading, loadingResources } = useResourcesContext();
+  const { resources, loadingResources } = useResourcesContext();
 
   // Helper function to check if a specific resource is loading
   const isResourceLoading = (tabId) => {
@@ -177,26 +177,23 @@ export const HelpsTabs = forwardRef(function HelpsTabs({ reference }, ref) {
                 data-testid={`tab-${tab.id}`}
                 className={`${styles.tabButton} ${isActive ? styles.active : ''} ${tabIsLoading ? styles.loading : ''}`}
                 tabIndex={isActive ? 0 : -1}
+
               >
-                <span className={styles.tabLabel}>
-                  <span className={styles.iconTextContent}>
-                    {tab.icon && <TabIcon type={tab.icon} />}
-                    <span className={styles.desktopLabel}>{tab.label}</span>
-                    <span className={styles.mobileLabel}>{tab.mobileLabel || tab.label}</span>
+                {tab.icon && <TabIcon type={tab.icon} />}
+                <span className={styles.desktopLabel}>{tab.label}</span>
+                <span className={styles.mobileLabel}>{tab.mobileLabel || tab.label}</span>
+                {count !== null && (
+                  <span 
+                    className={`${styles.countBadge} ${count === 0 ? styles.zero : ''} ${count === 'loading' ? styles.loadingBadge : ''}`}
+                    aria-label={count === 'loading' ? 'Loading...' : `${count} items`}
+                  >
+                    {count === 'loading' ? (
+                      <LoadingSpinner size="small" variant="white" />
+                    ) : (
+                      count
+                    )}
                   </span>
-                  {count !== null && (
-                    <span 
-                      className={`${styles.countBadge} ${count === 0 ? styles.zero : ''} ${count === 'loading' ? styles.loadingBadge : ''}`}
-                      aria-label={count === 'loading' ? 'Loading...' : `${count} items`}
-                    >
-                      {count === 'loading' ? (
-                        <LoadingSpinner size="small" variant="white" />
-                      ) : (
-                        count
-                      )}
-                    </span>
-                  )}
-                </span>
+                )}
               </button>
               {!tab.isStatic && (
                 <button

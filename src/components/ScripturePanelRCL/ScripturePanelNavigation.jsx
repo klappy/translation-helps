@@ -168,6 +168,16 @@ export function ScripturePanelNavigation({
     }
   };
 
+  const handleClose = () => {
+    // Close the current panel and return to complete state
+    handleStepChange('complete', 'right');
+  };
+
+  const handleToggleStep = (step) => {
+    // Toggle without animation for breadcrumb clicks
+    setCurrentStep(step === currentStep ? 'complete' : step);
+  };
+
   // Get display names for breadcrumbs
   const getLanguageName = () => {
     if (!languageId) return null;
@@ -295,7 +305,7 @@ export function ScripturePanelNavigation({
         <div className={styles.breadcrumbsContent}>
           {/* Language Breadcrumb */}
           <button
-            onClick={() => handleStepChange('language', 'right')}
+            onClick={() => handleToggleStep('language')}
             className={`${styles.breadcrumbButton} ${languageId ? styles.completed : styles.incomplete}`}
             title={languageId ? `Change ${getLanguageName()}` : 'Select Language'}
             disabled={currentStep === 'language'}
@@ -311,7 +321,7 @@ export function ScripturePanelNavigation({
             <>
               <span className={styles.separator}>›</span>
               <button
-                onClick={() => handleStepChange('resource', 'right')}
+                onClick={() => handleToggleStep('resource')}
                 className={`${styles.breadcrumbButton} ${resourceId ? styles.completed : styles.incomplete}`}
                 title={resourceId ? `Change ${getResourceName()}` : 'Select Resource'}
                 disabled={currentStep === 'resource'}
@@ -329,32 +339,17 @@ export function ScripturePanelNavigation({
             <>
               <span className={styles.separator}>›</span>
               <button
-                onClick={() => handleStepChange('book', 'right')}
+                onClick={() => handleToggleStep('book')}
                 className={`${styles.breadcrumbButton} ${reference?.bookId ? styles.completed : styles.incomplete}`}
-                title={reference?.bookId ? `Change ${getBookName()}` : 'Select Book'}
-                disabled={currentStep === 'book'}
+                title={reference?.bookId ? `${getBookName()} ${getChapterVerse()} - Click to change` : 'Select Book'}
               >
                 <span style={{ fontSize: '12px' }}>
                   {reference?.bookId ? getBookEmoji(reference.bookId) : '📚'}
                 </span>
-                <span>{getBookName() || 'Book'}</span>
+                <span>
+                  {reference?.bookId ? `${getBookName()} ${getChapterVerse()}` : 'Book'}
+                </span>
                 {reference?.bookId && <span style={{ fontSize: '9px', marginLeft: '3px' }}>✓</span>}
-              </button>
-            </>
-          )}
-
-          {reference?.bookId && (
-            <>
-              <span className={styles.separator}>›</span>
-              <button
-                onClick={() => handleStepChange('book', 'right')}
-                className={`${styles.breadcrumbButton} ${reference?.chapter ? styles.completed : styles.incomplete}`}
-                title={reference?.chapter ? `Change ${getChapterVerse()}` : 'Select Chapter'}
-                disabled={currentStep === 'book'}
-              >
-                <span style={{ fontSize: '12px' }}>📍</span>
-                <span>{getChapterVerse() || 'Chapter'}</span>
-                {reference?.chapter && <span style={{ fontSize: '9px', marginLeft: '3px' }}>✓</span>}
               </button>
             </>
           )}
@@ -370,14 +365,6 @@ export function ScripturePanelNavigation({
           >
             🔍
           </button>
-          <button
-            onClick={onToggleDebugMode}
-            className={`${styles.controlButton} ${showDebugMode ? styles.active : ''}`}
-            title={showDebugMode ? "Hide Debug Mode" : "Show Debug Mode"}
-            aria-label={showDebugMode ? "Hide Debug Mode" : "Show Debug Mode"}
-          >
-            🐛
-          </button>
         </div>
       </div>
 
@@ -391,7 +378,14 @@ export function ScripturePanelNavigation({
             <ResourceSelector onSelect={handleResourceSelect} onBack={handleBack} languageId={languageId} />
           )}
           {currentStep === 'book' && (
-            <BookSelector onSelect={handleBookSelect} onBack={handleBack} />
+            <BookSelector 
+              onSelect={handleBookSelect} 
+              onBack={handleClose}
+              autoExpandCurrent={true}
+              currentBookId={reference?.bookId}
+              currentChapter={reference?.chapter}
+              showChapterSelection={true}
+            />
           )}
         </div>
       )}

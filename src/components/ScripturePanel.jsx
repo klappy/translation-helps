@@ -13,7 +13,7 @@ import ScripturePanelRCL from "./ScripturePanelRCL";
  * @param {function} props.onVerseClick - Callback when a verse is clicked
  */
 export const ScripturePanel = React.memo(forwardRef(function ScripturePanel({ reference, onVerseClick }, ref) {
-  const { resources, isLoading, loadingResources } = useResourcesContext();
+  const { resources, loadingResources } = useResourcesContext();
   const isScriptureLoading = loadingResources.has('scripture');
   
   return (

@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter Navigation Mockups - ETEN Lab Design</title>
+    <style>
+        /* ETEN Lab Theme Variables */
+        :root {
+            --color-primary: #c1d72e;
+            --color-primary-light: #d1e74e;
+            --color-primary-dark: #a1c70e;
+            --color-background: #000000;
+            --color-surface: #1a1a1a;
+            --color-surface-hover: #2d2d2d;
+            --color-border: #333333;
+            --color-text: #ffffff;
+            --color-text-muted: #999999;
+            --color-text-on-primary: #000000;
+            --spacing-1: 4px;
+            --spacing-2: 8px;
+            --spacing-3: 12px;
+            --spacing-4: 16px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --transition-fast: 150ms ease-in-out;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 2px 8px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Light theme */
+        [data-theme="light"] {
+            --color-background: #ffffff;
+            --color-surface: #f8f9fa;
+            --color-surface-hover: #e2e8f0;
+            --color-border: #e2e8f0;
+            --color-text: #1e293b;
+            --color-text-muted: #94a3b8;
+            --shadow-sm: 0 1px 2px 0 rgba(30, 41, 59, 0.08);
+            --shadow-md: 0 2px 8px 0 rgba(30, 41, 59, 0.08);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--color-background);
+            color: var(--color-text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--color-primary);
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: var(--color-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--color-text-on-primary);
+        }
+
+        .mockup-section {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .mockup-label {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Scripture Panel Container */
+        .scripture-panel {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        /* Existing Breadcrumbs */
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-3) var(--spacing-4);
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: var(--color-background);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+
+        /* CHAPTER NAVIGATION DESIGNS */
+        
+        /* Design 1: Horizontal Scrolling Pills */
+        .chapter-nav-horizontal {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            padding: var(--spacing-3) var(--spacing-4);
+            background: var(--color-background);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .chapter-nav-label {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chapter-scroll-container {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-border) transparent;
+        }
+
+        .chapter-scroll-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .chapter-scroll-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chapter-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: 3px;
+        }
+
+        .chapter-pills {
+            display: flex;
+            gap: var(--spacing-2);
+            padding: 2px 0;
+        }
+
+        .chapter-pill {
+            min-width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-surface);
+            color: var(--color-text);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .chapter-pill:hover {
+            background: var(--color-surface-hover);
+            border-color: var(--color-primary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chapter-pill.active {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-color: var(--color-primary);
+            box-shadow: 0 2px 4px rgba(193, 215, 46, 0.3);
+        }
+
+        /* Design 2: Compact Grid */
+        .chapter-nav-grid {
+            padding: var(--spacing-3) var(--spacing-4);
+            background: var(--color-background);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .chapter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: var(--spacing-1);
+            max-width: 600px;
+        }
+
+        .chapter-grid-item {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-surface);
+            color: var(--color-text);
+            font-size: 0.813rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .chapter-grid-item:hover {
+            background: var(--color-surface-hover);
+            border-color: var(--color-primary);
+        }
+
+        .chapter-grid-item.active {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-color: var(--color-primary);
+        }
+
+        /* Design 3: Dropdown + Quick Nav */
+        .chapter-nav-dropdown {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            padding: var(--spacing-3) var(--spacing-4);
+            background: var(--color-background);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .chapter-dropdown {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            padding: var(--spacing-2) var(--spacing-3);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            min-width: 140px;
+        }
+
+        .chapter-dropdown:hover {
+            background: var(--color-surface-hover);
+            border-color: var(--color-primary);
+        }
+
+        .chapter-nav-arrows {
+            display: flex;
+            gap: var(--spacing-1);
+        }
+
+        .nav-arrow {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-surface);
+            color: var(--color-text);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .nav-arrow:hover:not(:disabled) {
+            background: var(--color-surface-hover);
+            border-color: var(--color-primary);
+        }
+
+        .nav-arrow:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Design 4: Integrated Breadcrumb Style */
+        .chapter-nav-integrated {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            padding: 0 var(--spacing-4) var(--spacing-3);
+            background: var(--color-surface);
+        }
+
+        .chapter-quick-access {
+            display: flex;
+            gap: var(--spacing-1);
+            flex-wrap: wrap;
+        }
+
+        .chapter-quick {
+            padding: 4px 12px;
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            font-size: 0.813rem;
+            color: var(--color-text);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .chapter-quick:hover {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-color: var(--color-primary);
+        }
+
+        .chapter-quick.active {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border-color: var(--color-primary);
+        }
+
+        /* Scripture content mockup */
+        .scripture-content {
+            padding: var(--spacing-4);
+            min-height: 200px;
+            color: var(--color-text-muted);
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .chapter-nav-horizontal {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--spacing-2);
+            }
+
+            .chapter-pills {
+                padding: 0;
+            }
+
+            .chapter-pill {
+                min-width: 40px;
+                height: 40px;
+                font-size: 0.813rem;
+            }
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* Annotations */
+        .annotation {
+            background: var(--color-primary);
+            color: var(--color-text-on-primary);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .pros, .cons {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+        }
+
+        .pros {
+            background: rgba(193, 215, 46, 0.1);
+            border: 1px solid var(--color-primary);
+        }
+
+        .cons {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+        }
+
+        .pros h4, .cons h4 {
+            margin: 0 0 8px 0;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .pros ul, .cons ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+    
+    <div class="container">
+        <h1>
+            <div class="logo">E</div>
+            Chapter Navigation Mockups
+        </h1>
+        
+        <p style="color: var(--color-text-muted); margin-bottom: 40px;">
+            Four different approaches for intuitive, accessible chapter navigation in the Scripture Panel.
+            All designs follow ETEN Lab branding and support both light and dark themes.
+        </p>
+
+        <!-- Design 1: Horizontal Scrolling Pills -->
+        <div class="mockup-section">
+            <h2>Design 1: Horizontal Scrolling Pills <span class="annotation">Recommended</span></h2>
+            <div class="mockup-label">Most intuitive and space-efficient</div>
+            
+            <div class="scripture-panel">
+                <div class="breadcrumbs">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div class="breadcrumb-item">🌐 English</div>
+                        <span style="color: var(--color-text-muted);">›</span>
+                        <div class="breadcrumb-item">📖 ULT</div>
+                        <span style="color: var(--color-text-muted);">›</span>
+                        <div class="breadcrumb-item">📜 Genesis</div>
+                    </div>
+                </div>
+                
+                <div class="chapter-nav-horizontal">
+                    <div class="chapter-nav-label">
+                        📍 Chapter
+                    </div>
+                    <div class="chapter-scroll-container">
+                        <div class="chapter-pills">
+                            <button class="chapter-pill">1</button>
+                            <button class="chapter-pill">2</button>
+                            <button class="chapter-pill active">3</button>
+                            <button class="chapter-pill">4</button>
+                            <button class="chapter-pill">5</button>
+                            <button class="chapter-pill">6</button>
+                            <button class="chapter-pill">7</button>
+                            <button class="chapter-pill">8</button>
+                            <button class="chapter-pill">9</button>
+                            <button class="chapter-pill">10</button>
+                            <button class="chapter-pill">11</button>
+                            <button class="chapter-pill">12</button>
+                            <button class="chapter-pill">13</button>
+                            <button class="chapter-pill">14</button>
+                            <button class="chapter-pill">15</button>
+                            <button class="chapter-pill">16</button>
+                            <button class="chapter-pill">17</button>
+                            <button class="chapter-pill">18</button>
+                            <button class="chapter-pill">19</button>
+                            <button class="chapter-pill">20</button>
+                            <button class="chapter-pill">21</button>
+                            <button class="chapter-pill">22</button>
+                            <button class="chapter-pill">23</button>
+                            <button class="chapter-pill">24</button>
+                            <button class="chapter-pill">25</button>
+                            <button class="chapter-pill">26</button>
+                            <button class="chapter-pill">27</button>
+                            <button class="chapter-pill">28</button>
+                            <button class="chapter-pill">29</button>
+                            <button class="chapter-pill">30</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scripture-content">
+                    Genesis Chapter 3 content would appear here...
+                </div>
+            </div>
+            
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Pros</h4>
+                    <ul>
+                        <li>All chapters visible at once</li>
+                        <li>Single click navigation</li>
+                        <li>Touch-friendly (44px targets)</li>
+                        <li>Smooth horizontal scrolling</li>
+                        <li>Clear current chapter indicator</li>
+                        <li>Minimal vertical space usage</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Cons</h4>
+                    <ul>
+                        <li>Requires horizontal scrolling for long books</li>
+                        <li>May need scroll indicators</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Design 2: Compact Grid -->
+        <div class="mockup-section">
+            <h2>Design 2: Compact Grid</h2>
+            <div class="mockup-label">Traditional chapter selector approach</div>
+            
+            <div class="scripture-panel">
+                <div class="breadcrumbs">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div class="breadcrumb-item">🌐 English</div>
+                        <span style="color: var(--color-text-muted);">›</span>
+                        <div class="breadcrumb-item">📖 ULT</div>
+                        <span style="color: var(--color-text-muted);">›</span>
+                        <div class="breadcrumb-item">📜 Psalms</div>
+                    </div>
+                </div>
+                
+                <div class="chapter-nav-grid">
+                    <div class="chapter-grid">
+                        <button class="chapter-grid-item">1</button>
+                        <button class="chapter-grid-item">2</button>
+                        <button class="chapter-grid-item">3</button>
+                        <button class="chapter-grid-item">4</button>
+                        <button class="chapter-grid-item">5</button>
+                        <button class="chapter-grid-item">6</button>
+                        <button class="chapter-grid-item">7</button>
+                        <button class="chapter-grid-item">8</button>
+                        <button class="chapter-grid-item">9</button>
+                        <button class="chapter-grid-item">10</button>
+                        <button class="chapter-grid-item">11</button>
+                        <button class="chapter-grid-item">12</button>
+                        <button class="chapter-grid-item">13</button>
+                        <button class="chapter-grid-item">14</button>
+                        <button class="chapter-grid-item">15</button>
+                        <button class="chapter-grid-item">16</button>
+                        <button class="chapter-grid-item">17</button>
+                        <button class="chapter-grid-item">18</button>
+                        <button class="chapter-grid-item">19</button>
+                        <button class="chapter-grid-item">20</button>
+                        <button class="chapter-grid-item">21</button>
+                        <button class="chapter-grid-item">22</button>
+                        <button class="chapter-grid-item active">23</button>
+                        <button class="chapter-grid-item">24</button>
+                        <button class="chapter-grid-item">25</button>
+                        <button class="chapter-grid-item">26</button>
+                        <button class="chapter-grid-item">27</button>
+                        <button class="chapter-grid-item">28</button>
+                        <button class="chapter-grid-item">29</button>
+                        <button class="chapter-grid-item">30</button>
+                    </div>
+                </div>
+                
+                <div class="scripture-content">
+                    Psalms Chapter 23 content would appear here...
+                </div>
+            </div>
+            
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Pros</h4>
+                    <ul>
+                        <li>Familiar grid pattern</li>
+                        <li>Good for books with many chapters</li>
+                        <li>No horizontal scrolling</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Cons</h4>
+                    <ul>
+                        <li>Takes significant vertical space</li>
+                        <li>Can push content down</li>
+                        <li>Less elegant for short books</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Design 3: Dropdown + Quick Nav -->
+        <div class="mockup-section">
+            <h2>Design 3: Dropdown with Navigation Arrows</h2>
+            <div class="mockup-label">Compact with sequential navigation</div>
+            
+            <div class="scripture-panel">
+                <div class="breadcrumbs">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div class="breadcrumb-item">🌐 English</div>
+                        <span style="color: var(--color-text-muted);">›</span>
+                        <div class="breadcrumb-item">📖 ULT</div>
+                        <span style="color: var(--color-text-muted);">›</span>
+                        <div class="breadcrumb-item">✝️ Matthew</div>
+                    </div>
+                </div>
+                
+                <div class="chapter-nav-dropdown">
+                    <div class="chapter-dropdown">
+                        <span>Chapter 5</span>
+                        <span style="margin-left: auto;">▼</span>
+                    </div>
+                    <div class="chapter-nav-arrows">
+                        <button class="nav-arrow">←</button>
+                        <button class="nav-arrow">→</button>
+                    </div>
+                    <div style="margin-left: auto; display: flex; gap: 8px;">
+                        <button class="chapter-quick">1</button>
+                        <button class="chapter-quick active">5</button>
+                        <button class="chapter-quick">10</button>
+                        <button class="chapter-quick">15</button>
+                        <button class="chapter-quick">20</button>
+                        <button class="chapter-quick">28</button>
+                    </div>
+                </div>
+                
+                <div class="scripture-content">
+                    Matthew Chapter 5 content would appear here...
+                </div>
+            </div>
+            
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Pros</h4>
+                    <ul>
+                        <li>Very compact</li>
+                        <li>Quick shortcuts to key chapters</li>
+                        <li>Sequential navigation arrows</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Cons</h4>
+                    <ul>
+                        <li>Requires dropdown interaction</li>
+                        <li>Not all chapters immediately visible</li>
+                        <li>More complex interaction pattern</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Design 4: Integrated Breadcrumb Style -->
+        <div class="mockup-section">
+            <h2>Design 4: Integrated Quick Access</h2>
+            <div class="mockup-label">Minimal with smart chapter suggestions</div>
+            
+            <div class="scripture-panel">
+                <div class="breadcrumbs">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div class="breadcrumb-item">🌐 English</div>
+                        <span style="color: var(--color-text-muted);">›</span>
+                        <div class="breadcrumb-item">📖 ULT</div>
+                        <span style="color: var(--color-text-muted);">›</span>
+                        <div class="breadcrumb-item">📚 John</div>
+                        <span style="color: var(--color-text-muted);">›</span>
+                        <div class="breadcrumb-item" style="background: var(--color-primary); color: var(--color-text-on-primary);">Ch. 3</div>
+                    </div>
+                </div>
+                
+                <div class="chapter-nav-integrated">
+                    <span style="font-size: 0.875rem; color: var(--color-text-muted);">Quick jump:</span>
+                    <div class="chapter-quick-access">
+                        <button class="chapter-quick">1</button>
+                        <button class="chapter-quick">2</button>
+                        <button class="chapter-quick active">3</button>
+                        <button class="chapter-quick">4</button>
+                        <button class="chapter-quick">5</button>
+                        <button class="chapter-quick">6</button>
+                        <button class="chapter-quick">7</button>
+                        <button class="chapter-quick">8</button>
+                        <button class="chapter-quick">9</button>
+                        <button class="chapter-quick">10</button>
+                        <button class="chapter-quick">11</button>
+                        <button class="chapter-quick">12</button>
+                        <button class="chapter-quick">13</button>
+                        <button class="chapter-quick">14</button>
+                        <button class="chapter-quick">15</button>
+                        <button class="chapter-quick">...</button>
+                        <button class="chapter-quick">21</button>
+                    </div>
+                </div>
+                
+                <div class="scripture-content">
+                    John Chapter 3 content would appear here...
+                </div>
+            </div>
+            
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Pros</h4>
+                    <ul>
+                        <li>Integrates with breadcrumbs</li>
+                        <li>Very clean appearance</li>
+                        <li>Smart chapter suggestions</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Cons</h4>
+                    <ul>
+                        <li>Not all chapters shown</li>
+                        <li>May confuse with breadcrumb pattern</li>
+                        <li>Requires "..." interaction for full list</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 60px; padding: 40px; background: var(--color-surface); border-radius: var(--radius-lg); text-align: center;">
+            <h2 style="color: var(--color-primary);">Recommendation: Design 1 - Horizontal Scrolling Pills</h2>
+            <p style="max-width: 600px; margin: 20px auto; line-height: 1.6;">
+                The horizontal scrolling design provides the best balance of accessibility, usability, and visual appeal. 
+                It maintains the clean ETEN Lab aesthetic while offering single-click access to any chapter. 
+                The design is touch-friendly, keyboard accessible, and works well on all screen sizes.
+            </p>
+            <div style="margin-top: 30px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem;">♿</div>
+                    <div style="font-size: 0.875rem; margin-top: 8px;">Fully Accessible</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem;">📱</div>
+                    <div style="font-size: 0.875rem; margin-top: 8px;">Mobile Friendly</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem;">🎨</div>
+                    <div style="font-size: 0.875rem; margin-top: 8px;">ETEN Lab Branded</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem;">⚡</div>
+                    <div style="font-size: 0.875rem; margin-top: 8px;">Fast Navigation</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            html.setAttribute('data-theme', currentTheme === 'light' ? 'dark' : 'light');
+        }
+        
+        // Set initial theme
+        document.documentElement.setAttribute('data-theme', 'dark');
+    </script>
+</body>
+</html>
