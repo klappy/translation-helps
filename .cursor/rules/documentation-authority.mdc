@@ -1,0 +1,66 @@
+# Documentation Authority Rule
+
+## Single Source of Truth Protocol
+
+### Core Principle
+The `/docs` folder contains the authoritative information for this project.
+AI responses MUST NOT duplicate, override, or contradict documented procedures.
+
+### Documentation Hierarchy
+
+1. **`docs/development-workflow-guide.md`** - Primary development workflow
+2. **`docs/deployment-strategy-netlify-ui.md`** - Deployment configuration  
+3. **`docs/deployment-quick-reference.md`** - Quick command reference
+4. **`docs/netlify-config-analysis.md`** - Configuration constraints
+5. **`docs/README.md`** - Documentation index
+
+### Response Protocol
+
+When deployment/workflow topics arise:
+
+1. **Read the relevant documentation first**
+2. **Reference the specific file and section**
+3. **Provide minimal context, not full procedures**
+4. **Direct user to read the complete documentation**
+
+### Template Response
+```
+🔗 This is covered in `docs/[filename].md` [section name].
+
+Key point: [One sentence summary]
+
+Please refer to the documentation for complete procedures.
+```
+
+### Documentation Verification
+
+Before referencing any documentation:
+1. Verify the file exists
+2. Check if content is current
+3. Ensure no contradictions with other docs
+4. Update documentation if needed, don't work around it
+
+### Forbidden Actions
+
+❌ Recreating git commands from memory
+❌ Providing deployment steps inline
+❌ Explaining branch strategies without doc reference
+❌ Giving environment URLs without context
+❌ Overriding documented procedures with "better" approaches
+
+### Required Actions
+
+✅ Always check docs before responding
+✅ Reference specific files and sections
+✅ Keep responses brief and authoritative
+✅ Encourage documentation reading
+✅ Update docs if they're insufficient
+
+### Exception Handling
+
+If documentation is missing or outdated:
+1. Create/update the documentation first
+2. Then reference the updated documentation
+3. Never provide ad-hoc procedures
+
+This ensures documentation remains the living, authoritative source.
