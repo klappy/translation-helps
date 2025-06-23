@@ -1,0 +1,271 @@
+/* ETEN Lab Dark Mode Theme - Enhanced Variables for Professional Design */
+/* Copy these variables into your globals.css [data-theme="dark"] section */
+
+[data-theme="dark"] {
+  /* Primary Brand Colors - ETEN Lab Green Family */
+  --color-primary: #c1d72e;          /* ETEN Lab signature green - exact match */
+  --color-primary-light: #d1e74e;    /* Brighter for dark backgrounds */
+  --color-primary-dark: #a1c70e;     /* Deeper green for emphasis */
+  --color-primary-hover: #b8d025;    /* Interactive feedback */
+  --color-secondary: #f59e42;        /* Secondary accent color */
+  
+  /* Surface Colors - ETEN Lab Dark Theme */
+  --color-background: #000000;       /* Pure black - matches etenlab.org */
+  --color-surface: #1a1a1a;          /* Dark grey for content cards */
+  --color-surface-hover: #2d2d2d;    /* Hover states for interactivity */
+  --color-surface-secondary: #2a2a2a; /* Secondary content areas */
+  --color-surface-tertiary: #333333;  /* Nested elements, sidebars */
+  --color-surface-quaternary: #404040; /* Quaternary surface for hover states */
+  --color-footer: #262626;           /* Footer grey from ETEN Lab website */
+  
+  /* Border System - Dark Theme Optimized */
+  --color-border: #333333;           /* Standard borders, subtle definition */
+  --color-border-hover: #404040;     /* Interactive border states */
+  --color-border-focus: #c1d72e;     /* Focus indicators (ETEN Lab green) */
+  --color-border-secondary: #404040; /* Secondary border color */
+  --color-border-tertiary: #555555;  /* Tertiary border color */
+  
+  /* Typography Colors - High Contrast for Dark Backgrounds */
+  --color-text: #ffffff;             /* Pure white - primary text */
+  --color-text-primary: #ffffff;     /* Primary text color */
+  --color-text-secondary: #cccccc;   /* Secondary text - light grey */
+  --color-text-tertiary: #999999;    /* Tertiary text - medium grey */
+  --color-text-light: #cccccc;       /* Light text variant */
+  --color-text-muted: #999999;       /* Muted text - subtle grey */
+  --color-text-on-primary: #000000;  /* Black text on green backgrounds */
+  --color-primary-rgb: 193, 215, 46; /* RGB values for primary color */
+  
+  /* Legacy compatibility */
+  --color-dark: #cccccc;
+  --color-darker: #ffffff;
+  
+  /* State Colors - Dark Theme Optimized */
+  --color-success: #c1d72e;          /* ETEN Lab green for success */
+  --color-warning: #facc15;          /* Bright amber for warnings */
+  --color-error: #ef4444;            /* Vibrant red for errors */
+  --color-info: #0ea5e9;             /* Bright blue for information */
+  
+  /* Additional state color variants */
+  --color-success-light: #1b5e20;
+  --color-success-dark: #e8f5e9;
+  --color-warning-light: #f57c00;
+  --color-warning-dark: #fff8e1;
+  --color-error-light: #c62828;
+  --color-error-dark: #ffebee;
+  --color-info-light: #0277bd;
+  --color-info-dark: #e3f2fd;
+  
+  /* Status colors for dark theme */
+  --color-status-low: #0277bd;
+  --color-status-low-text: #e3f2fd;
+  --color-status-low-border: #90caf9;
+  --color-status-medium: #f57c00;
+  --color-status-medium-text: #fff8e1;
+  --color-status-medium-border: #ffcc80;
+  --color-status-high: #c62828;
+  --color-status-high-text: #ffebee;
+  --color-status-high-border: #ef9a9a;
+  
+  /* Highlight Colors - Dark Theme Enhanced */
+  --color-highlight-yellow: var(--color-primary-light);
+  --color-highlight-yellow-dark: var(--color-primary);
+  --color-highlight-green: rgba(193, 215, 46, 0.2);    /* Higher opacity for visibility */
+  --color-highlight-green-border: var(--color-primary-light);
+  --color-highlight-blue: rgba(193, 215, 46, 0.1);
+  --color-highlight-blue-border: var(--color-primary-light);
+  --color-highlight-orange: rgba(245, 158, 66, 0.1);
+  --color-highlight-orange-border: var(--color-secondary);
+  --color-highlight-purple: rgba(193, 215, 46, 0.15);
+  --color-highlight-purple-border: var(--color-primary-light);
+  
+  /* Tip and note colors for dark theme */
+  --color-tip-background: #0369a1;
+  --color-tip-text: #f0f9ff;
+  --color-note-background: #92400e;
+  --color-note-text: #fef3c7;
+  
+  /* Enhanced Shadow System - Dark Theme Dramatic Depth */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px 0 rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 16px 0 rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  
+  /* Scripture-specific Design Tokens */
+  --color-verse-background: var(--color-surface);
+  --color-verse-background-selected: var(--color-primary);
+  --color-verse-background-hover: rgba(193, 215, 46, 0.15);
+  --color-verse-border: var(--color-border);
+  --color-verse-border-selected: var(--color-primary);
+  --color-verse-number: var(--color-primary);
+  --color-verse-text: var(--color-text);
+  --color-chapter-header: var(--color-text);
+  
+  /* Interactive States */
+  --color-button-secondary: #1a1a1a;
+  --color-button-secondary-hover: #2a2a2a;
+  --color-button-secondary-active: #333333;
+  
+  /* Help Panel Design System - Dark theme */
+  --help-card-background: #1a1a1a;
+  --help-card-border: 4px solid var(--color-primary);
+  --help-card-border-radius: var(--radius-md);
+  --help-card-padding: var(--spacing-3);
+  --help-card-margin: var(--spacing-3);
+  --help-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  
+  --help-quote-background: #2a2a2a;
+  --help-quote-color: #d1e74e;       /* Bright green for quotes */
+  --help-quote-padding: var(--spacing-1) var(--spacing-2);
+  --help-quote-border-radius: var(--radius-sm);
+  
+  --help-text-color: var(--color-text);
+  --help-meta-color: var(--color-text-light);
+  --help-meta-size: var(--font-size-xs);
+}
+
+/* Professional Accent Colors for Dark Mode */
+:root[data-theme="dark"] {
+  /* Extended accent palette optimized for dark backgrounds */
+  --color-accent-blue: #0ea5e9;      /* Bright blue for dark backgrounds */
+  --color-accent-orange: #facc15;    /* Warm amber for warnings, highlights */
+  --color-accent-purple: #a855f7;    /* Vibrant purple for creativity */
+  --color-accent-teal: #14b8a6;      /* Technical teal for data, metrics */
+  --color-accent-indigo: #6366f1;    /* Deep indigo for navigation */
+  --color-accent-pink: #ec4899;      /* Vibrant pink for emphasis */
+}
+
+/* Dark Theme Specific Enhancements */
+
+/* Enhanced Visibility Features */
+:root[data-theme="dark"] {
+  /* Brighter variants for better dark theme visibility */
+  --color-primary-bright: #d4e157;   /* Extra bright for critical elements */
+  --color-text-bright: #ffffff;      /* Pure white for maximum contrast */
+  --color-border-bright: #555555;    /* Brighter borders for definition */
+  
+  /* OLED Optimization */
+  --color-oled-black: #000000;       /* Pure black for OLED displays */
+  --color-oled-surface: #0a0a0a;     /* Near-black for subtle variation */
+  
+  /* High Contrast Variants */
+  --color-contrast-text: #ffffff;
+  --color-contrast-background: #000000;
+  --color-contrast-border: #ffffff;
+  --color-contrast-primary: #d4e157; /* Brighter green for high contrast */
+}
+
+/* Usage Examples and Guidelines */
+
+/*
+BUTTON USAGE:
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  box-shadow: var(--shadow-md);
+}
+
+CARD USAGE:
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-accent {
+  border-left: 4px solid var(--color-primary);
+}
+
+FORM USAGE:
+.form-input:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px rgba(193, 215, 46, 0.3);
+}
+
+SCRIPTURE USAGE:
+.verse:hover {
+  background: var(--color-verse-background-hover);
+}
+
+.verse.selected {
+  background: var(--color-verse-background-selected);
+  border-left: 3px solid var(--color-primary);
+}
+
+NAVIGATION USAGE:
+.nav-item.active {
+  background: rgba(193, 215, 46, 0.15);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+SHADOW USAGE:
+.card {
+  box-shadow: var(--shadow-sm);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.modal {
+  box-shadow: var(--shadow-xl);
+}
+
+HIGHLIGHT USAGE:
+.search-highlight {
+  background: var(--color-highlight-green);
+  border: 1px solid var(--color-highlight-green-border);
+}
+
+.selection {
+  background: rgba(193, 215, 46, 0.2);
+  color: var(--color-text);
+}
+*/
+
+/* Dark Theme Performance Optimizations */
+
+/*
+OLED OPTIMIZATION:
+For OLED displays, use pure black backgrounds to save battery:
+
+.oled-optimized {
+  background: var(--color-oled-black);
+}
+
+HIGH CONTRAST MODE:
+For accessibility, provide high contrast variants:
+
+[data-theme="dark-high-contrast"] {
+  --color-background: var(--color-contrast-background);
+  --color-text: var(--color-contrast-text);
+  --color-border: var(--color-contrast-border);
+  --color-primary: var(--color-contrast-primary);
+}
+
+EYE STRAIN REDUCTION:
+Use softer transitions for reduced eye strain:
+
+.smooth-transition {
+  transition: all 300ms ease-out;
+}
+
+BRAND CONSISTENCY:
+Always use ETEN Lab green for brand elements:
+
+.brand-element {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.brand-element:hover {
+  color: var(--color-primary-light);
+  border-color: var(--color-primary-light);
+}
+*/ 
