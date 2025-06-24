@@ -4,7 +4,7 @@
 
 For the complete and up-to-date architecture documentation, please see:
 
-**[📖 docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
+**[📖 docs/tier1-core/ARCHITECTURE.md](docs/tier1-core/ARCHITECTURE.md)**
 
 The documentation in the `docs/` folder provides comprehensive coverage of:
 
@@ -21,12 +21,12 @@ The documentation in the `docs/` folder provides comprehensive coverage of:
 
 ## Quick Navigation
 
-- **[Architecture Overview](docs/ARCHITECTURE.md)** - Complete technical architecture
+- **[Architecture Overview](docs/tier1-core/ARCHITECTURE.md)** - Complete technical architecture
 - **[Component Map](docs/component-map.md)** - Component structure and relationships
 - **[UI Map](docs/ui-map.md)** - User interface overview
 - **[Application Lifecycle](docs/lifecycle.md)** - Startup and context flow
 - **[Separation of Concerns](docs/separation-of-concerns.md)** - Layer organization
-- **[Resource Integration](docs/Resource_Integration_Overview.md)** - Translation helps integration
+- **[Resource Integration](docs/tier2-features/translation-resources/Resource_Integration_Overview.md)** - Translation helps integration
 
 ---
 

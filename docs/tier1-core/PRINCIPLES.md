@@ -16,7 +16,7 @@
 - **No Over-Engineering**: Solve today's problems, not tomorrow's maybes
 
 **Decision Impact**: Chose Simple Verse-Loading over complex caching systems
-**Related**: [ARCHITECTURE-OVERVIEW.md](ARCHITECTURE-OVERVIEW.md#simple-verse-loading-pattern)
+**Related**: [ARCHITECTURE.md](ARCHITECTURE.md#simple-verse-loading-pattern)
 
 ### 2. **API-Direct Architecture**
 > "Eliminate intermediary complexity."
@@ -235,7 +235,7 @@ When making architectural decisions, consider:
 ## 📚 Related Documentation
 
 ### Tier 1 Core
-- [ARCHITECTURE-OVERVIEW.md](ARCHITECTURE-OVERVIEW.md) - System design implementation
+- [ARCHITECTURE.md](ARCHITECTURE.md) - System design implementation
 - [DEVELOPMENT-WORKFLOW.md](DEVELOPMENT-WORKFLOW.md) - How we build features
 - [DEPLOYMENT-STRATEGY.md](DEPLOYMENT-STRATEGY.md) - How we ship code
 

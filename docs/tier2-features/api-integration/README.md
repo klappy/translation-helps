@@ -213,7 +213,7 @@ if (!orgResources) {
 
 ### Tier 1 Core
 - [PRINCIPLES.md](../../tier1-core/PRINCIPLES.md#api-direct-architecture) - API-direct principles
-- [ARCHITECTURE-OVERVIEW.md](../../tier1-core/ARCHITECTURE-OVERVIEW.md) - System architecture
+- [ARCHITECTURE.md](../../tier1-core/ARCHITECTURE.md) - System architecture
 
 ### Tier 2 Features
 - [Translation Resources](../translation-resources/README.md) - Resource-specific implementations

@@ -261,7 +261,7 @@ describe('getVerseNotes', () => {
 
 ### Tier 1 Core
 - [PRINCIPLES.md](../../tier1-core/PRINCIPLES.md#verse-specific-loading) - Resource loading principles
-- [ARCHITECTURE-OVERVIEW.md](../../tier1-core/ARCHITECTURE-OVERVIEW.md) - System architecture
+- [ARCHITECTURE.md](../../tier1-core/ARCHITECTURE.md) - System architecture
 
 ### Tier 2 Features
 - [API Integration](../api-integration/README.md) - API patterns for resource loading

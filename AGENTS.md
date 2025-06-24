@@ -15,7 +15,7 @@ description: An application for viewing Bible translation resources from ETEN In
 
 ### Tier 1: Core Documentation (Essential Reading)
 - [`docs/tier1-core/PRINCIPLES.md`](docs/tier1-core/PRINCIPLES.md): **FUNDAMENTAL PRINCIPLES** - Architectural decisions and guidelines
-- [`docs/tier1-core/ARCHITECTURE-OVERVIEW.md`](docs/tier1-core/ARCHITECTURE-OVERVIEW.md): **SYSTEM ARCHITECTURE** - Official architecture with Simple Verse-Loading Pattern  
+- [`docs/tier1-core/ARCHITECTURE.md`](docs/tier1-core/ARCHITECTURE.md): **SYSTEM ARCHITECTURE** - Official architecture with Simple Verse-Loading Pattern  
 - [`docs/tier1-core/DEVELOPMENT-WORKFLOW.md`](docs/tier1-core/DEVELOPMENT-WORKFLOW.md): **GIT WORKFLOW** - Branch strategy and development process
 - [`docs/tier1-core/DEPLOYMENT-STRATEGY.md`](docs/tier1-core/DEPLOYMENT-STRATEGY.md): **DEPLOYMENT GUIDE** - Environment strategy and deployment process
 
@@ -64,7 +64,7 @@ description: An application for viewing Bible translation resources from ETEN In
 ## 🧠 Assistant Tips (for AGENTS)
 
 - **Repo Owner:** `klappy`
-- **🎯 PRIMARY ARCHITECTURE**: Follow the **Simple Verse-Loading Pattern** documented in `docs/SIMPLE-VERSE-LOADING-PATTERN.md`
+- **🎯 PRIMARY ARCHITECTURE**: Follow the **Simple Verse-Loading Pattern** documented in `docs/tier3-implementation/patterns/SIMPLE-VERSE-LOADING-PATTERN.md`
 - **🚨 CRITICAL PRINCIPLE**: ResourcesContext loads ALL data, panels self-activate their resources
 - **✅ CORRECT PATTERN**: Panels use `const { resources, activateResource } = useResourcesContext()` and call `activateResource('type')`
 - **✅ URL-DRIVEN**: Support URL parameters like `?scriptures=[/unfoldingWord/en/ult/tit/1/1]&resources=[/unfoldingWord/en/tn,/unfoldingWord/en/tq]`
@@ -302,7 +302,7 @@ The project maintains a comprehensive CHANGELOG.md file documenting all changes:
 - ✅ **ALWAYS use `ingredients` array from catalog API**
 - ✅ **ALWAYS use resource data directly from API**
 
-**📖 Read `docs/NO-MANIFESTS-API-DIRECT.md` for full details!**
+**📖 Read `docs/tier3-implementation/deprecated/NO-MANIFESTS-API-DIRECT.md` for full details!**
 
 ---
 

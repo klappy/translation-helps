@@ -8,7 +8,7 @@
   - ✅ **3-Tier Documentation System**: Organized all documentation into logical hierarchy (Tier 1: Core, Tier 2: Features, Tier 3: Implementation)
   - ✅ **Tier 1 Core Documentation**: Essential reading for all contributors with 4 foundational documents
     - `PRINCIPLES.md`: Fundamental architectural principles and decision framework
-    - `ARCHITECTURE-OVERVIEW.md`: System design with Simple Verse-Loading Pattern
+    - `ARCHITECTURE.md`: System design with Simple Verse-Loading Pattern
     - `DEVELOPMENT-WORKFLOW.md`: Git flow, branching strategy, and development process
     - `DEPLOYMENT-STRATEGY.md`: Environment strategy and deployment procedures
   - ✅ **Tier 2 Feature Documentation**: Domain-specific guides organized by functional area
