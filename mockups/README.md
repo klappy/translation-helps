@@ -1,13 +1,13 @@
-# 🎨 Demos
+# 🎨 Design Mockups
 
-**Development Demos and Prototypes**  
-*HTML prototypes and design exploration files*
+**Design Mockups and Visual Explorations**  
+*HTML design mockups for UI/UX exploration*
 
 ---
 
 ## 📋 Overview
 
-This folder contains standalone HTML demonstration files used for UI/UX prototyping, design exploration, and feature development. These files are not part of the main application but serve as development tools and design references.
+This folder contains standalone HTML design mockups used for UI/UX exploration, visual design iteration, and design system validation. These files are not part of the main application but serve as design references and visual documentation.
 
 ---
 
@@ -36,14 +36,14 @@ This folder contains standalone HTML demonstration files used for UI/UX prototyp
 These demo files serve multiple purposes:
 
 ### Design Exploration
-- **Rapid Prototyping**: Quick HTML/CSS prototypes without React setup
-- **Design Iteration**: Fast visual exploration of UI concepts
-- **Stakeholder Review**: Shareable prototypes for feedback and approval
+- **Visual Mockups**: Static HTML/CSS mockups for design exploration
+- **Design Iteration**: Fast visual exploration of UI concepts and layouts
+- **Stakeholder Review**: Shareable design mockups for feedback and approval
 
-### Development Reference
-- **Implementation Guidance**: HTML/CSS patterns for React implementation
-- **Design System Testing**: Validation of theme variables and components
-- **Browser Compatibility**: Cross-browser testing of CSS features
+### Design Reference
+- **Visual Documentation**: HTML/CSS patterns for design reference
+- **Design System Validation**: Testing of theme variables and visual components
+- **Cross-Browser Design**: Visual consistency testing across browsers
 
 ### Documentation
 - **Visual Documentation**: Living examples of design decisions
@@ -54,27 +54,27 @@ These demo files serve multiple purposes:
 
 ## 🚀 Usage
 
-### Viewing Demos
+### Viewing Mockups
 ```bash
-# Open any demo file directly in browser
-open demos/demo-dark-mode-showcase.html
+# Open any mockup file directly in browser
+open mockups/demo-dark-mode-showcase.html
 
 # Or serve locally for development
 python -m http.server 8000
-# Then visit: http://localhost:8000/demos/
+# Then visit: http://localhost:8000/mockups/
 ```
 
-### Creating New Demos
-1. **Copy Template**: Use existing demo as starting point
-2. **Standalone HTML**: Keep demos self-contained with embedded CSS
+### Creating New Design Mockups
+1. **Copy Template**: Use existing mockup as starting point
+2. **Standalone HTML**: Keep mockups self-contained with embedded CSS
 3. **Theme Variables**: Use CSS custom properties matching main app
 4. **Responsive Design**: Include mobile and desktop breakpoints
 
 ### Best Practices
-- **Self-Contained**: Each demo should work independently
-- **Documented**: Include comments explaining the purpose
+- **Self-Contained**: Each mockup should work independently
+- **Documented**: Include comments explaining the design purpose
 - **Consistent**: Use same CSS variables as main application
-- **Accessible**: Include proper ARIA labels and keyboard navigation
+- **Accessible**: Include proper ARIA labels and semantic HTML
 
 ---
 
@@ -93,13 +93,13 @@ Demos use the same CSS custom properties as the main application:
 }
 ```
 
-### Component Patterns
-HTML patterns from demos are implemented as React components in:
-- `src/components/` - Main component implementations
-- `src/styles/` - Shared CSS patterns and variables
+### Design Patterns
+Visual patterns from mockups inform React component development in:
+- `src/components/` - Component implementations based on design mockups
+- `src/styles/` - CSS patterns derived from mockup explorations
 
 ### Theme System
-Demo themes correspond to main app themes:
+Mockup themes correspond to main app themes:
 - **Light Mode**: Default theme with ETEN Lab branding
 - **Dark Mode**: Dark theme with proper contrast ratios
 - **Mobile**: Responsive patterns for mobile devices
@@ -121,18 +121,18 @@ Demo themes correspond to main app themes:
 ## 🧹 Maintenance
 
 ### Regular Tasks
-- **Review Relevance**: Remove outdated demos that no longer reflect current patterns
+- **Review Relevance**: Remove outdated mockups that no longer reflect current design direction
 - **Update Variables**: Keep CSS variables in sync with main application
-- **Browser Testing**: Verify demos work in supported browsers
-- **Documentation**: Update README when adding new demo types
+- **Visual Testing**: Verify mockups display correctly in supported browsers
+- **Documentation**: Update README when adding new mockup categories
 
 ### Cleanup Guidelines
-- **Archive Old**: Move superseded demos to archive folder
-- **Document Changes**: Note why demos were removed or updated
+- **Archive Old**: Move superseded mockups to archive folder
+- **Document Changes**: Note why mockups were removed or updated
 - **Preserve History**: Keep important design evolution examples
 
 ---
 
 *Last Updated: 2025-01-27*  
-*Purpose: Design exploration and rapid prototyping*  
-*Maintenance: Regular review and cleanup of outdated demos* 
+*Purpose: Design mockups and visual exploration*  
+*Maintenance: Regular review and cleanup of outdated mockups* 

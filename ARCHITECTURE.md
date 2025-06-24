@@ -1,7 +1,5 @@
 # Architecture Documentation
 
-**⚠️ This file has been moved to maintain better documentation organization.**
-
 For the complete and up-to-date architecture documentation, please see:
 
 **[📖 docs/tier1-core/ARCHITECTURE.md](docs/tier1-core/ARCHITECTURE.md)**
@@ -28,6 +26,3 @@ The documentation in the `docs/` folder provides comprehensive coverage of:
 - **[Separation of Concerns](docs/separation-of-concerns.md)** - Layer organization
 - **[Resource Integration](docs/tier2-features/translation-resources/Resource_Integration_Overview.md)** - Translation helps integration
 
----
-
-_This redirect was created as part of the documentation reorganization in v0.5.2_
