@@ -11,13 +11,24 @@ description: An application for viewing Bible translation resources from ETEN In
 - `package.json`: Project config and dependencies
 - `CHANGELOG.md`: Documentation of all changes following semantic versioning
 
-## 📘 Key Docs (in ./docs)
+## 📚 Documentation Structure
 
-- `ARCHITECTURE.md`: **CORE ARCHITECTURE** - Official architecture overview with Simple Verse-Loading Pattern
-- `SIMPLE-VERSE-LOADING-PATTERN.md`: **DESIGN PATTERN DETAILS** - Detailed implementation guide for the architecture
-- `URL-PARAMETER-SPECIFICATION.md`: **URL FORMAT** - Official URL parameter format specification
-- `MIGRATION-TO-SIMPLE-PATTERN.md`: **MIGRATION GUIDE** - How to migrate from complex to simple patterns
-- `DEPRECATED-COMPLEX-PATTERNS.md`: **DEPRECATED PATTERNS** - Complex patterns that should NOT be used
+### Tier 1: Core Documentation (Essential Reading)
+- [`docs/tier1-core/PRINCIPLES.md`](docs/tier1-core/PRINCIPLES.md): **FUNDAMENTAL PRINCIPLES** - Architectural decisions and guidelines
+- [`docs/tier1-core/ARCHITECTURE-OVERVIEW.md`](docs/tier1-core/ARCHITECTURE-OVERVIEW.md): **SYSTEM ARCHITECTURE** - Official architecture with Simple Verse-Loading Pattern  
+- [`docs/tier1-core/DEVELOPMENT-WORKFLOW.md`](docs/tier1-core/DEVELOPMENT-WORKFLOW.md): **GIT WORKFLOW** - Branch strategy and development process
+- [`docs/tier1-core/DEPLOYMENT-STRATEGY.md`](docs/tier1-core/DEPLOYMENT-STRATEGY.md): **DEPLOYMENT GUIDE** - Environment strategy and deployment process
+
+### Tier 2: Feature Documentation (Domain-Specific)
+- [`docs/tier2-features/api-integration/`](docs/tier2-features/api-integration/): **API INTEGRATION** - DCS API patterns and optimization
+- [`docs/tier2-features/ui-components/`](docs/tier2-features/ui-components/): **UI COMPONENTS** - Component architecture and theme system
+- [`docs/tier2-features/translation-resources/`](docs/tier2-features/translation-resources/): **TRANSLATION RESOURCES** - tN, tQ, tW, TWL implementations
+- [`docs/tier2-features/llm-integration/`](docs/tier2-features/llm-integration/): **LLM FEATURES** - AI chat and context management
+
+### Tier 3: Implementation Details
+- [`docs/tier3-implementation/patterns/`](docs/tier3-implementation/patterns/): **DESIGN PATTERNS** - Simple Verse-Loading and other patterns
+- [`docs/tier3-implementation/deprecated/`](docs/tier3-implementation/deprecated/): **DEPRECATED PATTERNS** - What NOT to use (manifests, Proskomma)
+- [`docs/tier3-implementation/troubleshooting/`](docs/tier3-implementation/troubleshooting/): **TROUBLESHOOTING** - Common issues and solutions
 - `app-overview.md`: Defines application purpose, target audience, and supported resources
 - `ui-map.md`: UI layout, screen regions, and component interactions
 - `component-map.md`: Key React components with paths and descriptions
@@ -71,15 +82,16 @@ This project follows the GitFlow branching model:
 
 ### Core Branches
 
-- **main**: Production-ready code. Only merged from release branches or hotfix branches.
-- **develop**: Integration branch for ongoing development. Features are merged here.
+- **master**: Historical reference and tagged releases. No direct deploys.
+- **production**: Live production environment. Only merged from staging branch.
+- **staging**: QA testing and pre-production. Only merged from dev branch.
+- **dev**: Integration branch for ongoing development. Features are merged here.
 
 ### Supporting Branches
 
-- **feature/[feature-name]**: Created from `develop` for new features. Merge back to `develop` when complete.
-- **release/[version]**: Created from `develop` when preparing a release. Merge to both `main` and `develop` when ready.
-- **hotfix/[fix-name]**: Created from `main` for critical production fixes. Merge to both `main` and `develop`.
-- **bugfix/[bug-name]**: Created from `develop` for non-critical bugs. Merge to `develop`.
+- **feature/[feature-name]**: Created from `dev` for new features. Merge back to `dev` when complete.
+- **bugfix/[bug-name]**: Created from `dev` for non-critical bugs. Merge to `dev`.
+- **hotfix/[fix-name]**: Created from `production` for critical production fixes. Merge to both `production` and `dev`.
 
 ### Branch Naming Conventions
 
@@ -92,9 +104,9 @@ Example: `feature/42-add-translation-notes-filtering`
 
 ### Branch Lifecycle
 
-1. Create branch from appropriate base (develop for features/bugfixes, main for hotfixes)
+1. Create branch from appropriate base (dev for features/bugfixes, production for hotfixes)
 2. Develop and commit changes
-3. Create pull request to target branch (develop or main)
+3. Create pull request to target branch (dev or production)
 4. Review, test, and approve
 5. Merge and delete feature branch
 6. Update CHANGELOG.md according to the changes

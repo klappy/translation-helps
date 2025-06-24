@@ -1,5 +1,79 @@
 # Changelog
 
+## [3.9.0] - 2025-01-27
+
+### Added
+
+- **Documentation Hierarchy Transformation - COMPLETE**
+  - ✅ **3-Tier Documentation System**: Organized all documentation into logical hierarchy (Tier 1: Core, Tier 2: Features, Tier 3: Implementation)
+  - ✅ **Tier 1 Core Documentation**: Essential reading for all contributors with 4 foundational documents
+    - `PRINCIPLES.md`: Fundamental architectural principles and decision framework
+    - `ARCHITECTURE-OVERVIEW.md`: System design with Simple Verse-Loading Pattern
+    - `DEVELOPMENT-WORKFLOW.md`: Git flow, branching strategy, and development process
+    - `DEPLOYMENT-STRATEGY.md`: Environment strategy and deployment procedures
+  - ✅ **Tier 2 Feature Documentation**: Domain-specific guides organized by functional area
+    - `api-integration/`: DCS API patterns, optimization, and performance improvements
+    - `ui-components/`: Component architecture and theme system documentation
+    - `translation-resources/`: tN, tQ, tW, TWL implementation guides
+    - `llm-integration/`: AI chat and context management documentation
+  - ✅ **Tier 3 Implementation Details**: Patterns, deprecated content, and troubleshooting
+    - `patterns/`: Design patterns including Simple Verse-Loading and URL specifications
+    - `deprecated/`: Safely isolated outdated patterns (manifests, Proskomma)
+    - `troubleshooting/`: Common issues and solutions
+
+### Fixed
+
+- **Branch Naming Standardization - RESOLVED**
+  - ✅ **Consistent Branch References**: Standardized on `dev` branch throughout all documentation
+  - ✅ **AGENTS.md Corrections**: Fixed GitFlow section to reference correct branch hierarchy
+  - ✅ **Workflow Alignment**: All deployment and development docs now use consistent branch names
+  - ✅ **URL Parameter Updates**: Fixed branch lifecycle references from `develop` to `dev`
+
+- **Documentation Conflicts Eliminated - RESOLVED**
+  - ✅ **Deployment Strategy Consolidation**: Merged 5 scattered deployment files into single authoritative source
+  - ✅ **API Documentation Organization**: Consolidated 4 API-related files into structured folder hierarchy
+  - ✅ **Manifest Pattern Cleanup**: Moved all deprecated manifest documentation to isolated deprecated folder
+  - ✅ **Cross-Reference Network**: Added bidirectional linking between all related documentation
+
+### Enhanced
+
+- **Documentation Discoverability**: Clear navigation path from AGENTS.md to any documentation
+- **Maintainability**: Single source of truth for each concept with proper cross-referencing
+- **Developer Experience**: Tiered approach allows quick access to relevant information level
+- **Knowledge Preservation**: Historical decisions and deprecated patterns preserved but clearly marked
+- **Scalability**: Easy addition of new documentation in appropriate tier structure
+
+### Technical
+
+- **File Organization**: 
+  - Created `docs/tier1-core/`, `docs/tier2-features/`, `docs/tier3-implementation/` structure
+  - Moved 15+ documentation files to appropriate tier locations
+  - Removed 8 redundant/conflicting documentation files
+  - Added README.md files for each feature domain with clear navigation
+- **Cross-Reference System**:
+  - Added standardized header templates with tier identification
+  - Implemented bidirectional linking between related concepts
+  - Added "Related Documentation" sections to all major documents
+  - Created clear upgrade paths from deprecated to current patterns
+- **Content Consolidation**:
+  - Merged deployment documentation: `deployment-strategy.md` + 4 others → `DEPLOYMENT-STRATEGY.md`
+  - Organized API documentation: 4 scattered files → `api-integration/` folder structure
+  - Consolidated resource documentation: Multiple files → `translation-resources/` folder
+  - Isolated deprecated content: Manifests, Proskomma → `deprecated/` folder
+
+### Breaking Changes
+
+- **Documentation Paths**: Many documentation file paths have changed due to reorganization
+- **AGENTS.md Structure**: Updated to reference new tiered documentation hierarchy
+- **Cross-References**: Old documentation links may need updating to new tier structure
+
+### Migration Notes
+
+- All documentation content preserved - only organization changed
+- New tier structure provides clearer navigation and maintenance
+- Deprecated patterns clearly marked but still accessible for historical reference
+- Cross-references updated to point to new locations
+
 ## [3.8.0] - 2025-01-09
 
 ### Added
