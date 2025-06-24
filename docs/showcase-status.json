@@ -1,0 +1,59 @@
+{
+  "project": "translation-helps-showcase",
+  "status": "active",
+  "startDate": "2025-01-08",
+  "targetCompletion": "2025-02-19",
+  "currentPhase": 1,
+  "overallProgress": 10,
+  "phases": {
+    "1": {
+      "name": "Foundation",
+      "status": "in-progress",
+      "progress": 20,
+      "tasks": {
+        "routing": { "status": "pending", "assignee": null },
+        "layout": { "status": "pending", "assignee": null },
+        "service": { "status": "pending", "assignee": null }
+      }
+    },
+    "2": {
+      "name": "Galleries",
+      "status": "not-started",
+      "progress": 0,
+      "tasks": {
+        "architecture": { "status": "pending", "assignee": null },
+        "components": { "status": "pending", "assignee": null },
+        "performance": { "status": "pending", "assignee": null },
+        "innovations": { "status": "pending", "assignee": null }
+      }
+    },
+    "3": {
+      "name": "Interactive",
+      "status": "not-started",
+      "progress": 0,
+      "tasks": {
+        "playground": { "status": "pending", "assignee": null },
+        "explorer": { "status": "pending", "assignee": null },
+        "api": { "status": "pending", "assignee": null }
+      }
+    },
+    "4": {
+      "name": "Metrics",
+      "status": "not-started",
+      "progress": 0,
+      "tasks": {
+        "statistics": { "status": "pending", "assignee": null },
+        "timeline": { "status": "pending", "assignee": null },
+        "impact": { "status": "pending", "assignee": null }
+      }
+    }
+  },
+  "blockers": [],
+  "risks": [],
+  "lastUpdated": "2025-01-08T00:00:00Z",
+  "nextMilestone": {
+    "name": "Phase 1 Complete",
+    "targetDate": "2025-01-15",
+    "criteria": ["routing-complete", "layout-complete", "service-complete"]
+  }
+}

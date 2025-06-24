@@ -1,0 +1,221 @@
+/**
+ * ShowcaseNav.module.css
+ * Styles for the showcase navigation sidebar
+ */
+
+.navContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--spacing-6) var(--spacing-4);
+  overflow-y: auto;
+}
+
+/* Header */
+.navHeader {
+  margin-bottom: var(--spacing-6);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.navTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-2) 0;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.navSubtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Navigation Items */
+.navItems {
+  flex: 1;
+  margin-bottom: var(--spacing-6);
+}
+
+.navSection {
+  margin-bottom: var(--spacing-2);
+}
+
+.navButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) var(--spacing-4);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.navButton:hover {
+  background: var(--color-surface-hover, rgba(0, 0, 0, 0.05));
+  border-color: var(--color-border);
+}
+
+.navButton.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.navButtonTitle {
+  flex: 1;
+}
+
+.navButtonArrow {
+  font-size: 0.75rem;
+  margin-left: var(--spacing-2);
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.navButton.active .navButtonArrow {
+  opacity: 1;
+}
+
+/* Subsections */
+.navSubsections {
+  margin-left: var(--spacing-4);
+  margin-top: var(--spacing-2);
+  border-left: 2px solid var(--color-border);
+  padding-left: var(--spacing-3);
+}
+
+.navSubButton {
+  width: 100%;
+  display: block;
+  padding: var(--spacing-2) var(--spacing-3);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: var(--spacing-1);
+}
+
+.navSubButton:hover {
+  background: var(--color-surface-hover, rgba(0, 0, 0, 0.05));
+  color: var(--color-text);
+}
+
+.navSubButton.activeSubsection {
+  background: var(--color-primary-light, rgba(59, 130, 246, 0.1));
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* Footer */
+.navFooter {
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.navFooterText {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-3) 0;
+  text-align: center;
+}
+
+.navFooterLinks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.navFooterLink {
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  text-align: center;
+  padding: var(--spacing-2);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.navFooterLink:hover {
+  background: var(--color-primary-light, rgba(59, 130, 246, 0.1));
+  text-decoration: none;
+}
+
+/* Focus States */
+.navButton:focus,
+.navSubButton:focus,
+.navFooterLink:focus {
+  outline: 2px solid var(--color-focus, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* Dark Mode Adjustments */
+[data-theme="dark"] .navButton:hover,
+[data-theme="dark"] .navSubButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .navSubButton.activeSubsection {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .navFooterLink:hover {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+/* Scrollbar Styling */
+.navContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.navContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navContainer::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.navContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .navContainer {
+    padding: var(--spacing-4) var(--spacing-3);
+  }
+  
+  .navTitle {
+    font-size: 1.125rem;
+  }
+  
+  .navSubtitle {
+    font-size: 0.8rem;
+  }
+  
+  .navButton {
+    padding: var(--spacing-3);
+    font-size: 0.8rem;
+  }
+  
+  .navSubButton {
+    padding: var(--spacing-2);
+    font-size: 0.75rem;
+  }
+} 

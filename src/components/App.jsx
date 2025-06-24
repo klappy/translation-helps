@@ -11,6 +11,8 @@ import { ChatProvider } from "../context/ChatContext";
 import { NavigationBar } from "./NavigationBar";
 import { MainView } from "./MainView";
 import { SplashScreen } from "./SplashScreen";
+import { ShowcaseLayout } from "./showcase/ShowcaseLayout";
+import { DevelopmentReminder } from "./DevelopmentReminder";
 
 // Main app component with ResourcesProvider managing all translation resources
 function AppContent() {
@@ -23,8 +25,10 @@ function AppContent() {
       <NavigationBar />
       <Routes>
         <Route path='/' element={<MainView />} />
+        <Route path='/showcase/*' element={<ShowcaseLayout />} />
         <Route path='*' element={<div style={{ padding: "20px" }}>Page Not Found</div>} />
       </Routes>
+      <DevelopmentReminder />
     </div>
   );
 }
