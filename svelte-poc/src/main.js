@@ -8,6 +8,7 @@ import Auth from './routes/Auth.svelte';
 import DevelopmentReminder from './lib/DevelopmentReminder.svelte';
 import NavigationBreadcrumbs from './widgets/NavigationBreadcrumbs.svelte';
 import LoadingSpinner from './widgets/LoadingSpinner.svelte';
+import VerseTabs from './widgets/VerseTabs.svelte';
 
 const app = new App({
   target: document.getElementById('app'),
@@ -24,5 +25,6 @@ customElements.define('auth-page', Auth);
 customElements.define('dev-reminder', DevelopmentReminder);
 customElements.define('nav-breadcrumbs', NavigationBreadcrumbs);
 customElements.define('loading-spinner', LoadingSpinner);
+customElements.define('verse-tabs', VerseTabs);
 
 export default app;
