@@ -20,13 +20,17 @@ vi.mock('../services/dcsClient.js', () => ({
 
 describe('MainView', () => {
   beforeEach(() => {
-    // Reset stores
+    // Reset stores to default values
     referenceStore.reference.set({
       bookId: 'gen',
       chapter: 1,
       verse: 1
     });
-    resourcesStore.reset();
+    
+    // Clear resources
+    resourcesStore.resources.set({});
+    resourcesStore.loadingResources.set(new Set());
+    resourcesStore.activeResources.set(new Set(['scripture', 'notes', 'questions']));
   });
 
   it('renders with proper test id', () => {
