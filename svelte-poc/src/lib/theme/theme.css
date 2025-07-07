@@ -1,0 +1,16 @@
+:root{
+  --color-primary:#ff512f;
+  --color-primary-accent:#f09819;
+  --color-background:#ffffff;
+  --color-text:#222222;
+  --radius-sm:4px;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --font-base:system-ui, sans-serif;
+  --font-size:16px;
+}
+
+[data-theme='dark']{
+  --color-background:#1c1c1c;
+  --color-text:#f1f1f1;
+}
