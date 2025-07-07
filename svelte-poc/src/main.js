@@ -9,6 +9,7 @@ import DevelopmentReminder from './lib/DevelopmentReminder.svelte';
 import NavigationBreadcrumbs from './widgets/NavigationBreadcrumbs.svelte';
 import LoadingSpinner from './widgets/LoadingSpinner.svelte';
 import VerseTabs from './widgets/VerseTabs.svelte';
+import ResourceGrid from './widgets/ResourceGrid.svelte';
 
 const app = new App({
   target: document.getElementById('app'),
@@ -26,5 +27,6 @@ customElements.define('dev-reminder', DevelopmentReminder);
 customElements.define('nav-breadcrumbs', NavigationBreadcrumbs);
 customElements.define('loading-spinner', LoadingSpinner);
 customElements.define('verse-tabs', VerseTabs);
+customElements.define('resource-grid', ResourceGrid);
 
 export default app;
