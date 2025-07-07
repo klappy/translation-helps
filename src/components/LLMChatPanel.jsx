@@ -38,6 +38,36 @@ export function LLMChatPanel() {
     links: true,
   });
 
+  // Track when resources are changed mid-conversation for visual feedback
+  const [lastResourceChange, setLastResourceChange] = useState(null);
+
+  // Enhanced resource filter setter that tracks changes during conversation
+  const handleResourceFilterChange = useCallback(
+    (resourceType, checked) => {
+      setResourceFilters((prev) => {
+        const newFilters = { ...prev, [resourceType]: checked };
+
+        // If we're in the middle of a conversation, track this change
+        if (messages.length > 0) {
+          setLastResourceChange({
+            timestamp: Date.now(),
+            resourceType,
+            enabled: checked,
+            activeResources: Object.entries(newFilters)
+              .filter(([, enabled]) => enabled)
+              .map(([type]) => type),
+          });
+
+          // Clear the indicator after 3 seconds
+          setTimeout(() => setLastResourceChange(null), 3000);
+        }
+
+        return newFilters;
+      });
+    },
+    [messages.length]
+  );
+
   // Ensure all resources are active for comprehensive AI context
   useEffect(() => {
     // Self-activating ALL resources for comprehensive AI context
@@ -626,6 +656,101 @@ export function LLMChatPanel() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Mid-Conversation Resource Toggles - Show when there are messages and resources available */}
+      {messages.length > 0 && contextInfo.resourceCount > 0 && (
+        <div className={styles.midConversationToggles}>
+          <div className={styles.togglesHeader}>
+            <span className={styles.togglesLabel}>🎛️ Adjust Context:</span>
+            <div className={styles.compactResourcesList}>
+              {resources.scripture && (
+                <div
+                  className={`${styles.compactResourceTag} ${
+                    resourceFilters.scripture ? styles.enabled : styles.disabled
+                  }`}
+                >
+                  <span className={styles.compactResourceText}>Scr</span>
+                  <ToggleSwitch
+                    checked={resourceFilters.scripture}
+                    onChange={(checked) => handleResourceFilterChange("scripture", checked)}
+                    size='small'
+                  />
+                </div>
+              )}
+              {(resources.notes?.length || 0) > 0 && (
+                <div
+                  className={`${styles.compactResourceTag} ${
+                    resourceFilters.notes ? styles.enabled : styles.disabled
+                  }`}
+                >
+                  <span className={styles.compactResourceText}>Notes</span>
+                  <ToggleSwitch
+                    checked={resourceFilters.notes}
+                    onChange={(checked) => handleResourceFilterChange("notes", checked)}
+                    size='small'
+                  />
+                </div>
+              )}
+              {(resources.questions?.length || 0) > 0 && (
+                <div
+                  className={`${styles.compactResourceTag} ${
+                    resourceFilters.questions ? styles.enabled : styles.disabled
+                  }`}
+                >
+                  <span className={styles.compactResourceText}>Q's</span>
+                  <ToggleSwitch
+                    checked={resourceFilters.questions}
+                    onChange={(checked) => handleResourceFilterChange("questions", checked)}
+                    size='small'
+                  />
+                </div>
+              )}
+              {(resources.words?.length || 0) > 0 && (
+                <div
+                  className={`${styles.compactResourceTag} ${
+                    resourceFilters.words ? styles.enabled : styles.disabled
+                  }`}
+                >
+                  <span className={styles.compactResourceText}>Words</span>
+                  <ToggleSwitch
+                    checked={resourceFilters.words}
+                    onChange={(checked) => handleResourceFilterChange("words", checked)}
+                    size='small'
+                  />
+                </div>
+              )}
+              {(resources.links?.length || 0) > 0 && (
+                <div
+                  className={`${styles.compactResourceTag} ${
+                    resourceFilters.links ? styles.enabled : styles.disabled
+                  }`}
+                >
+                  <span className={styles.compactResourceText}>Links</span>
+                  <ToggleSwitch
+                    checked={resourceFilters.links}
+                    onChange={(checked) => handleResourceFilterChange("links", checked)}
+                    size='small'
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Resource Change Notification */}
+          {lastResourceChange && (
+            <div className={styles.resourceChangeNotification}>
+              <span className={styles.changeIcon}>⚡</span>
+              <span className={styles.changeText}>
+                Context updated: {lastResourceChange.resourceType}{" "}
+                {lastResourceChange.enabled ? "enabled" : "disabled"}
+              </span>
+              <span className={styles.activeCount}>
+                ({lastResourceChange.activeResources.length} active)
+              </span>
+            </div>
+          )}
         </div>
       )}
 
