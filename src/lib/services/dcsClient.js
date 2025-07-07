@@ -1,0 +1,84 @@
+/**
+ * dcsClient.js - Svelte Port
+ * Unified fetch layer for DCS repositories.
+ */
+
+import * as yaml from "js-yaml";
+
+const BASE_URL = "https://git.door43.org";
+
+/**
+ * Constructs the raw branch URL for a given organization, language and resource.
+ * @param {string} organization
+ * @param {string} languageId
+ * @param {string} resourceId
+ * @returns {string}
+ */
+function rawBaseUrl(organization, languageId, resourceId) {
+  // If resourceId already includes language prefix (e.g., "en_ult"), use it as-is
+  // Otherwise, construct the repository name with language prefix
+  const repoName = resourceId.startsWith(`${languageId}_`)
+    ? resourceId
+    : `${languageId}_${resourceId}`;
+  return `${BASE_URL}/${organization}/${repoName}/raw/branch/master`;
+}
+
+/**
+ * Fetches and parses the manifest.yaml from a DCS repository.
+ * @param {string} languageId
+ * @param {string} resourceId
+ * @param {string} organization
+ * @returns {Promise<Object>}
+ */
+export async function fetchManifest(languageId, resourceId, organization = "unfoldingWord") {
+  const url = `${rawBaseUrl(organization, languageId, resourceId)}/manifest.yaml`;
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to load manifest for ${languageId}_${resourceId}: ${res.statusText}`);
+  }
+  const text = await res.text();
+  return yaml.load(text);
+}
+
+/**
+ * Fetches a file (e.g., TSV, USFM) from a DCS repository and returns its text content.
+ * @param {string} languageId
+ * @param {string} resourceId
+ * @param {string} filePath
+ * @param {string} organization
+ * @returns {Promise<string>}
+ */
+export async function fetchResourceFile(
+  languageId,
+  resourceId,
+  filePath,
+  organization = "unfoldingWord"
+) {
+  const url = `${rawBaseUrl(organization, languageId, resourceId)}/${filePath}`;
+  
+  console.warn(`🌐 DCS Client: Fetching ${url}`);
+  
+  try {
+    const res = await fetch(url);
+    
+    console.warn(`🌐 DCS Client: Response ${res.status} ${res.statusText} for ${url}`);
+    
+    if (!res.ok) {
+      const errorMsg = `Failed to load ${filePath} for ${languageId}_${resourceId}: ${res.status} ${res.statusText}`;
+      console.error(`❌ DCS Client: ${errorMsg}`);
+      console.error(`❌ DCS Client: Full URL was: ${url}`);
+      throw new Error(errorMsg);
+    }
+    
+    const text = await res.text();
+    console.warn(`✅ DCS Client: Successfully fetched ${filePath} (${text.length} chars) from ${organization}`);
+    
+    return text;
+  } catch (error) {
+    console.error(`❌ DCS Client: Network error fetching ${url}:`, error);
+    throw error;
+  }
+}
+
+export default { fetchManifest, fetchResourceFile };
