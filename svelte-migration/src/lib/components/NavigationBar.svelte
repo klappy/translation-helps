@@ -1,6 +1,6 @@
 <script>
-  import { reference, organization, languageId, resourceId, updateContext } from '$stores/reference.js';
-  import { themeStore } from '$stores/theme.js';
+  import { reference, organization, languageId, resourceId, updateContext } from '$lib/stores/reference.js';
+  import { themeStore } from '$lib/stores/theme.js';
   import ThemeToggle from './ThemeToggle.svelte';
   import ReferenceSelector from './ReferenceSelector.svelte';
 </script>
@@ -15,10 +15,10 @@
   
   <div class="nav-center">
     <ReferenceSelector 
-      {reference} 
-      {organization}
-      {languageId}
-      {resourceId}
+      reference={$reference}
+      organization={$organization}
+      languageId={$languageId}
+      resourceId={$resourceId}
       {updateContext}
     />
   </div>

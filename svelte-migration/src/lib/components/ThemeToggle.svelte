@@ -1,5 +1,5 @@
 <script>
-  import { themeStore } from '$stores/theme.js';
+  import { themeStore } from '$lib/stores/theme.js';
   
   const { isDark, toggleTheme } = themeStore;
 </script>

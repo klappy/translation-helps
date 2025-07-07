@@ -1,5 +1,5 @@
 <script>
-  import { scripture, loadingResources } from '$stores/resources.js';
+  import { scripture, loadingResources } from '$lib/stores/resources.js';
   
   export let reference;
   export let handleVerseClick;

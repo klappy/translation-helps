@@ -1,6 +1,6 @@
 <script>
-  import { reference, organization, languageId, updateContext } from '$stores/reference.js';
-  import { activateResource } from '$stores/resources.js';
+  import { reference, organization, languageId, updateContext } from '$lib/stores/reference.js';
+  import { activateResource } from '$lib/stores/resources.js';
   import ScripturePanel from './ScripturePanel.svelte';
   import HelpsTabs from './HelpsTabs.svelte';
   import NavigationBar from './NavigationBar.svelte';
@@ -145,7 +145,7 @@
       class="scripture-panel"
       class:mobile-panel-active={activeMobileTab === "scripture"}
     >
-      <ScripturePanel {reference} {handleVerseClick} />
+      <ScripturePanel reference={$reference} {handleVerseClick} />
     </div>
 
     <!-- Translation Helps -->
@@ -153,7 +153,7 @@
       class="helps-panel"
       class:mobile-panel-active={activeMobileTab === "resources"}
     >
-      <HelpsTabs bind:this={helpsTabsRef} {reference} />
+      <HelpsTabs bind:this={helpsTabsRef} reference={$reference} />
     </div>
   </div>
 </main>

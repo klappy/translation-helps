@@ -1,5 +1,5 @@
 <script>
-  import { notes, questions, words, loadingResources } from '$stores/resources.js';
+  import { notes, questions, words, loadingResources } from '$lib/stores/resources.js';
   
   export let reference;
   
