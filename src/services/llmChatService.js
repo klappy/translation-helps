@@ -143,7 +143,7 @@ Please answer the user's question using this contextual information.`;
 export async function sendChatMessage(message, context, chatHistory = []) {
   // Check if we should use mock responses proactively in development
   const useMockChat = import.meta.env.VITE_USE_MOCK_CHAT === "true";
-  
+
   if (useMockChat) {
     console.log("🎭 Using mock response (VITE_USE_MOCK_CHAT=true)");
     const mockResponse = createMockResponse(message, context);
