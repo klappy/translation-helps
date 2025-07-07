@@ -41,6 +41,11 @@ export function LLMChatPanel() {
   // Track when resources are changed mid-conversation for visual feedback
   const [lastResourceChange, setLastResourceChange] = useState(null);
 
+  // Streaming mode toggle (default ON for better UX)
+  const [streamingMode, setStreamingMode] = useState(true);
+  const [streamingText, setStreamingText] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
+
   // Ensure all resources are active for comprehensive AI context
   useEffect(() => {
     // Self-activating ALL resources for comprehensive AI context
@@ -255,8 +260,48 @@ export function LLMChatPanel() {
       // Context is ALWAYS ready and consistent
       const formattedContext = getFormattedContext();
 
+      // Create resource context snapshot for this response
+      const resourceContext = {
+        activeFilters: { ...resourceFilters },
+        includedResources: {
+          scripture: resourceFilters.scripture && !!resources.scripture,
+          notes: resourceFilters.notes && (resources.notes?.length || 0) > 0,
+          questions: resourceFilters.questions && (resources.questions?.length || 0) > 0,
+          words: resourceFilters.words && (resources.words?.length || 0) > 0,
+          links: resourceFilters.links && (resources.links?.length || 0) > 0,
+        },
+        resourceCounts: {
+          notes: resourceFilters.notes ? resources.notes?.length || 0 : 0,
+          questions: resourceFilters.questions ? resources.questions?.length || 0 : 0,
+          words: resourceFilters.words ? resources.words?.length || 0 : 0,
+          links: resourceFilters.links ? resources.links?.length || 0 : 0,
+        },
+        totalCount: [
+          resourceFilters.scripture && !!resources.scripture,
+          resourceFilters.notes && (resources.notes?.length || 0) > 0,
+          resourceFilters.questions && (resources.questions?.length || 0) > 0,
+          resourceFilters.words && (resources.words?.length || 0) > 0,
+          resourceFilters.links && (resources.links?.length || 0) > 0,
+        ].filter(Boolean).length,
+        timestamp: Date.now(),
+      };
+
       // Send to LLM service with context
-      const response = await sendChatMessage(message, formattedContext);
+      const response = await sendChatMessage(message, formattedContext, [], {
+        streaming: streamingMode,
+        onStreamChunk: streamingMode
+          ? (chunk) => {
+              console.log("🎬 Setting streaming text:", chunk.length, "chars");
+              setStreamingText(chunk);
+            }
+          : null,
+      });
+
+      // Clear streaming text when done
+      if (streamingMode) {
+        console.log("✅ Clearing streaming text");
+        setStreamingText("");
+      }
 
       // Handle response properly
       if (response.success) {
@@ -266,30 +311,7 @@ export function LLMChatPanel() {
           content: response.response,
           costEstimate: response.costEstimate,
           metadata: response.metadata,
-          resourceContext: {
-            activeFilters: { ...resourceFilters },
-            includedResources: {
-              scripture: resourceFilters.scripture && !!resources.scripture,
-              notes: resourceFilters.notes && (resources.notes?.length || 0) > 0,
-              questions: resourceFilters.questions && (resources.questions?.length || 0) > 0,
-              words: resourceFilters.words && (resources.words?.length || 0) > 0,
-              links: resourceFilters.links && (resources.links?.length || 0) > 0,
-            },
-            resourceCounts: {
-              notes: resourceFilters.notes ? resources.notes?.length || 0 : 0,
-              questions: resourceFilters.questions ? resources.questions?.length || 0 : 0,
-              words: resourceFilters.words ? resources.words?.length || 0 : 0,
-              links: resourceFilters.links ? resources.links?.length || 0 : 0,
-            },
-            totalCount: [
-              resourceFilters.scripture && !!resources.scripture,
-              resourceFilters.notes && (resources.notes?.length || 0) > 0,
-              resourceFilters.questions && (resources.questions?.length || 0) > 0,
-              resourceFilters.words && (resources.words?.length || 0) > 0,
-              resourceFilters.links && (resources.links?.length || 0) > 0,
-            ].filter(Boolean).length,
-            timestamp: Date.now(),
-          },
+          resourceContext,
         });
 
         // Update session cost if available
@@ -504,6 +526,16 @@ export function LLMChatPanel() {
               <span className={styles.sessionCostText}>{formatCostDisplay(sessionCost)}</span>
             </div>
           )}
+
+          <button
+            onClick={() => setStreamingMode(!streamingMode)}
+            className={`${styles.streamingToggle} ${streamingMode ? styles.streamingEnabled : ""}`}
+            title={`${streamingMode ? "Disable" : "Enable"} streaming responses (${
+              streamingMode ? "ON" : "OFF"
+            })`}
+          >
+            ⚡ {streamingMode && <span className={styles.streamingLabel}>STREAM</span>}
+          </button>
 
           <button
             onClick={clearMessages}
@@ -808,7 +840,7 @@ export function LLMChatPanel() {
       {messages.length > 0 && (
         <div className={styles.messagesContainer}>
           {messages.map(renderMessage)}
-          {isSubmitting && (
+          {isSubmitting && !streamingText && (
             <div className={styles.loadingMessage}>
               <div className={styles.messageContent}>
                 <div className={styles.typingIndicator}>
@@ -817,6 +849,25 @@ export function LLMChatPanel() {
                   <span></span>
                 </div>
                 <div className={styles.loadingText}>AI is thinking...</div>
+              </div>
+            </div>
+          )}
+
+          {streamingText && (
+            <div
+              className={`${styles.message} ${styles.assistantMessage} ${styles.streamingMessage}`}
+            >
+              <div className={styles.messageContent}>
+                <div className={styles.messageText}>
+                  {streamingText}
+                  <span className={styles.streamingCursor}>|</span>
+                </div>
+                <div className={styles.messageTime}>
+                  {formatTimestamp(Date.now())}
+                  <div className={styles.messageCost}>
+                    <span className={styles.streamingBadge}>STREAMING</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}

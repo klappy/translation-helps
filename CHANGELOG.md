@@ -1,10 +1,45 @@
 # Changelog
 
+## [3.10.1] - 2025-01-08
+
+### Fixed
+
+- **🚀 AI Chat Streaming Performance**: Fixed streaming response issues that caused crashes and poor UX
+
+  - **Markdown Processing Overload**: Removed heavy markdown and emoji processing from streaming chunks
+  - **Duplicate Message Prevention**: Fixed streaming mode creating duplicate messages in chat
+  - **Error Handling**: Added proper try-catch blocks around streaming simulation to prevent crashes
+  - **Raw Text Streaming**: Streaming now shows raw text during typing, full formatting applied to final message
+  - **Response Speed**: Optimized streaming delays from 150-350ms to 20-50ms per word for realistic speed
+  - **Clean State Management**: Simplified streaming flow with proper cleanup and error recovery
+
+- **💬 Streaming UX Improvements**: Enhanced streaming experience with better visual feedback
+  - **Visual Consistency**: Streaming messages now use same styling as regular messages
+  - **Clean Transitions**: Smooth transition from streaming text to final formatted message
+  - **Resource Context**: Streaming responses properly include resource context badges
+  - **Error Recovery**: Streaming failures no longer crash entire conversation
+
+### Enhanced
+
+- **User Experience**: Streaming responses now feel fast and responsive without technical errors
+- **Visual Polish**: Clean streaming animation with proper cursor and styling
+- **Reliability**: Robust error handling ensures chat continues working even if streaming fails
+- **Performance**: Eliminated expensive real-time markdown processing during streaming
+
+### Technical
+
+- **Simplified Message Flow**: Removed duplicate streaming message creation in `LLMChatPanel.jsx`
+- **Error Boundaries**: Added comprehensive error handling in `simulateStreamingResponse()`
+- **State Cleanup**: Proper streaming text cleanup and final message creation
+- **Resource Context**: Unified resource context creation for both streaming and regular responses
+- **Performance Optimization**: Raw text streaming with post-processing for final message
+
 ## [3.10.0] - 2025-01-08
 
 ### Added
 
 - **📚 Interactive Documentation Showcase - COMPLETE**
+
   - ✅ **Integrated Showcase Site**: Complete documentation showcase accessible at `/showcase` route
   - ✅ **7 Main Sections**: Overview, Architecture, Components, Performance, Innovation, Interactive, Metrics
   - ✅ **Rich Technical Content**: 2,000+ lines of comprehensive documentation with code examples
@@ -16,6 +51,7 @@
   - ✅ **Comprehensive Metrics**: Project statistics, architecture evolution, community impact dashboard
 
 - **🎮 Live Interactive Playground**: Real code execution environment
+
   - Real JavaScript execution with console output capture
   - 5 working examples: Simple Test, Reference Loading, Theme System, Error Handling, Performance Comparison
   - Live code editing with instant results and formatted output
@@ -38,6 +74,7 @@
 ### Technical
 
 - **🏗️ Showcase Architecture**:
+
   - Created `src/components/showcase/` directory with complete component structure
   - `ShowcaseLayout.jsx`: Main layout with responsive sidebar navigation
   - `ShowcaseNav.jsx`: 7-section navigation with collapsible subsections
@@ -45,12 +82,14 @@
   - `demos/`: Interactive demo components with live functionality
 
 - **🎨 CSS Module System**:
+
   - `ShowcaseLayout.module.css`: Responsive layout with mobile hamburger menu
   - `ShowcaseNav.module.css`: Professional navigation styling
   - `ShowcaseContent.module.css`: Rich typography and content display
   - Demo-specific CSS modules for interactive components
 
 - **🧪 Testing Infrastructure**:
+
   - Created `e2e/showcase-demo-components.spec.js` for comprehensive testing
   - Component functionality validation
   - Accessibility compliance testing
@@ -92,6 +131,7 @@
 ### Fixed
 
 - **Branch Naming Standardization - RESOLVED**
+
   - ✅ **Consistent Branch References**: Standardized on `dev` branch throughout all documentation
   - ✅ **AGENTS.md Corrections**: Fixed GitFlow section to reference correct branch hierarchy
   - ✅ **Workflow Alignment**: All deployment and development docs now use consistent branch names
@@ -113,7 +153,7 @@
 
 ### Technical
 
-- **File Organization**: 
+- **File Organization**:
   - Created `docs/tier1-core/`, `docs/tier2-features/`, `docs/tier3-implementation/` structure
   - Moved 15+ documentation files to appropriate tier locations
   - Removed 8 redundant/conflicting documentation files
@@ -178,12 +218,12 @@
 - **Testing**: Updated test suite for slideshow functionality with 100% coverage
 - **Documentation**: Comprehensive slideshow documentation in `docs/splash-screen-feature.md`
 
-
 ## [3.7.4] - 2025-01-09
 
 ### Fixed
 
 - **🚨 EMERGENCY PATCH - AI Chat Panel Token Overflow**: Fixed critical 500 errors when using aligned Bible resources (Hindi, Arabic, etc.)
+
   - **Token Limit Crisis**: Aligned Bibles were sending 1.7M tokens (14x the 128K limit) causing API rejections
   - **Smart USFM Fallback**: Added emergency fallback using simple `\c` and `\v` string splitting when semantic parser fails
   - **Graceful Error Handling**: Replaced 500 errors with user-friendly messages explaining alignment data complexity
@@ -191,6 +231,7 @@
   - **Performance**: Reduced aligned Bible context from 1.7M tokens to ~100 tokens for LLM consumption
 
 - **🔧 Verse Click Navigation Restoration**: Fixed critical bug where verse clicks didn't update URL or context
+
   - **Root Cause**: `USFMSemanticRenderer` was calling non-existent `updateReference` instead of `updateContext`
   - **Parameter Structure**: Fixed reference object structure to include `bookId`, `chapter`, and `verse`
   - **URL Synchronization**: Verse clicks now properly update browser URL and history
@@ -252,6 +293,7 @@
 ### Fixed
 
 - **Breadcrumb Hover State**: Fixed poor visibility of breadcrumb hover states in scripture panel navigation
+
   - Changed hover text color from green (`var(--color-primary)`) to black for proper contrast on green backgrounds
   - Updated `ScripturePanelNavigation.module.css` to ensure readable hover states
 
@@ -266,6 +308,7 @@
 ### Enhanced
 
 - **Resource Attribution UX**: Relocated all resource attribution cards to bottom of content areas
+
   - Users must now scroll to see organization, title, and license information
   - Updated Scripture Panel (`USFMSemanticRenderer.jsx`) to move resource details after USFM content
   - Updated all Translation Help panels to move `ResourceMetadataCard` to bottom position
@@ -305,6 +348,7 @@
 ### Fixed
 
 - **Critical Navigation Bugs - RESOLVED**
+
   - ✅ **String Concatenation Bug**: Fixed chapter navigation where 4:1 → Next went to chapter 41 instead of 5:1
   - ✅ **Integer Parsing**: URL parsing now converts chapter/verse to integers preventing string arithmetic errors
   - ✅ **Resource Synchronization**: All help panels now update when navigating between chapters/verses
@@ -321,6 +365,7 @@
 ### Enhanced
 
 - **Navigation UX Improvements**
+
   - ✅ **Instant Breadcrumb Toggle**: Clicking breadcrumb provides instant toggle without slide animations
   - ✅ **Context Awareness**: Book selector auto-opens current book and scrolls to position
   - ✅ **Close Button Behavior**: X button goes directly to complete state instead of back navigation
@@ -336,12 +381,14 @@
 ### Technical
 
 - **New Components and Hooks**
+
   - Added `useSwipeNavigation.js` hook for gesture detection
   - Enhanced `BookSelector.jsx` with auto-expansion and smart scrolling
   - Updated `ScripturePanelNavigation.jsx` with enhanced breadcrumb behavior
   - Created comprehensive FAB button system with dynamic positioning
 
 - **Bug Fixes and Optimizations**
+
   - Fixed integer parsing in `contextHelpers.js` for both legacy and new URL formats
   - Updated ResourcesContext dependency array to watch full reference changes
   - Simplified HelpsTabs button structure to fix click target alignment
@@ -369,6 +416,7 @@
 ## [3.6.0] - 2025-01-09
 
 ### Fixed
+
 - **Chat Panel Conditional Rendering**: Fixed welcome message and messages container appearing simultaneously
   - Welcome message now only shows when `messages.length === 0`
   - Messages container only shows when `messages.length > 0`
@@ -411,6 +459,7 @@
   - Added proper loading state detection from ResourcesContext
 
 ### Enhanced
+
 - **Visual Consistency**: All loading states now provide uniform user experience
 - **Interface Harmony**: Consistent padding and spacing across all panel types
 - **User Feedback**: Clear loading indicators that remain visible and don't interfere with content
@@ -418,6 +467,7 @@
 - **Selection Clarity**: Selected verses maintain clear visual indication even when hovered
 
 ### Technical
+
 - Updated LoadingSpinner.module.css with comprehensive consistency improvements
 - Enhanced ScripturePanelRCL with modal detection and z-index management
 - Added MutationObserver for dynamic DOM change detection
@@ -427,6 +477,7 @@
 ## [3.5.3] - 2025-01-09
 
 ### Fixed
+
 - **AI Assistant Icon Size**: Fixed TabIcon to match original 48px emoji size
   - Added CSS override in LLMChatPanel.module.css to scale TabIcon to 48px × 48px
   - Applied proper className to TabIcon component for size override
@@ -434,12 +485,14 @@
   - Icon now matches the visual impact of the previous emoji
 
 ### Technical
+
 - Enhanced welcomeIcon CSS with explicit width/height and TabIcon size override
 - Added className prop to TabIcon component for proper CSS targeting
 
 ## [3.5.2] - 2025-01-09
 
 ### Fixed
+
 - **Scripture Panel Selected Verse Hover**: Completely disabled hover effects on selected verses
   - Updated USFMRenderer.module.css to use `:not(.selected)` selector for hover states
   - Added `!important` declarations to ensure selected state cannot be overridden
@@ -464,6 +517,7 @@
   - Applied to both FiaImagesPanel.module.css and FiaMapsPanel.module.css
 
 ### Technical
+
 - Enhanced empty state logic with book-specific FIA content detection
 - Improved CSS specificity and organization for better maintainability
 - Added proper height calculations for sticky layout components
@@ -472,6 +526,7 @@
 ## [3.5.1] - 2024-12-19
 
 ### Fixed
+
 - **Z-Index Issues**: Fixed scripture panel rendering on top of FIA modal images and maps
   - Increased FIA lightbox z-index to 9999 to ensure proper layering
   - Fixed modal overlay conflicts with scripture panel components
@@ -486,6 +541,7 @@
   - Uses the same chat icon as the tab for visual coherence
 
 ### Added
+
 - **AvailableBooksShowcase Component**: New reusable component for showing content availability
   - Professional card-based layout using existing design system
   - Shows Old Testament and New Testament books with FIA content
@@ -497,11 +553,13 @@
   - Consistent styling with existing help panel patterns
 
 ### Changed
+
 - **FIA Modal Layering**: Improved z-index hierarchy for better modal display
 - **Chat Panel Layout**: Optimized for maximum screen real estate usage
 - **Empty State UX**: More helpful and informative when no content is available
 
 ### Technical
+
 - Added AvailableBooksShowcase component with full CSS module styling
 - Enhanced z-index management across FIA and scripture components
 - Improved chat panel CSS with sticky positioning and flexbox optimization
@@ -510,6 +568,7 @@
 ## [3.5.0] - 2024-12-19
 
 ### Added
+
 - **FIA Integration PARTIAL**: ⚠️ ONLY 20% complete - Basic TSV-based images/maps implemented (missing 80% including GraphQL API, 6-step process, audio/video, terms)
   - FIA Images panel with multimedia content from Scripture Burrito format
   - FIA Maps panel with geographical context for Bible study
@@ -525,6 +584,7 @@
   - Accessibility-compliant design with proper ARIA labels
 
 ### Changed
+
 - **Consistent Empty States**: Complete redesign using existing styled components
   - Empty states now look identical to regular content with proper cards
   - Preserved breadcrumb navigation and resource metadata in empty states
@@ -539,6 +599,7 @@
   - Graceful fallbacks for missing resources
 
 ### Technical
+
 - **FIA Service Implementation**: ⚠️ PARTIAL service layer for basic TSV-based FIA resources (missing GraphQL API integration)
   - TSV parsing and media URL resolution
   - Repository discovery through DCS API
@@ -553,6 +614,7 @@
   - Organized docs for better maintainability
 
 ### Fixed
+
 - **URL Update Bug**: Critical fix for reference synchronization
 - **FIA Media Loading**: Resolved 404 errors with proper repository URLs
 - **Empty State UX**: Eliminated confusing navigation selectors in empty states
@@ -560,16 +622,19 @@
 ## [3.4.3] - 2024-12-19
 
 ### Changed
+
 - **Consistent Empty States**: Redesigned empty verse states to use existing styled components instead of custom EmptyVerseState component
 - **Improved UX Consistency**: Empty states now look identical to regular content with proper breadcrumbs, headers, and tip sections
 - **Reused Existing Patterns**: Notes, Questions, and Words panels now display empty states as actual note/question/word cards for visual consistency
 - **Maintained Navigation**: Empty states preserve breadcrumb navigation and resource metadata cards for seamless user experience
 
 ### Removed
+
 - **EmptyVerseState Component**: Removed custom component in favor of reusing existing styled elements
 - **Duplicate Styling**: Eliminated redundant CSS by leveraging existing card, tip, and panel styles
 
 ### Technical
+
 - Updated all resource panels to use existing card components for empty states
 - Added tip section styles to Notes and Questions panel CSS modules
 - Enhanced FiaPanel to accept reference prop and show consistent empty state
@@ -578,16 +643,19 @@
 ## [3.4.2] - 2024-12-19
 
 ### Added
+
 - **EmptyVerseState Component**: New reusable component for displaying clear messages when resources exist for a book but nothing is available for the current verse
 - **Enhanced UX for Empty States**: Translation Notes, Questions, Words, and FIA panels now show informative messages instead of navigation when no content exists for the specific verse
 - **Better User Feedback**: Users now understand the difference between "no resources available" and "resources exist but nothing for this verse"
 
 ### Changed
+
 - **Translation Panels Empty States**: All resource panels (Notes, Questions, Words, FIA) now use consistent empty state messaging
 - **Improved Panel Headers**: Shortened panel headers from "Translation Notes" to "Notes" for better mobile experience
 - **Loading State Logic**: Enhanced loading state tracking to properly distinguish between loading and empty states
 
 ### Technical
+
 - Added `EmptyVerseState` component with full accessibility support and theming
 - Added `hasTriedLoading` state tracking to resource panels
 - Created comprehensive test suite for EmptyVerseState component
@@ -596,6 +664,7 @@
 ## [3.4.1] - 2024-12-31
 
 ### Fixed
+
 - **Tab Content Width Issues**: Resolved layout problems where tab content was not filling full width
   - Fixed conflicting CSS class names between main tab content area and icon layout
   - Separated `.tabContent` (main area) from `.iconTextContent` (icon+text layout)
@@ -604,11 +673,13 @@
   - Fixed FIA Images and Maps panels to use full available width
 
 ### Enhanced
+
 - **Layout Consistency**: All tab content now properly fills the available space like before
 - **Scrolling Behavior**: Restored proper vertical scrolling in chat and other panels
 - **Responsive Design**: Maintained mobile responsiveness while fixing width constraints
 
 ### Technical
+
 - Renamed conflicting CSS classes to prevent layout conflicts
 - Added explicit width and overflow properties to ensure proper space utilization
 - Updated component class references to match new CSS structure
@@ -617,6 +688,7 @@
 ## [3.4.0] - 2024-12-31
 
 ### Added
+
 - **Enhanced Maps Experience**: Revolutionary chapter-wide map discovery for better UX
   - **Chapter-Wide Loading**: Maps panel now shows all maps for the entire chapter instead of just current verse
   - **Smart Deduplication**: Automatically removes duplicate maps while tracking which verses reference each map
@@ -626,12 +698,14 @@
   - **Contextual Headers**: Panel header shows current book and chapter for clarity
 
 ### Enhanced
+
 - **Better Map Discovery**: Users can now see all available maps for a chapter at once
 - **Reduced Empty States**: Chapter-wide loading means more maps are typically available
 - **Improved Navigation**: Clear indication of which verses are covered by each map
 - **Professional Presentation**: Clean, readable map titles instead of technical filenames
 
 ### Technical
+
 - Added `getChapterFiaMaps()` function to FIA service for chapter-wide loading
 - Implemented smart deduplication algorithm based on HREF values
 - Added filename-to-title conversion with proper capitalization
@@ -640,6 +714,7 @@
 - Improved error handling and loading states
 
 ### UI/UX
+
 - **Richer Content**: More maps visible per chapter reduces empty states
 - **Better Context**: Users understand which verses each map covers
 - **Professional Polish**: Proper titles make maps more discoverable and understandable
@@ -648,6 +723,7 @@
 ## [3.3.3] - 2024-12-31
 
 ### Fixed
+
 - **Tab Icon Contrast**: Fixed green-on-green visibility issue - active tab icons now use background color for proper contrast
 - **Tab Spacing Consistency**: Evened out spacing between icon, text, and badge for better visual alignment
 - **AI Assistant Badge**: Now shows total items loaded across all resources instead of null
@@ -656,12 +732,14 @@
 - **Redundant Loading Indicator**: Removed excessive global loading spinner below header for cleaner interface
 
 ### Enhanced
+
 - **Performance**: Reduced unnecessary scripture reloading improves responsiveness
 - **Visual Hierarchy**: Better z-index management ensures proper panel layering
 - **User Experience**: Smoother verse navigation without disruptive reloading
 - **Interface Polish**: Consistent spacing and contrast across all tab elements
 
 ### Technical
+
 - Modified ResourcesContext dependency array to only reload on book/chapter changes
 - Added proper z-index values to FIA panel CSS
 - Updated tab CSS for consistent spacing and contrast
@@ -671,6 +749,7 @@
 ## [3.3.2] - 2024-12-31
 
 ### Added
+
 - **Professional Icon System**: Replaced emojis with monochrome SVG icons for consistent theming
   - 📝 Notes icon (document with lines)
   - ❓ Questions icon (circle with question mark)
@@ -681,18 +760,21 @@
   - Created reusable `TabIcon` component with proper scaling and hover effects
 
 ### Enhanced
+
 - **Theme Consistency**: Icons now properly inherit theme colors and work in light/dark modes
 - **Responsive Design**: Icons scale appropriately and can show icon-only on very small screens
 - **Accessibility**: Proper color contrast and scalable vector graphics
 - **Performance**: Lightweight SVG icons instead of emoji rendering
 
 ### Technical
+
 - Created `TabIcon.jsx` component with comprehensive icon set
 - Added `TabIcon.module.css` with proper scaling and transitions
 - Updated `HelpsTabs.jsx` to use icon system with clean layout
 - Enhanced CSS with icon-specific hover and active states
 
 ### UI/UX
+
 - **Professional Appearance**: Clean, monochrome icons that match design system
 - **Better Visual Hierarchy**: Icons help users quickly identify tab types
 - **Consistent Branding**: No more mixed emoji/text inconsistencies
@@ -700,6 +782,7 @@
 ## [3.3.1] - 2024-12-31
 
 ### Enhanced
+
 - **Streamlined Tab Labels**: Removed redundant "Translation" prefix from tab names for better space efficiency
   - "Translation Notes" → "Notes"
   - "Translation Questions" → "Questions"
@@ -708,11 +791,14 @@
   - Updated loading overlay text to match streamlined naming
 
 ### UI/UX
+
 - **Improved Tab Bar Real Estate**: More space for tabs with cleaner, more concise labels
 - **Consistent Naming**: Aligned tab labels with loading states and UI messaging
+
 ## [3.3.0] - 2024-12-31
 
 ### Added
+
 - **🎨 FIA Resources Basic Implementation**: ⚠️ LIMITED 2025 implementation - basic image/map display only (missing multimedia learning system)
   - **Separate Images & Maps Tabs**: Split FIA into dedicated 📸 Images and ��️ Maps tabs for focused browsing
   - **Modern Image Gallery**: Pinterest-style masonry grid with smooth hover effects and loading animations
@@ -725,11 +811,13 @@
   - **Accessibility Enhanced**: Full keyboard navigation and screen reader support
 
 ### Enhanced
+
 - **Tab Navigation**: Updated to support separate FIA resource types with individual count badges
 - **Loading System**: Extended loading indicators to cover new FIA panels
 - **Resource Context**: Improved FIA resource activation and state management
 
 ### Technical
+
 - Created `FiaImagesPanel.jsx` with masonry grid layout and lightbox functionality
 - Created `FiaMapsPanel.jsx` with interactive pan/zoom and fullscreen capabilities
 - Added comprehensive CSS modules with 2025 design patterns
@@ -738,18 +826,19 @@
 - Enhanced accessibility with proper ARIA labels and focus management
 
 ### UI/UX
+
 - Modern card-based layouts with subtle shadows and hover effects
 - Smooth loading animations with staggered reveals
 - Interactive controls with visual feedback
 - Professional typography and spacing
 - Dark theme support for all new components
 
-
 ### Added
 
 ## [3.2.1] - 2024-12-31
 
 ### Added
+
 - **Beautiful Loading System**: Comprehensive loading indicators for book changes and resource loading
   - Global loading indicator in MainView showing current book being loaded
   - Loading overlays for individual resource tabs (Notes, Questions, Words, FIA)
@@ -764,12 +853,14 @@
   - Smooth animations and transitions for professional UX
 
 ### Enhanced
+
 - **ResourcesContext**: Added loading state tracking with `isLoading` and `loadingResources` states
 - **HelpsTabs**: Enhanced with loading state visualization and per-resource loading feedback
 - **ScripturePanel**: Added loading overlay for scripture content
 - **CSS Animations**: Professional loading animations with cubic-bezier easing and staggered delays
 
 ### Technical
+
 - Created comprehensive loading component system in `src/components/shared/`
 - Added CSS modules with responsive design and accessibility features
 - Implemented loading state management at context level
@@ -779,6 +870,7 @@
 ### Added
 
 - **FIA (Familiarization, Internalization, Application) Integration - Phase 1**
+
   - ✅ **DCS-Based Implementation**: Integrated FIA images and maps from Door43 Content Service using Scripture Burrito format
   - ✅ **TSV Pattern Reuse**: Follows existing Translation Notes/Questions patterns for consistency and maintainability
   - ✅ **Self-Activating FIA Panel**: New panel component that automatically loads FIA resources for current verse
@@ -816,6 +908,7 @@
 ### Changed
 
 - **Logging System Cleanup - Reduced Console Noise**
+
   - ✅ Updated logger utility (src/utils/logger.js) to default to WARN level instead of INFO for cleaner console output
   - ✅ Replaced numerous console.log statements with logger calls or comments across the codebase
   - ✅ Removed excessive debug logging from catalogService.js that was flooding console in development
@@ -846,7 +939,7 @@
   - ✅ **Regression Prevention**: Removed conflicting outdated test file (`ResourcesContext.usfm-semantic-extraction.test.js`) that used deprecated browser/server split approach
   - ✅ **Test Coverage Expansion**: Added comprehensive tests for:
     - Single verse extraction (`extractVerseText`)
-    - Full chapter extraction (`extractChapterText`) 
+    - Full chapter extraction (`extractChapterText`)
     - USFM markup validation (`validateCleanText`)
     - Environment consistency across browser/server/test
     - Complex nested alignment structures
@@ -862,9 +955,10 @@
 
 ### 🚨 **BREAKING CHANGES - MAJOR ARCHITECTURAL OVERHAUL**
 
-**OPTIMUS PRIME REPORTS**: *"Autobots, we have achieved total victory over the manifest system! This is our most significant architectural transformation in history."*
+**OPTIMUS PRIME REPORTS**: _"Autobots, we have achieved total victory over the manifest system! This is our most significant architectural transformation in history."_
 
 ### 💥 **THE GREAT MANIFEST PURGE** - Complete Architecture Revolution
+
 - **❌ ELIMINATED**: All manifest files and manifest-based architecture (6,553 lines deleted)
 - **❌ REMOVED**: `ManifestsContext`, `MultiManifestsContext`, `useManifest` hook
 - **❌ DELETED**: `manifestService.js`, all manifest-based file path resolution
@@ -873,6 +967,7 @@
 - **✅ RELIABILITY**: Direct file access without manifest dependencies
 
 ### 🎯 **Organization Metrics System** - Data-Driven Quality Assessment
+
 - **✅ Weighted Scoring Algorithm**: Stars (3x) + Watchers (2x) + Forks (1x) for transparent quality ranking
 - **✅ Tier Classification**: Premier (100+) → Established (50+) → Emerging (20+) → Community (5+) → Experimental (0+)
 - **✅ Visual Quality Indicators**: Real-time metric badges, tooltips, and recommendation text from DCS API
@@ -880,6 +975,7 @@
 - **✅ Consistent UI/UX**: Shared ResourceGrid component for both Scripture and Translation Helps
 
 ### 🔧 **Service Layer Transformation**
+
 - **✅ catalogService.js**: Enhanced with organization metrics and direct API access patterns
 - **✅ scriptureService.js**: Refactored to use `ingredients` array instead of manifest file paths
 - **✅ translationHelpsDiscovery.js**: New service for resource discovery without manifest dependencies
@@ -887,12 +983,14 @@
 - **✅ All Help Services**: Updated to eliminate `fetchManifest()` calls and use direct API access
 
 ### 🎨 **Translation Helps Navigation System** - New Components
+
 - **✅ InlineHelpsNavigation**: New component for streamlined inline navigation
 - **✅ TranslationHelpsNavigation**: Dedicated navigation component for translation resources
 - **✅ TranslationHelpsSummary**: Comprehensive summary view component
 - **✅ Shared ResourceGrid**: Unified display component for all resource types with metrics
 
 ### 🧪 **Test Suite Modernization**
+
 - **❌ DELETED**: 11 test files testing obsolete manifest-based logic (2,234 lines removed)
 - **❌ REMOVED**: `ManifestsContext.test.js`, `manifestService.test.js`, all manifest service tests
 - **✅ NEW TESTS**: API-direct integration tests for catalog service and resource loading
@@ -900,6 +998,7 @@
 - **✅ ENHANCED**: Service layer tests updated for direct API patterns
 
 ### 📚 **Comprehensive Documentation Updates**
+
 - **✅ NO-MANIFESTS-API-DIRECT.md**: Critical architecture guide with migration instructions
 - **✅ api-direct-testing-summary.md**: Testing approach for new architecture
 - **✅ catalog-api-optimization.md**: API optimization strategies and best practices
@@ -908,11 +1007,13 @@
 - **✅ Updated All Legacy Docs**: Removed manifest references from 15+ documentation files
 
 ### 🔍 **Context System Enhancements**
+
 - **✅ Enhanced ReferenceContext**: Now manages resource discovery and organization metrics
 - **✅ Simplified ResourcesContext**: Streamlined without manifest logic, improved performance
 - **✅ Better State Management**: Improved synchronization and reduced complexity
 
 ### 🎨 **UI/UX Improvements**
+
 - **✅ Enhanced Resource Cards**: Display community engagement metrics and quality indicators
 - **✅ Improved Organization Groups**: Visual hierarchy with tier badges and recommendation text
 - **✅ Better Language Selector**: Enhanced with organization metrics display
@@ -920,6 +1021,7 @@
 - **✅ Professional Appearance**: Consistent styling across all resource selection interfaces
 
 ### 📈 **Performance & Reliability Improvements**
+
 - **✅ Eliminated Redundant API Calls**: No more 1 manifest call per resource
 - **✅ Faster Resource Loading**: Direct file access with predictable paths
 - **✅ Reduced Bundle Size**: Removed manifest parsing and caching logic
@@ -929,6 +1031,7 @@
 ### 🔧 **Technical Implementation Details**
 
 #### Files Deleted (Major Cleanup)
+
 ```
 ❌ data/manifest.yaml                    (511 lines)
 ❌ src/context/ManifestsContext.jsx      (23 lines)
@@ -939,6 +1042,7 @@
 ```
 
 #### Files Created (New Architecture)
+
 ```
 ✅ docs/NO-MANIFESTS-API-DIRECT.md
 ✅ docs/organization-metrics-implementation.md
@@ -951,6 +1055,7 @@
 ```
 
 #### Files Modified (Architecture Updates)
+
 ```
 ✅ 58 files changed: 4,319 insertions, 6,553 deletions
 ✅ All service files updated for API-direct patterns
@@ -962,6 +1067,7 @@
 ### 🚀 **Migration Impact**
 
 #### Before (Manifest-Based)
+
 - ❌ Extra API call for each resource manifest
 - ❌ Complex file path resolution logic
 - ❌ Manifest parsing and caching overhead
@@ -969,6 +1075,7 @@
 - ❌ No quality indicators for resource selection
 
 #### After (API-Direct with Metrics)
+
 - ✅ Direct file access with standard naming
 - ✅ Community engagement metrics for quality assessment
 - ✅ Simplified architecture with fewer failure points
@@ -1002,6 +1109,7 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
 ## [2.12.1] - 2025-12-19
 
 ### 🐛 Critical Bug Fixes
+
 - **API Endpoint Update**: Fixed 422 errors by updating catalog search API from v5 to v1 endpoint with correct parameters
 - **Resource Listing Restored**: Fixed language selection showing no resources due to API parameter incompatibility
 - **Multi-Subject Search**: Updated to handle Bible and Aligned Bible resources with separate API calls due to v1 API limitations
@@ -1017,6 +1125,7 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
 - **Default Organization**: Changed default organization from unfoldingWord to Door43-Catalog to better reflect the multi-organization nature of the catalog
 
 ### ✨ Visual Enhancements
+
 - **Organization Logos**: Added organization logos/avatars to resource group headers with fallback to initials
 - **Resource Avatars**: Resources now show repository avatars when available, with emoji fallback
 - **Language Flags**: Added country flag emojis to language selection and breadcrumb navigation
@@ -1069,7 +1178,7 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
 - **LLM Prompt System - Organized Context Presentation**
   - ✅ **Clear Resource Categorization**: Notes and questions organized into distinct, labeled sections:
     - 📚 **BOOK INTRODUCTION NOTES/QUESTIONS** (broader context for the entire book)
-    - 📖 **CHAPTER INTRODUCTION NOTES/QUESTIONS** (broader context for the chapter)  
+    - 📖 **CHAPTER INTRODUCTION NOTES/QUESTIONS** (broader context for the chapter)
     - 📝 **VERSE-SPECIFIC NOTES/QUESTIONS** (for the specific verse)
   - ✅ **Explicit Usage Permissions**: Added comprehensive instructions telling the LLM when and how to use broader context for cultural background, historical context, and thematic information
   - ✅ **Enhanced Citation System**: Updated citation format to clearly indicate context scope:
@@ -1088,10 +1197,12 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
 ### Technical Implementation
 
 - **Service Layer Enhancements**:
+
   - `src/services/tqService.js` - Enhanced `getQuestionsForVerse()` to include book (`front:intro`) and chapter introduction questions with support for multiple reference formats
   - Added comprehensive test coverage verifying book/chapter intro questions are properly included in correct priority order
 
 - **LLM Prompt Engineering**:
+
   - `netlify/functions/chat.js` - Restructured prompt to categorize and label different context levels with clear visual organization
   - Added explicit guidance on when to use broader notes (cultural context, historical background, literary structure, themes)
   - Enhanced citation examples showing proper attribution for different context levels
@@ -1104,12 +1215,13 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
 ### User Experience Benefits
 
 - **Before Enhancement**:
+
   - User: "What is the cultural context of Acts 1:1?"
   - LLM: "This information is not available in the provided translation resources"
   - Reality: Cultural context was available in Acts book introduction notes
 
 - **After Enhancement**:
-  - User: "What is the cultural context of Acts 1:1?"  
+  - User: "What is the cultural context of Acts 1:1?"
   - LLM: "While there are no verse-specific notes on cultural context, the book introduction provides relevant background. According to the Acts introduction, this book was written to provide an orderly account of early Christian history... [TN-1] [BOOK INTRO]"
 
 ### Key Improvements
@@ -1123,7 +1235,7 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
 ### Testing
 
 - ✅ All translation notes service tests pass
-- ✅ All translation questions service tests pass  
+- ✅ All translation questions service tests pass
 - ✅ New functionality properly includes book/chapter introduction content
 - ✅ Resources returned in correct priority order (book → chapter → verse)
 - ✅ Proper reference field preservation and citation system
@@ -1202,6 +1314,7 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
 ### Technical Implementation
 
 - **CSS Architecture Improvements**:
+
   - Migrated from JavaScript event handlers to pure CSS for button interactions
   - Added `!important` declarations to ensure CSS precedence over inline styles
   - Implemented consistent button styling patterns across components
@@ -1209,6 +1322,7 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
   - Updated scripture selection colors across all themes with proper contrast ratios
 
 - **Component Updates**:
+
   - `NavigationBar.jsx` - Added logo button functionality and collapsible breadcrumbs
   - `ThemeToggle.jsx` - Enhanced with proper color styling and larger icons
   - `ThemeToggle.module.css` - Added reliable CSS-only hover and focus states
@@ -1267,6 +1381,7 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
 ### Technical Implementation
 
 - **Files Modified**:
+
   - `public/manifest.json` - Complete rewrite with ETEN Lab branding and new icon references
   - `public/index.html` - Updated title and favicon links with multi-size support
   - `index.html` - Updated title and theme color to ETEN Lab green
@@ -1276,6 +1391,7 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
   - `AGENTS.md` - Updated description to reflect ETEN Lab mission
 
 - **Files Created**:
+
   - `public/eten-lab-icon.png` - Copy of lab-green-icon.png for clarity
   - `public/favicon-16x16.png` - 16x16 favicon generated from lab-green-icon.png
   - `public/favicon-32x32.png` - 32x32 favicon generated from lab-green-icon.png
@@ -1321,7 +1437,7 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
 
 - **Font System Compliance - 37 Non-Compliant Font Issues Resolved**
   - ✅ **Scripture Panel Headers**: Fixed 6 instances of hardcoded Georgia serif fonts in USFM headers, replaced with `var(--font-family-heading)` (Jura)
-  - ✅ **Monospace Font Standardization**: Fixed 8 instances of hardcoded Monaco/Menlo fonts, replaced with `var(--font-family-mono)` 
+  - ✅ **Monospace Font Standardization**: Fixed 8 instances of hardcoded Monaco/Menlo fonts, replaced with `var(--font-family-mono)`
   - ✅ **Navigation Components**: Fixed ResourceCard and SearchableGrid monospace usage to use CSS variables
   - ✅ **Chat Panel Code Blocks**: Fixed LLM chat code elements to use `var(--font-family-mono)` instead of generic monospace
   - ✅ **Markdown Utils**: Fixed inline code styling to use theme-aware CSS variables and proper contrast colors
@@ -1339,6 +1455,7 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
 ### Technical Implementation
 
 - **Font File Structure**:
+
   ```
   public/fonts/
   ├── local-fonts.css         # Font-face declarations
@@ -1347,13 +1464,15 @@ See `docs/NO-MANIFESTS-API-DIRECT.md` for complete migration instructions.
   ```
 
 - **CSS Variable System**:
+
   - `--font-family-primary`: Figtree (UI elements, buttons, navigation)
-  - `--font-family-heading`: Jura (section headers, technical emphasis)  
+  - `--font-family-heading`: Jura (section headers, technical emphasis)
   - `--font-family-body`: Madefor Text fallback to Figtree (scripture content)
   - `--font-family-meta`: DIN Next fallback to Figtree (timestamps, metadata)
   - `--font-family-mono`: Monaco/Menlo/Ubuntu Mono (code, references)
 
 - **Files Modified (15+ files)**:
+
   - Font hosting: `public/index.html`, `public/fonts/local-fonts.css`
   - Scripture rendering: `USFMSemanticRenderer.module.css` (8 font fixes)
   - Chat system: `LLMChatPanel.module.css` (3 font fixes)
@@ -2784,6 +2903,7 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 ### Added
 
 - **DCS Catalog Language Display and Coverage Issues**
+
   - Enhanced language dropdown to show proper names instead of just codes ("EN - English" vs "en")
   - Added language direction support (LTR/RTL) for proper text display
   - Rich language objects with code, name, direction, and raw API data preservation
@@ -3208,17 +3328,20 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 ### 🚨 CRITICAL FIX: AI Assistant Resource Loading
 
 #### Problem Resolved
+
 - **AI Assistant showed "0 resources"** while panels displayed data correctly
 - **Root Cause**: Services used hardcoded file naming conventions (`tn_GEN.tsv`) instead of actual file paths from catalog API
 - **Impact**: Only Translation Words worked in AI Assistant; Scripture, Notes, and Questions failed with 404 errors
 
 #### Solution Implemented
+
 - **Enhanced Service Architecture**: Created `*WithResourceData()` functions that use catalog API ingredients array
 - **File Path Resolution**: Services now get actual file paths (e.g., `01-GEN.tsv`) from `resourceData.ingredients`
 - **Fallback Support**: Graceful degradation to naming conventions when ingredients unavailable
 - **ResourcesContext Integration**: Updated to fetch resource data and pass to enhanced services
 
 #### Technical Changes
+
 - Added `searchAllResourcesForLanguage` import to ResourcesContext
 - Created `getNotesForVerseWithResourceData()` in tnService.js
 - Created `getQuestionsForVerseWithResourceData()` in tqService.js
@@ -3226,21 +3349,25 @@ This comprehensive fix resolves a critical architectural limitation where the ap
 - Enhanced logging for debugging file path resolution
 
 #### Files Modified
+
 - `src/context/ResourcesContext.jsx` - Resource data fetching and service integration
 - `src/services/tnService.js` - Enhanced function with ingredients support
 - `src/services/tqService.js` - Enhanced function with ingredients support
 - `src/components/LLMChatPanel.jsx` - Debug button for troubleshooting
 
 #### Documentation Added
+
 - `docs/api-direct-service-architecture.md` - Comprehensive architecture guide
 - `docs/debugging-ai-assistant-resources.md` - Step-by-step debugging guide
 
 #### Testing
+
 - Debug button (🐛) in AI Assistant for real-time inspection
 - Console logging for file path resolution process
 - Network tab verification for correct URL requests
 
 #### Migration Notes
+
 - **Breaking Change**: Services now require resource data for optimal performance
 - **Backward Compatible**: Old service functions still available as fallback
 - **Monitoring**: New console logs help identify file path issues

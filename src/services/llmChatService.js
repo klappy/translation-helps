@@ -138,9 +138,11 @@ Please answer the user's question using this contextual information.`;
  * @param {string} message - User's message
  * @param {Object} context - Packaged context
  * @param {Array} chatHistory - Previous messages in conversation
+ * @param {Object} options - Additional options like streaming
  * @returns {Promise<Object>} Response from LLM
  */
-export async function sendChatMessage(message, context, chatHistory = []) {
+export async function sendChatMessage(message, context, chatHistory = [], options = {}) {
+  const { streaming = false, onStreamChunk = null } = options;
   // Check if we should use mock responses proactively in development
   const useMockChat = import.meta.env.VITE_USE_MOCK_CHAT === "true";
 
@@ -196,7 +198,16 @@ export async function sendChatMessage(message, context, chatHistory = []) {
       timestamp: new Date().toISOString(),
     };
 
-    const endpoint = import.meta.env.VITE_CHAT_API_ENDPOINT || "/.netlify/functions/chat";
+    // Choose endpoint based on streaming preference (streaming overrides env)
+    const endpoint = streaming
+      ? "/.netlify/functions/chat-stream"
+      : import.meta.env.VITE_CHAT_API_ENDPOINT || "/.netlify/functions/chat";
+
+    console.log("🎯 LLM Service Debug:", {
+      streaming,
+      endpoint,
+      envEndpoint: import.meta.env.VITE_CHAT_API_ENDPOINT,
+    });
 
     const requestBody = {
       message,
@@ -226,6 +237,16 @@ export async function sendChatMessage(message, context, chatHistory = []) {
       }
 
       const data = await response.json();
+
+      // Handle streaming simulation if requested
+      if (streaming && onStreamChunk && data.response) {
+        try {
+          await simulateStreamingResponse(data.response, onStreamChunk);
+        } catch (streamError) {
+          console.error("Streaming simulation failed:", streamError);
+          // Continue with the response even if streaming fails
+        }
+      }
 
       // Update cost estimate with actual token counts if available
       let finalCostEstimate = { ...costEstimate };
@@ -283,6 +304,43 @@ export async function sendChatMessage(message, context, chatHistory = []) {
       timestamp: new Date().toISOString(),
       costEstimate: null,
     };
+  }
+}
+
+/**
+ * Simulates streaming response by sending chunks of text
+ * @param {string} fullResponse - Complete response text
+ * @param {Function} onStreamChunk - Callback for each chunk
+ */
+async function simulateStreamingResponse(fullResponse, onStreamChunk) {
+  try {
+    const words = fullResponse.split(" ");
+    let currentChunk = "";
+
+    console.log("🎬 Starting streaming simulation with", words.length, "words");
+
+    for (let i = 0; i < words.length; i++) {
+      currentChunk += (i > 0 ? " " : "") + words[i];
+
+      // Send chunk every word for more obvious streaming effect
+      try {
+        onStreamChunk(currentChunk);
+        console.log("📡 Streaming chunk:", currentChunk.length, "chars");
+      } catch (chunkError) {
+        console.error("Error in streaming chunk callback:", chunkError);
+        break; // Stop streaming if callback fails
+      }
+
+      // Add realistic streaming delay (much faster)
+      if (i < words.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 20 + Math.random() * 30));
+      }
+    }
+
+    console.log("✅ Streaming simulation complete");
+  } catch (error) {
+    console.error("Error in streaming simulation:", error);
+    throw error;
   }
 }
 
