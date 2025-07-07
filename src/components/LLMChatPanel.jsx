@@ -1,7 +1,7 @@
 /**
  * LLMChatPanel.jsx - Direct Context Access Pattern
  * Follows Simple Verse-Loading Pattern from docs/SIMPLE-VERSE-LOADING-PATTERN.md
- * 
+ *
  * TRANSFORMATION: Reduced from 576 lines to ~150 lines
  * PATTERN: Multi-resource self-activation with direct context access
  */
@@ -12,8 +12,13 @@ import { useResourcesContext } from "../context/ResourcesContext";
 import { sendChatMessage } from "../services/llmChatService";
 import { processMarkdownWithRcLinks } from "../utils/markdownUtils";
 import { enhanceLLMResponse } from "../utils/emojiEnhancer";
-import { extractVerseText, extractChapterText, validateCleanText, emergencyUSFMExtract } from "../utils/usfmTextExtractor";
-import { TabIcon } from "./shared";
+import {
+  extractVerseText,
+  extractChapterText,
+  validateCleanText,
+  emergencyUSFMExtract,
+} from "../utils/usfmTextExtractor";
+import { TabIcon, ToggleSwitch } from "./shared";
 import styles from "./LLMChatPanel.module.css";
 
 export function LLMChatPanel() {
@@ -24,10 +29,19 @@ export function LLMChatPanel() {
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
+  // Session-only resource filters - like faucet handles, no persistence
+  const [resourceFilters, setResourceFilters] = useState({
+    scripture: true,
+    notes: true,
+    questions: true,
+    words: true,
+    links: true,
+  });
+
   // Ensure all resources are active for comprehensive AI context
   useEffect(() => {
     // Self-activating ALL resources for comprehensive AI context
-    ['scripture', 'notes', 'questions', 'words', 'links'].forEach(activateResource);
+    ["scripture", "notes", "questions", "words", "links"].forEach(activateResource);
   }, []); // Empty dependency array - only run once on mount
 
   const {
@@ -69,43 +83,46 @@ export function LLMChatPanel() {
     // Extract clean scripture text for LLM at runtime from raw USFM (antifragile pattern)
     let scriptureForLLM = null;
     let scriptureMetadata = null;
-    
+
     if (resources.scripture && resources.reference) {
       // Raw USFM is the single source of truth - extract clean text at runtime
       const rawUsfm = resources.scripture;
-          // Extracting clean text from raw USFM at runtime
-      
-      try {
+      // Extracting clean text from raw USFM at runtime
 
-        
+      try {
         // Extract clean text - try chapter first for broader context, then specific verse
         let cleanText;
         let extractionMethod;
-        
+
         try {
           // PRIMARY: Extract entire chapter with verse numbers for comprehensive LLM context
           cleanText = extractChapterText(rawUsfm, resources.reference.chapter);
-          extractionMethod = 'chapter';
+          extractionMethod = "chapter";
         } catch (chapterError) {
-          console.warn('🔍 LLM Context: Chapter extraction failed, trying single verse:', chapterError.message);
-                      // Fallback: Extract specific verse with verse number
-            cleanText = extractVerseText(rawUsfm, resources.reference.chapter, resources.reference.verse);
-            extractionMethod = 'verse';
+          console.warn(
+            "🔍 LLM Context: Chapter extraction failed, trying single verse:",
+            chapterError.message
+          );
+          // Fallback: Extract specific verse with verse number
+          cleanText = extractVerseText(
+            rawUsfm,
+            resources.reference.chapter,
+            resources.reference.verse
+          );
+          extractionMethod = "verse";
         }
-        
 
-        
         const isClean = validateCleanText(cleanText);
-        
+
         // If extraction returned empty or failed validation, log details
         if (!cleanText || cleanText.trim().length === 0) {
           throw new Error(`Extraction returned empty text for ${resources.reference.citation}`);
         }
-        
+
         if (!isClean) {
-          console.warn('⚠️ LLM Context: Extracted text contains markup patterns!');
+          console.warn("⚠️ LLM Context: Extracted text contains markup patterns!");
         }
-        
+
         scriptureForLLM = cleanText;
         scriptureMetadata = {
           extractedAt: new Date().toISOString(),
@@ -113,19 +130,20 @@ export function LLMChatPanel() {
           originalLength: rawUsfm.length,
           cleanLength: cleanText.length,
           reference: resources.reference.citation,
-          extractionMethod: extractionMethod
+          extractionMethod: extractionMethod,
         };
-        
-
-        
       } catch (error) {
-        console.error('❌ LLM Context: Failed to extract clean text from USFM:', error);
-        console.error('❌ LLM Context: Error details:', error.message, error.stack);
-        console.log('🚨 LLM Context: Attempting emergency fallback extraction');
-        
+        console.error("❌ LLM Context: Failed to extract clean text from USFM:", error);
+        console.error("❌ LLM Context: Error details:", error.message, error.stack);
+        console.log("🚨 LLM Context: Attempting emergency fallback extraction");
+
         // EMERGENCY FALLBACK: Use simple string operations for aligned Bibles
         try {
-          const emergencyText = emergencyUSFMExtract(rawUsfm, resources.reference.chapter, resources.reference.verse);
+          const emergencyText = emergencyUSFMExtract(
+            rawUsfm,
+            resources.reference.chapter,
+            resources.reference.verse
+          );
           if (emergencyText && emergencyText.trim().length > 0) {
             scriptureForLLM = emergencyText;
             scriptureMetadata = {
@@ -134,16 +152,16 @@ export function LLMChatPanel() {
               originalLength: rawUsfm.length,
               cleanLength: emergencyText.length,
               reference: resources.reference.citation,
-              extractionMethod: 'emergency',
-              fallbackReason: error.message
+              extractionMethod: "emergency",
+              fallbackReason: error.message,
             };
-            console.log('✅ LLM Context: Emergency extraction successful');
+            console.log("✅ LLM Context: Emergency extraction successful");
           } else {
-            throw new Error('Emergency extraction also failed');
+            throw new Error("Emergency extraction also failed");
           }
         } catch (emergencyError) {
-          console.error('🚨 LLM Context: Emergency extraction failed:', emergencyError);
-          
+          console.error("🚨 LLM Context: Emergency extraction failed:", emergencyError);
+
           // FINAL FALLBACK: Provide a helpful message instead of raw USFM
           scriptureForLLM = `[Scripture text for ${resources.reference.citation} is temporarily unavailable due to formatting complexity. Translation resources are still available.]`;
           scriptureMetadata = {
@@ -152,24 +170,24 @@ export function LLMChatPanel() {
             originalLength: rawUsfm.length,
             cleanLength: scriptureForLLM.length,
             reference: resources.reference.citation,
-            extractionMethod: 'fallback-message',
-            fallbackReason: 'All extraction methods failed'
+            extractionMethod: "fallback-message",
+            fallbackReason: "All extraction methods failed",
           };
-          console.log('📝 LLM Context: Using fallback message for user-friendly experience');
+          console.log("📝 LLM Context: Using fallback message for user-friendly experience");
         }
       }
     } else {
       // No scripture data or reference available
     }
-    
+
     const formattedContext = {
       reference: resources.reference || null,
       resources: {
-        scripture: scriptureForLLM,
-        translationNotes: resources.notes || [],
-        translationQuestions: resources.questions || [],
-        translationWords: resources.words || [],
-        translationWordLinks: resources.links || [],
+        scripture: resourceFilters.scripture ? scriptureForLLM : null,
+        translationNotes: resourceFilters.notes ? resources.notes || [] : [],
+        translationQuestions: resourceFilters.questions ? resources.questions || [] : [],
+        translationWords: resourceFilters.words ? resources.words || [] : [],
+        translationWordLinks: resourceFilters.links ? resources.links || [] : [],
       },
       metadata: {
         timestamp: Date.now(),
@@ -184,11 +202,9 @@ export function LLMChatPanel() {
         scriptureMetadata: scriptureMetadata,
       },
     };
-    
 
-    
     return formattedContext;
-  }, [resources]);
+  }, [resources, resourceFilters]);
 
   const handleSendMessage = async () => {
     if (!userInput.trim() || isSubmitting) return;
@@ -204,56 +220,55 @@ export function LLMChatPanel() {
 
     try {
       // Add user message
-      addMessage({ role: 'user', content: message });
-      
+      addMessage({ role: "user", content: message });
+
       // Context is ALWAYS ready and consistent
       const formattedContext = getFormattedContext();
-      
+
       // Send to LLM service with context
       const response = await sendChatMessage(message, formattedContext);
-      
+
       // Handle response properly
       if (response.success) {
         // Add successful AI response
-        addMessage({ 
-          role: 'assistant', 
+        addMessage({
+          role: "assistant",
           content: response.response,
           costEstimate: response.costEstimate,
-          metadata: response.metadata
+          metadata: response.metadata,
         });
-        
+
         // Update session cost if available
         if (response.costEstimate?.totalCost) {
-          setSessionCost(prev => prev + response.costEstimate.totalCost);
+          setSessionCost((prev) => prev + response.costEstimate.totalCost);
         }
       } else {
         // Add error message
-        addMessage({ 
-          role: 'error', 
-          content: response.error || 'Unknown error occurred while processing your message.'
+        addMessage({
+          role: "error",
+          content: response.error || "Unknown error occurred while processing your message.",
         });
       }
-      
+
       // Activate AI tab to show the response
       activateAITab();
-      
     } catch (error) {
-      console.error('Error sending message:', error);
-      
+      console.error("Error sending message:", error);
+
       // Add user-friendly error message
-      let errorMessage = 'Sorry, there was an error processing your message. ';
-      
-      if (error.message?.includes('timeout')) {
-        errorMessage += 'The request timed out. Please try again with a shorter message.';
-      } else if (error.message?.includes('network')) {
-        errorMessage += 'Network connection issue. Please check your connection and try again.';
+      let errorMessage = "Sorry, there was an error processing your message. ";
+
+      if (error.message?.includes("timeout")) {
+        errorMessage += "The request timed out. Please try again with a shorter message.";
+      } else if (error.message?.includes("network")) {
+        errorMessage += "Network connection issue. Please check your connection and try again.";
       } else {
-        errorMessage += 'Please try again in a moment.';
+        errorMessage += "Please try again in a moment.";
       }
-      
-      addMessage({ 
-        role: 'error', 
-        content: errorMessage
+
+      addMessage({
+        role: "error",
+        content: errorMessage,
       });
     } finally {
       setIsSubmitting(false);
@@ -307,11 +322,11 @@ export function LLMChatPanel() {
     if ((resources.notes || []).length > 0) {
       suggestions.push("Summarize the translation notes for this verse");
     }
-    
+
     if ((resources.questions || []).length > 0) {
       suggestions.push("What questions should translators consider?");
     }
-    
+
     if ((resources.words || []).length > 0) {
       suggestions.push("Define the key theological terms in this passage");
     }
@@ -333,23 +348,26 @@ export function LLMChatPanel() {
       >
         <div className={styles.messageContent}>
           <div className={styles.messageText}>
-            {isAssistant ? (
-              processMarkdownWithRcLinks(enhanceLLMResponse(message.content, {
-                enabled: true,
-                maxEmojisPerResponse: 6,
-                excludeCategories: [],
-              }), (rcLink) => {
-                // RC link clicked in chat
-              })
-            ) : (
-              message.content
-            )}
+            {isAssistant
+              ? processMarkdownWithRcLinks(
+                  enhanceLLMResponse(message.content, {
+                    enabled: true,
+                    maxEmojisPerResponse: 6,
+                    excludeCategories: [],
+                  }),
+                  (rcLink) => {
+                    // RC link clicked in chat
+                  }
+                )
+              : message.content}
           </div>
           <div className={styles.messageTime}>
             {formatTimestamp(message.timestamp)}
             {isAssistant && message.costEstimate && (
               <div className={styles.messageCost}>
-                <span className={styles.costBadge}>{formatCostDisplay(message.costEstimate.totalCost)}</span>
+                <span className={styles.costBadge}>
+                  {formatCostDisplay(message.costEstimate.totalCost)}
+                </span>
               </div>
             )}
             {message.metadata?.mock && <span className={styles.mockBadge}>MOCK</span>}
@@ -361,17 +379,25 @@ export function LLMChatPanel() {
 
   // Get current context info for display - memoized to respond to verse changes
   const contextInfo = useMemo(() => {
-    const totalResources = (resources.scripture ? 1 : 0) +
-                          (resources.notes?.length || 0) +
-                          (resources.questions?.length || 0) +
-                          (resources.words?.length || 0) +
-                          (resources.links?.length || 0);
-    
+    const totalResources =
+      (resources.scripture ? 1 : 0) +
+      (resources.notes?.length || 0) +
+      (resources.questions?.length || 0) +
+      (resources.words?.length || 0) +
+      (resources.links?.length || 0);
+
     return {
-      reference: resources.reference?.citation || 'No reference',
-      resourceCount: totalResources
+      reference: resources.reference?.citation || "No reference",
+      resourceCount: totalResources,
     };
-  }, [resources.reference?.citation, resources.scripture, resources.notes?.length, resources.questions?.length, resources.words?.length, resources.links?.length]);
+  }, [
+    resources.reference?.citation,
+    resources.scripture,
+    resources.notes?.length,
+    resources.questions?.length,
+    resources.words?.length,
+    resources.links?.length,
+  ]);
 
   return (
     <div className={styles.chatPanel} data-testid='llm-chat-panel'>
@@ -388,17 +414,25 @@ export function LLMChatPanel() {
               {contextInfo.reference} ({contextInfo.resourceCount} sources)
             </span>
           </div>
-          
+
           {sessionCost > 0 && (
-            <div className={`${styles.sessionCostIndicator} ${getSessionCostColor(sessionCost)}`} title={`Total conversation cost: ${formatCostDisplay(sessionCost)}`}>
+            <div
+              className={`${styles.sessionCostIndicator} ${getSessionCostColor(sessionCost)}`}
+              title={`Total conversation cost: ${formatCostDisplay(sessionCost)}`}
+            >
               <span className={styles.sessionCostIcon}>💰</span>
               <span className={styles.sessionCostText}>{formatCostDisplay(sessionCost)}</span>
             </div>
           )}
-          
 
-          
-          <button onClick={clearMessages} className={styles.clearButton} title='Clear conversation' disabled={messages.length === 0}>🗑️</button>
+          <button
+            onClick={clearMessages}
+            className={styles.clearButton}
+            title='Clear conversation'
+            disabled={messages.length === 0}
+          >
+            🗑️
+          </button>
         </div>
       </div>
 
@@ -406,7 +440,7 @@ export function LLMChatPanel() {
       {messages.length === 0 && (
         <div className={styles.welcomeMessage}>
           <div className={styles.welcomeIcon}>
-            <TabIcon type="chat" className={styles.tabIcon} />
+            <TabIcon type='chat' className={styles.tabIcon} />
           </div>
           <h4>Welcome to Translation Assistant!</h4>
           <p>I can help with translation resources. Ask me anything about:</p>
@@ -416,31 +450,177 @@ export function LLMChatPanel() {
             <li>Cultural and historical context</li>
             <li>Translation questions and challenges</li>
           </ul>
-          
-          {/* Show current resources */}
+
+          {/* Show current resources with toggles */}
           {contextInfo.resourceCount > 0 && (
             <div className={styles.availableResources}>
-              <p><strong>Currently Available:</strong></p>
+              <p>
+                <strong>Include in AI Context:</strong>
+              </p>
               <div className={styles.resourcesList}>
-                {resources.scripture && <span className={styles.resourceTag}>Scripture ✓</span>}
+                {resources.scripture && (
+                  <div className={styles.resourceToggle}>
+                    <span
+                      className={`${styles.resourceTag} ${
+                        resourceFilters.scripture ? styles.enabled : styles.disabled
+                      }`}
+                    >
+                      Scripture ✓
+                    </span>
+                    <ToggleSwitch
+                      checked={resourceFilters.scripture}
+                      onChange={(checked) =>
+                        setResourceFilters((prev) => ({ ...prev, scripture: checked }))
+                      }
+                      size='small'
+                    />
+                  </div>
+                )}
                 {(resources.notes?.length || 0) > 0 && (
-                  <span className={styles.resourceTag}>Notes ({resources.notes.length}) ✓</span>
+                  <div className={styles.resourceToggle}>
+                    <span
+                      className={`${styles.resourceTag} ${
+                        resourceFilters.notes ? styles.enabled : styles.disabled
+                      }`}
+                    >
+                      Notes ({resources.notes.length}) ✓
+                    </span>
+                    <ToggleSwitch
+                      checked={resourceFilters.notes}
+                      onChange={(checked) =>
+                        setResourceFilters((prev) => ({ ...prev, notes: checked }))
+                      }
+                      size='small'
+                    />
+                  </div>
                 )}
                 {(resources.questions?.length || 0) > 0 && (
-                  <span className={styles.resourceTag}>Questions ({resources.questions.length}) ✓</span>
+                  <div className={styles.resourceToggle}>
+                    <span
+                      className={`${styles.resourceTag} ${
+                        resourceFilters.questions ? styles.enabled : styles.disabled
+                      }`}
+                    >
+                      Questions ({resources.questions.length}) ✓
+                    </span>
+                    <ToggleSwitch
+                      checked={resourceFilters.questions}
+                      onChange={(checked) =>
+                        setResourceFilters((prev) => ({ ...prev, questions: checked }))
+                      }
+                      size='small'
+                    />
+                  </div>
                 )}
                 {(resources.words?.length || 0) > 0 && (
-                  <span className={styles.resourceTag}>Words ({resources.words.length}) ✓</span>
+                  <div className={styles.resourceToggle}>
+                    <span
+                      className={`${styles.resourceTag} ${
+                        resourceFilters.words ? styles.enabled : styles.disabled
+                      }`}
+                    >
+                      Words ({resources.words.length}) ✓
+                    </span>
+                    <ToggleSwitch
+                      checked={resourceFilters.words}
+                      onChange={(checked) =>
+                        setResourceFilters((prev) => ({ ...prev, words: checked }))
+                      }
+                      size='small'
+                    />
+                  </div>
                 )}
                 {(resources.links?.length || 0) > 0 && (
-                  <span className={styles.resourceTag}>Links ({resources.links.length}) ✓</span>
+                  <div className={styles.resourceToggle}>
+                    <span
+                      className={`${styles.resourceTag} ${
+                        resourceFilters.links ? styles.enabled : styles.disabled
+                      }`}
+                    >
+                      Links ({resources.links.length}) ✓
+                    </span>
+                    <ToggleSwitch
+                      checked={resourceFilters.links}
+                      onChange={(checked) =>
+                        setResourceFilters((prev) => ({ ...prev, links: checked }))
+                      }
+                      size='small'
+                    />
+                  </div>
                 )}
+              </div>
+
+              {/* Quick Presets for Testing */}
+              <div className={styles.quickPresets}>
+                <p>
+                  <strong>Quick Presets:</strong>
+                </p>
+                <div className={styles.presetButtons}>
+                  <button
+                    className={styles.presetButton}
+                    onClick={() =>
+                      setResourceFilters({
+                        scripture: true,
+                        notes: true,
+                        questions: true,
+                        words: true,
+                        links: true,
+                      })
+                    }
+                  >
+                    All On
+                  </button>
+                  <button
+                    className={styles.presetButton}
+                    onClick={() =>
+                      setResourceFilters({
+                        scripture: true,
+                        notes: false,
+                        questions: false,
+                        words: false,
+                        links: false,
+                      })
+                    }
+                  >
+                    Scripture Only
+                  </button>
+                  <button
+                    className={styles.presetButton}
+                    onClick={() =>
+                      setResourceFilters({
+                        scripture: false,
+                        notes: true,
+                        questions: false,
+                        words: false,
+                        links: false,
+                      })
+                    }
+                  >
+                    Notes Only
+                  </button>
+                  <button
+                    className={styles.presetButton}
+                    onClick={() =>
+                      setResourceFilters({
+                        scripture: false,
+                        notes: false,
+                        questions: false,
+                        words: false,
+                        links: false,
+                      })
+                    }
+                  >
+                    None
+                  </button>
+                </div>
               </div>
             </div>
           )}
-          
+
           <div className={styles.promptSuggestions}>
-            <p><strong>Try asking:</strong></p>
+            <p>
+              <strong>Try asking:</strong>
+            </p>
             <div className={styles.suggestionsList}>
               {getPromptSuggestions().map((suggestion, index) => (
                 <button
@@ -485,7 +665,7 @@ export function LLMChatPanel() {
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask about this verse..."
+            placeholder='Ask about this verse...'
             className={styles.messageInput}
             disabled={isSubmitting}
             rows={1}
@@ -495,7 +675,7 @@ export function LLMChatPanel() {
             disabled={!userInput.trim() || isSubmitting}
             className={styles.sendButton}
           >
-            {isSubmitting ? '⏳' : '➤'}
+            {isSubmitting ? "⏳" : "➤"}
           </button>
         </div>
       </div>

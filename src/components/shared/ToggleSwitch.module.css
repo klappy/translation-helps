@@ -1,0 +1,100 @@
+/* Toggle Switch Component */
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggleSwitch.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Hide the default checkbox */
+.toggleInput {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+/* The slider */
+.toggleSlider {
+  position: relative;
+  display: block;
+  background-color: var(--color-text-secondary, #ccc);
+  transition: 0.2s ease-in-out;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.toggleSlider:before {
+  position: absolute;
+  content: "";
+  background-color: white;
+  transition: 0.2s ease-in-out;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  top: 2px;
+  left: 2px;
+}
+
+/* Small size (default) */
+.small .toggleSlider {
+  width: 32px;
+  height: 18px;
+}
+
+.small .toggleSlider:before {
+  width: 14px;
+  height: 14px;
+}
+
+/* Medium size */
+.medium .toggleSlider {
+  width: 44px;
+  height: 24px;
+}
+
+.medium .toggleSlider:before {
+  width: 20px;
+  height: 20px;
+}
+
+/* Checked state */
+.toggleInput:checked + .toggleSlider {
+  background-color: var(--color-primary, #2196f3);
+}
+
+.toggleInput:checked + .toggleSlider:before {
+  transform: translateX(14px);
+}
+
+.medium .toggleInput:checked + .toggleSlider:before {
+  transform: translateX(20px);
+}
+
+/* Focus state for accessibility */
+.toggleInput:focus + .toggleSlider {
+  box-shadow: 0 0 0 2px var(--color-primary-light, rgba(33, 150, 243, 0.3));
+}
+
+/* Disabled state */
+.disabled .toggleSlider {
+  background-color: var(--color-disabled, #e0e0e0);
+  cursor: not-allowed;
+}
+
+.disabled .toggleInput:checked + .toggleSlider {
+  background-color: var(--color-disabled, #e0e0e0);
+}
+
+/* Hover effects */
+.toggleSwitch:not(.disabled):hover .toggleSlider {
+  filter: brightness(1.1);
+}
+
+.toggleSwitch:not(.disabled):hover .toggleSlider:before {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
