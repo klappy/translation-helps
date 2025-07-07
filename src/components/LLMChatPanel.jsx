@@ -41,33 +41,6 @@ export function LLMChatPanel() {
   // Track when resources are changed mid-conversation for visual feedback
   const [lastResourceChange, setLastResourceChange] = useState(null);
 
-  // Enhanced resource filter setter that tracks changes during conversation
-  const handleResourceFilterChange = useCallback(
-    (resourceType, checked) => {
-      setResourceFilters((prev) => {
-        const newFilters = { ...prev, [resourceType]: checked };
-
-        // If we're in the middle of a conversation, track this change
-        if (messages.length > 0) {
-          setLastResourceChange({
-            timestamp: Date.now(),
-            resourceType,
-            enabled: checked,
-            activeResources: Object.entries(newFilters)
-              .filter(([, enabled]) => enabled)
-              .map(([type]) => type),
-          });
-
-          // Clear the indicator after 3 seconds
-          setTimeout(() => setLastResourceChange(null), 3000);
-        }
-
-        return newFilters;
-      });
-    },
-    [messages.length]
-  );
-
   // Ensure all resources are active for comprehensive AI context
   useEffect(() => {
     // Self-activating ALL resources for comprehensive AI context
@@ -236,6 +209,33 @@ export function LLMChatPanel() {
     return formattedContext;
   }, [resources, resourceFilters]);
 
+  // Enhanced resource filter setter that tracks changes during conversation
+  const handleResourceFilterChange = useCallback(
+    (resourceType, checked) => {
+      setResourceFilters((prev) => {
+        const newFilters = { ...prev, [resourceType]: checked };
+
+        // If we're in the middle of a conversation, track this change
+        if (messages.length > 0) {
+          setLastResourceChange({
+            timestamp: Date.now(),
+            resourceType,
+            enabled: checked,
+            activeResources: Object.entries(newFilters)
+              .filter(([, enabled]) => enabled)
+              .map(([type]) => type),
+          });
+
+          // Clear the indicator after 3 seconds
+          setTimeout(() => setLastResourceChange(null), 3000);
+        }
+
+        return newFilters;
+      });
+    },
+    [messages.length]
+  );
+
   const handleSendMessage = async () => {
     if (!userInput.trim() || isSubmitting) return;
 
@@ -260,12 +260,36 @@ export function LLMChatPanel() {
 
       // Handle response properly
       if (response.success) {
-        // Add successful AI response
+        // Add successful AI response with resource context snapshot
         addMessage({
           role: "assistant",
           content: response.response,
           costEstimate: response.costEstimate,
           metadata: response.metadata,
+          resourceContext: {
+            activeFilters: { ...resourceFilters },
+            includedResources: {
+              scripture: resourceFilters.scripture && !!resources.scripture,
+              notes: resourceFilters.notes && (resources.notes?.length || 0) > 0,
+              questions: resourceFilters.questions && (resources.questions?.length || 0) > 0,
+              words: resourceFilters.words && (resources.words?.length || 0) > 0,
+              links: resourceFilters.links && (resources.links?.length || 0) > 0,
+            },
+            resourceCounts: {
+              notes: resourceFilters.notes ? resources.notes?.length || 0 : 0,
+              questions: resourceFilters.questions ? resources.questions?.length || 0 : 0,
+              words: resourceFilters.words ? resources.words?.length || 0 : 0,
+              links: resourceFilters.links ? resources.links?.length || 0 : 0,
+            },
+            totalCount: [
+              resourceFilters.scripture && !!resources.scripture,
+              resourceFilters.notes && (resources.notes?.length || 0) > 0,
+              resourceFilters.questions && (resources.questions?.length || 0) > 0,
+              resourceFilters.words && (resources.words?.length || 0) > 0,
+              resourceFilters.links && (resources.links?.length || 0) > 0,
+            ].filter(Boolean).length,
+            timestamp: Date.now(),
+          },
         });
 
         // Update session cost if available
@@ -397,6 +421,32 @@ export function LLMChatPanel() {
               <div className={styles.messageCost}>
                 <span className={styles.costBadge}>
                   {formatCostDisplay(message.costEstimate.totalCost)}
+                </span>
+              </div>
+            )}
+            {isAssistant && message.resourceContext && (
+              <div
+                className={styles.messageResources}
+                title={`Resources used: ${
+                  Object.entries(message.resourceContext.includedResources)
+                    .filter(([, included]) => included)
+                    .map(([type]) => {
+                      if (type === "scripture") return "Scripture";
+                      if (type === "notes")
+                        return `Notes (${message.resourceContext.resourceCounts.notes})`;
+                      if (type === "questions")
+                        return `Questions (${message.resourceContext.resourceCounts.questions})`;
+                      if (type === "words")
+                        return `Words (${message.resourceContext.resourceCounts.words})`;
+                      if (type === "links")
+                        return `Links (${message.resourceContext.resourceCounts.links})`;
+                      return type;
+                    })
+                    .join(", ") || "No resources"
+                }`}
+              >
+                <span className={styles.resourceBadge}>
+                  📚 {message.resourceContext.totalCount}
                 </span>
               </div>
             )}

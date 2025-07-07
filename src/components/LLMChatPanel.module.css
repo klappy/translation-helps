@@ -457,7 +457,7 @@
   align-items: center;
   gap: var(--spacing-1);
   padding: var(--spacing-1) var(--spacing-2);
-  border-radius: var(--border-radius-small);
+  border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   transition: all 0.2s ease-in-out;
@@ -1118,6 +1118,59 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
+}
+
+/* Message Resource Context Badge */
+.messageResources {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-1) var(--spacing-1);
+  border-radius: var(--radius-sm);
+  font-size: var(--help-meta-size);
+  font-weight: var(--font-weight-medium);
+  cursor: help;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  margin-left: var(--spacing-2);
+}
+
+.messageResources:hover {
+  transform: translateY(-1px);
+  opacity: 1;
+}
+
+.resourceBadge {
+  background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  border-radius: var(--radius-full);
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--help-meta-size);
+  font-weight: var(--font-weight-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  white-space: nowrap;
+  transition: all 0.2s ease-in-out;
+}
+
+.resourceBadge:hover {
+  background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+  border-color: #81c784;
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+[data-theme="dark"] .resourceBadge {
+  background: linear-gradient(135deg, #1b5e20, #2e7d32);
+  color: #a5d6a7;
+  border-color: #4caf50;
+}
+
+[data-theme="dark"] .resourceBadge:hover {
+  background: linear-gradient(135deg, #2e7d32, #388e3c);
+  border-color: #66bb6a;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.4);
 }
 
 /* Loading Message */
