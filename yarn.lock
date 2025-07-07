@@ -1273,17 +1273,17 @@
   dependencies:
     debug "^4.4.1"
 
-"@sveltejs/vite-plugin-svelte@^2.6.0":
-  version "6.0.0-next.2"
-  resolved "https://registry.yarnpkg.com/@sveltejs/vite-plugin-svelte/-/vite-plugin-svelte-6.0.0-next.2.tgz#3bd60e15be2dea77b251bbcd6a803cded3276f23"
-  integrity sha512-xXGRZMwyZofeclbtzjbyoPfQBExeFPb/mpYTf7o0brQAmIKKQa4BItSycWZnIKSQSJg9FO/1SVV+GyuYhoaFxQ==
+"@sveltejs/vite-plugin-svelte@^2.9.4":
+  version "6.0.0-next.3"
+  resolved "https://registry.yarnpkg.com/@sveltejs/vite-plugin-svelte/-/vite-plugin-svelte-6.0.0-next.3.tgz#6f4d1faca0cf455c00013b157a773f4652d589f0"
+  integrity sha512-FChrz3ENwVKXl10UHUbRZVOS0B40x414agPlxmDih8R7MDfYodnZIxzXH0VRZBKmV3o1QMxFpKZ7xOqxM6C0Bw==
   dependencies:
     "@sveltejs/vite-plugin-svelte-inspector" "^5.0.0-next.0"
     debug "^4.4.1"
     deepmerge "^4.3.1"
     kleur "^4.1.5"
     magic-string "^0.30.17"
-    vitefu "^1.0.7"
+    vitefu "^1.1.1"
 
 "@tanstack/query-core@4.39.1":
   version "4.39.1"
@@ -6361,7 +6361,7 @@ vite@^4.2.0, vite@^4.2.1:
   optionalDependencies:
     fsevents "~2.3.2"
 
-vitefu@^1.0.7:
+vitefu@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/vitefu/-/vitefu-1.1.1.tgz#c39b7e4c91bf2f6c590fb96e0758f394dff5795b"
   integrity sha512-B/Fegf3i8zh0yFbpzZ21amWzHmuNlLlmJT6n7bu5e+pCHUKQIfXSYokrqOBGEMMe9UG2sostKQF9mml/vYaWJQ==
