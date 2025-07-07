@@ -1,5 +1,9 @@
 <script>
   export let name = 'Cybertron';
+  let count = 0;
+  function increment() {
+    count += 1;
+  }
 </script>
 
 <style>
@@ -14,3 +18,5 @@
 </style>
 
 Hello {name}! ⚡
+
+<button on:click={increment}>Clicked {count} times</button>

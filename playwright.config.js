@@ -24,7 +24,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run dev',
+    command: 'yarn dev:both',
     port: 5173,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
