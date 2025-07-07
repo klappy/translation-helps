@@ -1,4 +1,5 @@
 import App from './App.svelte';
+import Greeter from './Greeter.svelte';
 
 const app = new App({
   target: document.getElementById('app'),
@@ -6,5 +7,7 @@ const app = new App({
     name: 'Autobots'
   }
 });
+
+customElements.define('svelte-greeter', Greeter);
 
 export default app;

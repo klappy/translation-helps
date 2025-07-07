@@ -27,7 +27,9 @@
     "dev": "netlify dev",
     "build": "vite build",
     "test": "node --max-old-space-size=4096 ./node_modules/.bin/vitest --run",
-    "lint": "eslint --ext .ts,.tsx src"
+    "lint": "eslint --ext .ts,.tsx src",
+    "dev:svelte": "yarn --cwd svelte-poc dev",
+    "dev:both": "concurrently \"yarn dev:app\" \"yarn dev:svelte\""
   },
   "eslintConfig": {
     "extends": "react-app",
@@ -58,6 +60,10 @@
     "prettier": "^2.8.8",
     "typescript": "^4.9.5",
     "vite": "^4.2.1",
-    "vitest": "^0.34.0"
-  }
+    "vitest": "^0.34.0",
+    "concurrently": "^8.2.0"
+  },
+  "workspaces": [
+    "svelte-poc"
+  ]
 }
