@@ -1,5 +1,6 @@
 import App from './App.svelte';
 import Greeter from './Greeter.svelte';
+import NavigationBar from './lib/NavigationBar.svelte';
 import './lib/theme/theme.css';
 
 const app = new App({
@@ -10,5 +11,6 @@ const app = new App({
 });
 
 customElements.define('svelte-greeter', Greeter);
+customElements.define('svelte-nav-bar', NavigationBar);
 
 export default app;

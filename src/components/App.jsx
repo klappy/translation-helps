@@ -8,7 +8,7 @@ import { Routes, Route } from "react-router-dom";
 import { ReferenceProvider } from "../context/ReferenceContext";
 import { ResourcesProvider } from "../context/ResourcesContext";
 import { ChatProvider } from "../context/ChatContext";
-import { NavigationBar } from "./NavigationBar";
+import SvelteNavBar from "./SvelteNavBar";
 import { MainView } from "./MainView";
 import { SplashScreen } from "./SplashScreen";
 import { ShowcaseLayout } from "./showcase/ShowcaseLayout";
@@ -23,7 +23,7 @@ function AppContent() {
       minHeight: "100vh",
       color: "var(--color-text)"
     }}>
-      <NavigationBar />
+      <SvelteNavBar />
       <Routes>
         <Route path='/' element={<MainView />} />
         <Route path='/showcase/*' element={<ShowcaseLayout />} />
