@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import SvelteGreeterDemo from './SvelteGreeterDemo';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock dynamic script injection to avoid network hit in unit test
 beforeAll(() => {
