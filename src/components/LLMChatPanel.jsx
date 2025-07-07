@@ -459,14 +459,12 @@ export function LLMChatPanel() {
               </p>
               <div className={styles.resourcesList}>
                 {resources.scripture && (
-                  <div className={styles.resourceToggle}>
-                    <span
-                      className={`${styles.resourceTag} ${
-                        resourceFilters.scripture ? styles.enabled : styles.disabled
-                      }`}
-                    >
-                      Scripture ✓
-                    </span>
+                  <div
+                    className={`${styles.resourceTag} ${
+                      resourceFilters.scripture ? styles.enabled : styles.disabled
+                    }`}
+                  >
+                    <span className={styles.resourceText}>Scripture ✓</span>
                     <ToggleSwitch
                       checked={resourceFilters.scripture}
                       onChange={(checked) =>
@@ -477,14 +475,12 @@ export function LLMChatPanel() {
                   </div>
                 )}
                 {(resources.notes?.length || 0) > 0 && (
-                  <div className={styles.resourceToggle}>
-                    <span
-                      className={`${styles.resourceTag} ${
-                        resourceFilters.notes ? styles.enabled : styles.disabled
-                      }`}
-                    >
-                      Notes ({resources.notes.length}) ✓
-                    </span>
+                  <div
+                    className={`${styles.resourceTag} ${
+                      resourceFilters.notes ? styles.enabled : styles.disabled
+                    }`}
+                  >
+                    <span className={styles.resourceText}>Notes ({resources.notes.length}) ✓</span>
                     <ToggleSwitch
                       checked={resourceFilters.notes}
                       onChange={(checked) =>
@@ -495,12 +491,12 @@ export function LLMChatPanel() {
                   </div>
                 )}
                 {(resources.questions?.length || 0) > 0 && (
-                  <div className={styles.resourceToggle}>
-                    <span
-                      className={`${styles.resourceTag} ${
-                        resourceFilters.questions ? styles.enabled : styles.disabled
-                      }`}
-                    >
+                  <div
+                    className={`${styles.resourceTag} ${
+                      resourceFilters.questions ? styles.enabled : styles.disabled
+                    }`}
+                  >
+                    <span className={styles.resourceText}>
                       Questions ({resources.questions.length}) ✓
                     </span>
                     <ToggleSwitch
@@ -513,14 +509,12 @@ export function LLMChatPanel() {
                   </div>
                 )}
                 {(resources.words?.length || 0) > 0 && (
-                  <div className={styles.resourceToggle}>
-                    <span
-                      className={`${styles.resourceTag} ${
-                        resourceFilters.words ? styles.enabled : styles.disabled
-                      }`}
-                    >
-                      Words ({resources.words.length}) ✓
-                    </span>
+                  <div
+                    className={`${styles.resourceTag} ${
+                      resourceFilters.words ? styles.enabled : styles.disabled
+                    }`}
+                  >
+                    <span className={styles.resourceText}>Words ({resources.words.length}) ✓</span>
                     <ToggleSwitch
                       checked={resourceFilters.words}
                       onChange={(checked) =>
@@ -531,14 +525,12 @@ export function LLMChatPanel() {
                   </div>
                 )}
                 {(resources.links?.length || 0) > 0 && (
-                  <div className={styles.resourceToggle}>
-                    <span
-                      className={`${styles.resourceTag} ${
-                        resourceFilters.links ? styles.enabled : styles.disabled
-                      }`}
-                    >
-                      Links ({resources.links.length}) ✓
-                    </span>
+                  <div
+                    className={`${styles.resourceTag} ${
+                      resourceFilters.links ? styles.enabled : styles.disabled
+                    }`}
+                  >
+                    <span className={styles.resourceText}>Links ({resources.links.length}) ✓</span>
                     <ToggleSwitch
                       checked={resourceFilters.links}
                       onChange={(checked) =>
