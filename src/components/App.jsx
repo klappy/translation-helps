@@ -13,6 +13,7 @@ import { MainView } from "./MainView";
 import { SplashScreen } from "./SplashScreen";
 import { ShowcaseLayout } from "./showcase/ShowcaseLayout";
 import { DevelopmentReminder } from "./DevelopmentReminder";
+import SvelteGreeterDemo from "./SvelteGreeterDemo";
 
 // Main app component with ResourcesProvider managing all translation resources
 function AppContent() {
@@ -26,6 +27,7 @@ function AppContent() {
       <Routes>
         <Route path='/' element={<MainView />} />
         <Route path='/showcase/*' element={<ShowcaseLayout />} />
+        <Route path='/svelte' element={<SvelteGreeterDemo />} />
         <Route path='*' element={<div style={{ padding: "20px" }}>Page Not Found</div>} />
       </Routes>
       <DevelopmentReminder />
