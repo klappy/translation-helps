@@ -165,6 +165,20 @@
 - Conflicting information is actively resolved
 - Examples and guides are tested and verified
 
+## 📚 Process & Workflow
+
+- **[Development Workflow Guide](development-workflow-guide.md)** - Complete git workflow with case studies
+- **[Feature Implementation Template](feature-implementation-template.md)** - Enforced checklist for all features  
+- **[AI Assistant Development Guidelines](ai-assistant-development-guidelines.md)** - Prevent workflow violations
+- **[Deployment Strategy](deployment-strategy-netlify-ui.md)** - Safe environment configuration
+- **[Changelog Process](changelog-process.md)** - Documentation standards
+
+### **Process Improvements**
+Based on real project experiences and lessons learned:
+- **Case Study**: Showcase Feature Branching Oversight (2025-01-08)
+- **Prevention**: Systematic templates and enforcement checklists
+- **AI Guidelines**: Specific instructions for assistant-driven development
+
 ---
 
 *This documentation index is maintained as part of the Translation Helps project. For questions or suggestions, please refer to the issue template or development team.*

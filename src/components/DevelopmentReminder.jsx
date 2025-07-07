@@ -5,15 +5,20 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import styles from './DevelopmentReminder.module.css';
 
 export function DevelopmentReminder() {
   const [isVisible, setIsVisible] = useState(true);
-  const [progress, setProgress] = useState(10); // Update this as you make progress!
+  const showcaseProgress = 100; // 🎉 COMPLETE! 
+  const currentTask = "🎉 SHOWCASE COMPLETE! Translation Helps documentation showcase is live!";
 
-  // Only show in development
+  // Only show in development  
   if (process.env.NODE_ENV !== 'development') {
     return null;
   }
+
+  // Uncomment the line below to disable the reminder completely:
+  // return null;
 
   // Load dismissed state from localStorage
   useEffect(() => {
@@ -39,64 +44,43 @@ export function DevelopmentReminder() {
   if (!isVisible) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: 20,
-      right: 20,
-      background: 'linear-gradient(135deg, #ff6b6b, #ff8e53)',
-      color: 'white',
-      padding: '15px 20px',
-      borderRadius: '8px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      zIndex: 9999,
-      maxWidth: '300px',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
-      <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '16px' }}>
-        🚧 Showcase Development Active!
+    <div className={styles.developmentReminder}>
+      <div className={styles.header}>
+        <span className={styles.icon}>🎉</span>
+        <h4>Showcase Complete!</h4>
+        <span className={styles.progress}>{showcaseProgress}%</span>
       </div>
-      <div style={{ fontSize: '14px', marginBottom: '10px' }}>
-        Progress: {progress}% Complete
+      
+      <div className={styles.progressBar}>
+        <div 
+          className={styles.progressFill} 
+          style={{ width: `${showcaseProgress}%` }}
+        ></div>
       </div>
-      <div style={{ 
-        background: 'rgba(255, 255, 255, 0.3)', 
-        borderRadius: '4px', 
-        height: '8px',
-        marginBottom: '10px',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          background: 'white',
-          height: '100%',
-          width: `${progress}%`,
-          transition: 'width 0.3s ease'
-        }} />
-      </div>
-      <div style={{ fontSize: '12px', marginBottom: '10px' }}>
-        📋 Today's task: Set up routing infrastructure
-      </div>
-      <div style={{ display: 'flex', gap: '10px', fontSize: '12px' }}>
-        <a 
-          href="/docs/showcase-implementation-plan.md" 
-          style={{ color: 'white', textDecoration: 'underline' }}
-          target="_blank"
-        >
-          View Plan
-        </a>
-        <button 
-          onClick={handleDismiss}
-          style={{
-            background: 'rgba(255, 255, 255, 0.2)',
-            border: 'none',
-            color: 'white',
-            padding: '2px 8px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '12px'
-          }}
-        >
-          Dismiss Today
-        </button>
+      
+      <div className={styles.details}>
+        <p className={styles.taskDescription}>
+          {currentTask}
+        </p>
+        
+        <div className={styles.completedMilestones}>
+          <span className={styles.milestone}>✅ Phase 1: Foundation</span>
+          <span className={styles.milestone}>✅ Phase 2: Technical Content</span>
+          <span className={styles.milestone}>✅ Innovation: FIA, LLM, RC Links</span>
+          <span className={styles.milestone}>✅ Metrics: Complete dashboard</span>
+        </div>
+        
+        <div className={styles.actions}>
+          <a href="/showcase" className={styles.viewLink}>
+            View Showcase
+          </a>
+          <button 
+            onClick={handleDismiss}
+            className={styles.dismissButton}
+          >
+            Dismiss
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -16,45 +16,22 @@ const showcaseSections = [
   {
     id: 'architecture',
     title: '🏗️ Architecture Gallery',
-    description: 'Design patterns and system architecture',
-    subsections: [
-      { id: 'simple-pattern', title: 'Simple Verse-Loading Pattern' },
-      { id: 'self-activating', title: 'Self-Activating Panels' },
-      { id: 'url-driven', title: 'URL-Driven State' },
-      { id: 'cross-org', title: 'Cross-Organization Support' }
-    ]
+    description: 'Design patterns and system architecture'
   },
   {
     id: 'components',
     title: '🎨 Component Showcase',
-    description: 'Interactive UI components and examples',
-    subsections: [
-      { id: 'navigation-wizard', title: 'Navigation Wizard' },
-      { id: 'scripture-panel', title: 'Scripture Panel' },
-      { id: 'translation-helps', title: 'Translation Helps' },
-      { id: 'theme-system', title: 'Theme System' }
-    ]
+    description: 'Interactive UI components and examples'
   },
   {
     id: 'performance',
     title: '⚡ Performance Victories',
-    description: 'Optimization achievements and metrics',
-    subsections: [
-      { id: 'api-optimization', title: '90% API Optimization' },
-      { id: 'loading-states', title: 'Loading States' },
-      { id: 'error-handling', title: 'Error Handling' }
-    ]
+    description: 'Optimization achievements and metrics'
   },
   {
     id: 'innovation',
     title: '💡 Innovation Highlights',
-    description: 'Cutting-edge features and capabilities',
-    subsections: [
-      { id: 'twl-integration', title: 'TWL Integration' },
-      { id: 'fia-resources', title: 'FIA Resources' },
-      { id: 'llm-chat', title: 'LLM Chat' },
-      { id: 'rc-links', title: 'RC Links' }
-    ]
+    description: 'Cutting-edge features and capabilities'
   },
   {
     id: 'interactive',
@@ -67,13 +44,18 @@ const showcaseSections = [
     ]
   },
   {
-    id: 'metrics',
-    title: '📊 Metrics & Achievements',
-    description: 'Project statistics and impact',
+    id: 'project-metrics',
+    title: '📊 Project Metrics',
+    description: 'Real project statistics and achievements'
+  },
+  {
+    id: 'transparency',
+    title: '🌟 Radical Transparency',
+    description: 'Public dashboards and radical development openness',
     subsections: [
-      { id: 'project-stats', title: 'Project Statistics' },
-      { id: 'evolution-timeline', title: 'Architecture Evolution' },
-      { id: 'community-impact', title: 'Community Impact' }
+      { id: 'live-dashboard', title: 'Live Development Dashboard' },
+      { id: 'community-engagement', title: 'Community-Driven Development' }, 
+      { id: 'radical-openness', title: 'Radical Transparency Philosophy' }
     ]
   }
 ];

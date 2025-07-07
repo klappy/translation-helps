@@ -16,7 +16,7 @@ export function ShowcaseLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Parse current section from URL
+  // Parse current section from URL (including subsections)
   useEffect(() => {
     const path = location.pathname.replace('/showcase/', '') || 'overview';
     setSelectedSection(path);
@@ -56,6 +56,7 @@ export function ShowcaseLayout() {
         <Routes>
           <Route path="/" element={<ShowcaseContent section="overview" />} />
           <Route path="/:section" element={<ShowcaseContent section={selectedSection} />} />
+          <Route path="/:section/:subsection" element={<ShowcaseContent section={selectedSection} />} />
         </Routes>
       </main>
 

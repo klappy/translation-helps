@@ -1,0 +1,532 @@
+/* API Performance Demo Styles */
+
+.demoContainer {
+  border: 2px solid var(--border-color, #e1e5e9);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  background: var(--background-color, #ffffff);
+  color: var(--text-color, #212529);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.demoContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f59e0b, #10b981, #3b82f6, #8b5cf6);
+  border-radius: 12px 12px 0 0;
+}
+
+.demoPanel {
+  max-width: 100%;
+}
+
+.demoTitle {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-color, #212529);
+}
+
+.performanceContainer {
+  background: var(--card-background, #f8f9fa);
+  border: 1px solid var(--border-color, #e1e5e9);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+/* Test Controls */
+.testControls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.testButton {
+  padding: 12px 20px;
+  border: 2px solid;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 150px;
+}
+
+.testButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.beforeButton {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+.beforeButton:hover:not(:disabled) {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.afterButton {
+  background: #f0fdf4;
+  border-color: #10b981;
+  color: #059669;
+}
+
+.afterButton:hover:not(:disabled) {
+  background: #10b981;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.compareButton {
+  background: #f0f9ff;
+  border-color: #3b82f6;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.compareButton:hover:not(:disabled) {
+  background: #3b82f6;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.resetButton {
+  padding: 12px 20px;
+  background: var(--background-color, #ffffff);
+  border: 1px solid var(--border-color, #e1e5e9);
+  border-radius: 8px;
+  color: var(--text-color, #212529);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resetButton:hover:not(:disabled) {
+  background: var(--card-background, #f8f9fa);
+  transform: translateY(-1px);
+}
+
+/* Progress Section */
+.progressSection {
+  background: var(--background-color, #ffffff);
+  border: 1px solid var(--border-color, #e1e5e9);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.progressHeader h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color, #212529);
+}
+
+.progressTime {
+  font-size: 18px;
+  font-weight: 700;
+  color: #3b82f6;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: var(--border-color, #e1e5e9);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  border-radius: 4px;
+  transition: width 0.1s ease-out;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.currentStep {
+  font-size: 14px;
+  color: var(--text-color-secondary, #666);
+  font-style: italic;
+}
+
+/* Results Grid */
+.resultsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.resultCard {
+  background: var(--background-color, #ffffff);
+  border: 2px solid var(--border-color, #e1e5e9);
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  min-height: 200px;
+}
+
+.resultCard.hasResult {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.beforeCard {
+  border-left: 4px solid #ef4444;
+}
+
+.beforeCard.hasResult {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.afterCard {
+  border-left: 4px solid #10b981;
+}
+
+.afterCard.hasResult {
+  background: #f0fdf4;
+  border-color: #10b981;
+}
+
+.resultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color, #e1e5e9);
+}
+
+.resultHeader h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color, #212529);
+}
+
+.resultTime {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.beforeCard .resultTime {
+  color: #dc2626;
+}
+
+.afterCard .resultTime {
+  color: #059669;
+}
+
+.resultContent {
+  height: 100%;
+}
+
+.stepsList {
+  margin-bottom: 16px;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.stepItem:last-child {
+  border-bottom: none;
+}
+
+.stepIndicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stepName {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-color, #212529);
+}
+
+.stepTime {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--text-color-secondary, #666);
+}
+
+.resultSummary {
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 16px;
+  color: var(--text-color, #212529);
+}
+
+.emptyResult {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  color: var(--text-color-secondary, #666);
+  font-style: italic;
+}
+
+/* Improvement Section */
+.improvementSection {
+  background: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%);
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.improvementCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.improvementIcon {
+  font-size: 48px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.improvementStats {
+  flex: 1;
+}
+
+.improvementTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #059669;
+  margin-bottom: 8px;
+}
+
+.improvementValue {
+  font-size: 36px;
+  font-weight: 700;
+  color: #10b981;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.improvementDetails {
+  font-size: 14px;
+  color: #047857;
+}
+
+.keyMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.metric {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.metricLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #047857;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metricValue {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* Technical Insights */
+.technicalInsights {
+  background: var(--card-background, #f8f9fa);
+  border: 1px solid var(--border-color, #e1e5e9);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.technicalInsights h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color, #212529);
+}
+
+.optimizationsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.optimization {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--background-color, #ffffff);
+  border: 1px solid var(--border-color, #e1e5e9);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-color, #212529);
+}
+
+.optimizationIcon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .demoContainer {
+  background: var(--background-color, #0f172a);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .performanceContainer {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .beforeButton {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .afterButton {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  color: #86efac;
+}
+
+[data-theme="dark"] .compareButton {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .resultCard {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .beforeCard.hasResult {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+[data-theme="dark"] .afterCard.hasResult {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+[data-theme="dark"] .improvementSection {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+}
+
+[data-theme="dark"] .metric {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .optimization {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .testControls {
+    flex-direction: column;
+  }
+  
+  .testButton {
+    min-width: auto;
+  }
+  
+  .resultsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .improvementCard {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+  
+  .improvementValue {
+    font-size: 28px;
+  }
+  
+  .keyMetrics {
+    grid-template-columns: 1fr;
+  }
+  
+  .optimizationsList {
+    grid-template-columns: 1fr;
+  }
+  
+  .progressHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+} 
