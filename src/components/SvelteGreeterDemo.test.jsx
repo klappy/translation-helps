@@ -16,3 +16,7 @@ describe('SvelteGreeterDemo', () => {
     expect(heading).toBeInTheDocument();
   });
 });
+
+afterAll(() => {
+  global.fetch.mockClear();
+});

@@ -12,28 +12,36 @@
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    padding: 1rem 1.25rem;
-    background: linear-gradient(135deg,#ff3e00 0%,#ff7b00 100%);
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #ff512f 0%, #f09819 100%);
     color: #fff;
-    border-radius: 8px;
+    border-radius: 12px;
     font-family: system-ui, sans-serif;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transition: transform 0.2s;
+  }
+  :host(:hover) {
+    transform: translateY(-2px);
+  }
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
   }
   button {
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.2);
     border: 0;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
     color: #fff;
     cursor: pointer;
     font-size: 0.9rem;
     transition: background 0.2s;
   }
   button:hover {
-    background: rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.3);
   }
 </style>
 
 Hello {name}! ⚡
 
-<button on:click={increment}>Clicked {count} times</button>
+<button aria-label="increment counter" on:click={increment}>Clicked {count} times</button>
