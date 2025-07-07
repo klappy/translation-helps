@@ -8,6 +8,16 @@
   --radius-lg:12px;
   --font-base:system-ui, sans-serif;
   --font-size:16px;
+  --font-family:system-ui, sans-serif;
+  --font-size-xs:0.75rem;
+  --font-size-sm:0.875rem;
+  --font-size-base:1rem;
+  --font-size-lg:1.25rem;
+  --font-size-xl:1.5rem;
+  --font-size-2xl:2rem;
+  --font-weight-regular:400;
+  --font-weight-medium:500;
+  --font-weight-bold:700;
 }
 
 [data-theme='dark']{
