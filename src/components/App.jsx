@@ -12,7 +12,6 @@ import SvelteNavBar from "./SvelteNavBar";
 import { MainView } from "./MainView";
 import { SplashScreen } from "./SplashScreen";
 import { ShowcaseLayout } from "./showcase/ShowcaseLayout";
-import { DevelopmentReminder } from "./DevelopmentReminder";
 import SvelteGreeterDemo from "./SvelteGreeterDemo";
 import SvelteLanding from './pages/SvelteLanding';
 import SvelteSettings from './pages/SvelteSettings';
@@ -35,7 +34,7 @@ function AppContent() {
         <Route path='/auth' element={<SvelteAuth />} />
         <Route path='*' element={<div style={{ padding: "20px" }}>Page Not Found</div>} />
       </Routes>
-      <DevelopmentReminder />
+      {process.env.NODE_ENV === 'development' && <dev-reminder progress={10} />}
     </div>
   );
 }
