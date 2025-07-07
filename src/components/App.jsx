@@ -14,6 +14,9 @@ import { SplashScreen } from "./SplashScreen";
 import { ShowcaseLayout } from "./showcase/ShowcaseLayout";
 import { DevelopmentReminder } from "./DevelopmentReminder";
 import SvelteGreeterDemo from "./SvelteGreeterDemo";
+import SvelteLanding from './pages/SvelteLanding';
+import SvelteSettings from './pages/SvelteSettings';
+import SvelteAuth from './pages/SvelteAuth';
 
 // Main app component with ResourcesProvider managing all translation resources
 function AppContent() {
@@ -25,9 +28,11 @@ function AppContent() {
     }}>
       <SvelteNavBar />
       <Routes>
-        <Route path='/' element={<MainView />} />
+        <Route path='/' element={<SvelteLanding />} />
         <Route path='/showcase/*' element={<ShowcaseLayout />} />
         <Route path='/svelte' element={<SvelteGreeterDemo />} />
+        <Route path='/settings' element={<SvelteSettings />} />
+        <Route path='/auth' element={<SvelteAuth />} />
         <Route path='*' element={<div style={{ padding: "20px" }}>Page Not Found</div>} />
       </Routes>
       <DevelopmentReminder />
