@@ -16,6 +16,11 @@ const config = {
 			precompress: false,
 			strict: false
 		}),
+		prerender: {
+			handleHttpError: 'warn',
+			handleMissingId: 'warn',
+			origin: 'https://translation-helps.netlify.app'
+		},
 		alias: {
 			$lib: 'src/lib',
 			$components: 'src/lib/components',

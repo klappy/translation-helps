@@ -7,10 +7,10 @@ function __memo(fn) {
 return {
 	appDir: "_app",
 	appPath: "_app",
-	assets: new Set([]),
+	assets: new Set(["_redirects"]),
 	mimeTypes: {},
 	_: {
-		client: {start:"_app/immutable/entry/start.DfrEqXqV.js",app:"_app/immutable/entry/app.4WUCvo4x.js",imports:["_app/immutable/entry/start.DfrEqXqV.js","_app/immutable/chunks/DCYjJUnN.js","_app/immutable/chunks/CoZqjePk.js","_app/immutable/chunks/AU_adb6V.js","_app/immutable/entry/app.4WUCvo4x.js","_app/immutable/chunks/CoZqjePk.js","_app/immutable/chunks/IHki7fMi.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
+		client: {start:"_app/immutable/entry/start.CTfTJfAL.js",app:"_app/immutable/entry/app.DRzuJ_e2.js",imports:["_app/immutable/entry/start.CTfTJfAL.js","_app/immutable/chunks/CeLujRwG.js","_app/immutable/chunks/DmYNFpl8.js","_app/immutable/chunks/D3D0szQ9.js","_app/immutable/entry/app.DRzuJ_e2.js","_app/immutable/chunks/DmYNFpl8.js","_app/immutable/chunks/IHki7fMi.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
 		nodes: [
 			__memo(() => import('./nodes/0.js')),
 			__memo(() => import('./nodes/1.js')),

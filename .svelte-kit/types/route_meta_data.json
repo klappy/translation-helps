@@ -1,5 +1,13 @@
 {
-	"/": [],
-	"/showcase": [],
-	"/showcase/[section]": []
+	"/": [
+		"src/routes/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/showcase": [
+		"src/routes/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/showcase/[section]": [
+		"src/routes/+layout.js"
+	]
 }

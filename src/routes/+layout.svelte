@@ -11,32 +11,28 @@
   let showSplash = false;
 
   onMount(() => {
-    if (browser) {
-      // Check if user has seen splash before
-      const hasSeenSplash = localStorage.getItem('hasSeenSplash');
-      const showSplashParam = $page.url.searchParams.get('splash');
-      
-      // Show splash only on first visit or if explicitly requested
-      showSplash = !hasSeenSplash || showSplashParam === 'true';
+    // Check if user has seen splash before
+    const hasSeenSplash = localStorage.getItem('hasSeenSplash');
+    const showSplashParam = $page.url.searchParams.get('splash');
+    
+    // Show splash only on first visit or if explicitly requested
+    showSplash = !hasSeenSplash || showSplashParam === 'true';
 
-      // Initialize theme on app load
-      const savedTheme = localStorage.getItem('theme');
-      const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      
-      if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-      } else if (systemPrefersDark) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      }
+    // Initialize theme on app load
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else if (systemPrefersDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
     }
   });
 
   function handleSplashComplete() {
-    if (browser) {
-      // Mark that user has seen splash
-      localStorage.setItem('hasSeenSplash', 'true');
-      showSplash = false;
-    }
+    // Mark that user has seen splash
+    localStorage.setItem('hasSeenSplash', 'true');
+    showSplash = false;
   }
 </script>
 
