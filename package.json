@@ -3,7 +3,8 @@
   "version": "4.0.0",
   "private": true,
   "scripts": {
-    "build": "vite build",
+    "build": "svelte-kit sync && vite build",
+    "build:netlify": "npm install && svelte-kit sync && vite build",
     "dev": "vite dev",
     "preview": "vite preview",
     "test": "vitest",
@@ -48,8 +49,5 @@
     "localforage": "^1.10.0",
     "papaparse": "^5.4.1"
   },
-  "type": "module",
-  "peerDependencies": {
-    "svelte": "^5.0.0"
-  }
+  "type": "module"
 }
