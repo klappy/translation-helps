@@ -8,9 +8,36 @@
       "_internal.js"
     ]
   },
+  "_NavigationBar.js": {
+    "file": "chunks/NavigationBar.js",
+    "name": "NavigationBar",
+    "imports": [
+      "_ssr.js",
+      "_index.js"
+    ],
+    "css": [
+      "_app/immutable/assets/NavigationBar.fpz3t88i.css"
+    ]
+  },
+  "_ShowcaseContent.svelte_svelte_type_style_lang.js": {
+    "file": "_app/immutable/assets/ShowcaseContent.D8UHNuw2.css",
+    "src": "_ShowcaseContent.svelte_svelte_type_style_lang.js"
+  },
+  "_client.js": {
+    "file": "chunks/client.js",
+    "name": "client",
+    "imports": [
+      "_exports.js",
+      "_ssr2.js"
+    ]
+  },
   "_exports.js": {
     "file": "chunks/exports.js",
     "name": "exports"
+  },
+  "_false.js": {
+    "file": "chunks/false.js",
+    "name": "false"
   },
   "_index.js": {
     "file": "chunks/index.js",
@@ -35,6 +62,14 @@
     "file": "chunks/ssr2.js",
     "name": "ssr"
   },
+  "_stores.js": {
+    "file": "chunks/stores.js",
+    "name": "stores",
+    "imports": [
+      "_ssr.js",
+      "_client.js"
+    ]
+  },
   "node_modules/@sveltejs/kit/src/runtime/components/svelte-4/error.svelte": {
     "file": "entries/fallbacks/error.svelte.js",
     "name": "entries/fallbacks/error.svelte",
@@ -42,8 +77,7 @@
     "isEntry": true,
     "imports": [
       "_ssr.js",
-      "_exports.js",
-      "_ssr2.js"
+      "_stores.js"
     ]
   },
   "node_modules/@sveltejs/kit/src/runtime/server/index.js": {
@@ -52,6 +86,7 @@
     "src": "node_modules/@sveltejs/kit/src/runtime/server/index.js",
     "isEntry": true,
     "imports": [
+      "_false.js",
       "_internal.js",
       "_exports.js",
       "_index.js"
@@ -63,10 +98,14 @@
     "src": "src/routes/+layout.svelte",
     "isEntry": true,
     "imports": [
-      "_ssr.js"
+      "_ssr.js",
+      "_client.js",
+      "_stores.js",
+      "_NavigationBar.js",
+      "_false.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.C0x8jd8J.css"
+      "_app/immutable/assets/_layout.C1LBRpeJ.css"
     ]
   },
   "src/routes/+page.svelte": {
@@ -76,10 +115,49 @@
     "isEntry": true,
     "imports": [
       "_ssr.js",
+      "_NavigationBar.js",
       "_index.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.BkOc-PGL.css"
+      "_app/immutable/assets/_page.JYPLeeAF.css"
+    ]
+  },
+  "src/routes/showcase/+layout.svelte": {
+    "file": "entries/pages/showcase/_layout.svelte.js",
+    "name": "entries/pages/showcase/_layout.svelte",
+    "src": "src/routes/showcase/+layout.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_stores.js",
+      "_client.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_layout.DmiHxKAP.css",
+      "_app/immutable/assets/ShowcaseContent.D8UHNuw2.css"
+    ]
+  },
+  "src/routes/showcase/+page.svelte": {
+    "file": "entries/pages/showcase/_page.svelte.js",
+    "name": "entries/pages/showcase/_page.svelte",
+    "src": "src/routes/showcase/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_client.js"
+    ]
+  },
+  "src/routes/showcase/[section]/+page.svelte": {
+    "file": "entries/pages/showcase/_section_/_page.svelte.js",
+    "name": "entries/pages/showcase/_section_/_page.svelte",
+    "src": "src/routes/showcase/[section]/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_stores.js"
+    ],
+    "css": [
+      "_app/immutable/assets/ShowcaseContent.D8UHNuw2.css"
     ]
   }
 }

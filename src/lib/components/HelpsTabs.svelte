@@ -1,124 +1,346 @@
 <script>
-  import { notes, questions, words, loadingResources } from '$lib/stores/resources.js';
-  
+  import { onMount } from 'svelte';
+  import { resourcesStore } from '$lib/stores/resources.js';
+  import LoadingOverlay from './shared/LoadingOverlay.svelte';
+  import LoadingSpinner from './shared/LoadingSpinner.svelte';
+  import TabIcon from './shared/TabIcon.svelte';
+  import TranslationNotesPanel from './TranslationNotesPanel.svelte';
+  import TranslationQuestionsPanel from './TranslationQuestionsPanel.svelte';
+  import TranslationWordsPanel from './TranslationWordsPanel.svelte';
+  import ArticlePanel from './ArticlePanel.svelte';
+  import LLMChatPanel from './LLMChatPanel.svelte';
+  import FiaImagesPanel from './FiaImagesPanel.svelte';
+  import FiaMapsPanel from './FiaMapsPanel.svelte';
+
   export let reference;
-  
-  let activeTab = 'notes';
-  
-  const tabs = [
-    { id: 'notes', label: 'Notes', icon: '📝' },
-    { id: 'questions', label: 'Questions', icon: '❓' },
-    { id: 'words', label: 'Words', icon: '📚' }
+
+  let activeTab = 'tn';
+  let dynamicTabs = [];
+  let resources = {};
+  let loadingResources = new Set();
+
+  // Static tabs configuration
+  const STATIC_TABS = [
+    { id: "tn", label: "Notes", mobileLabel: "Notes", icon: "notes", component: TranslationNotesPanel, isStatic: true },
+    { id: "tq", label: "Questions", mobileLabel: "Q&A", icon: "questions", component: TranslationQuestionsPanel, isStatic: true },
+    { id: "tw", label: "Words", mobileLabel: "Words", icon: "words", component: TranslationWordsPanel, isStatic: true },
+    { id: "fia-images", label: "Images", mobileLabel: "Pics", icon: "images", component: FiaImagesPanel, isStatic: true },
+    { id: "fia-maps", label: "Maps", mobileLabel: "Maps", icon: "maps", component: FiaMapsPanel, isStatic: true },
+    { id: "chat", label: "AI Assistant", mobileLabel: "AI", icon: "chat", component: LLMChatPanel, isStatic: true },
   ];
-  
-  function setActiveTab(tabId) {
+
+  // Subscribe to stores
+  const unsubscribeResources = resourcesStore.subscribe((store) => {
+    resources = store;
+  });
+
+  const unsubscribeLoadingResources = resourcesStore.loadingResources.subscribe((loading) => {
+    loadingResources = loading;
+  });
+
+  onMount(() => {
+    return () => {
+      unsubscribeResources();
+      unsubscribeLoadingResources();
+    };
+  });
+
+  // Helper function to check if a specific resource is loading
+  function isResourceLoading(tabId) {
+    const resourceMap = {
+      'tn': 'notes',
+      'tq': 'questions', 
+      'tw': 'words',
+      'fia-images': 'fia',
+      'fia-maps': 'fia'
+    };
+    const resourceType = resourceMap[tabId];
+    return resourceType && loadingResources.has(resourceType);
+  }
+
+  // Helper function to get count for each resource type
+  function getResourceCount(tabId) {
+    // Show loading spinner in badge if resource is loading
+    if (isResourceLoading(tabId)) {
+      return 'loading';
+    }
+
+    switch (tabId) {
+      case 'tn':
+        return Array.isArray(resources.notes) ? resources.notes.length : 0;
+      case 'tq':
+        return Array.isArray(resources.questions) ? resources.questions.length : 0;
+      case 'tw':
+        // Count both words and links
+        const wordsCount = Array.isArray(resources.words) ? resources.words.length : 0;
+        const linksCount = Array.isArray(resources.links) ? resources.links.length : 0;
+        return Math.max(wordsCount, linksCount); // Use the higher count
+      case 'fia-images':
+        if (resources.fia?.hasContent) {
+          return Array.isArray(resources.fia.images) ? resources.fia.images.length : 0;
+        }
+        return 0;
+      case 'fia-maps':
+        if (resources.fia?.hasContent) {
+          return Array.isArray(resources.fia.maps) ? resources.fia.maps.length : 0;
+        }
+        return 0;
+      case 'chat':
+        // Return total items loaded across all resources
+        const totalItems = (
+          (Array.isArray(resources.notes) ? resources.notes.length : 0) +
+          (Array.isArray(resources.questions) ? resources.questions.length : 0) +
+          (Array.isArray(resources.words) ? resources.words.length : 0) +
+          (resources.fia?.hasContent ? (
+            (Array.isArray(resources.fia.images) ? resources.fia.images.length : 0) +
+            (Array.isArray(resources.fia.maps) ? resources.fia.maps.length : 0)
+          ) : 0)
+        );
+        return totalItems > 0 ? totalItems : null;
+      default:
+        return null;
+    }
+  }
+
+  // Combine static and dynamic tabs
+  $: allTabs = [...STATIC_TABS, ...dynamicTabs];
+
+  // Public API for parent components (equivalent to useImperativeHandle)
+  export function switchToTab(tabId) {
+    if (allTabs.find((tab) => tab.id === tabId)) {
+      activeTab = tabId;
+    }
+  }
+
+  export function getActiveTab() {
+    return activeTab;
+  }
+
+  export function openArticleTab(article) {
+    // Check if tab already exists by rcUri
+    const existingTab = dynamicTabs.find((tab) => tab.articleData?.rcUri === article.rcUri);
+    if (existingTab) {
+      activeTab = existingTab.id;
+      return;
+    }
+
+    // Use provided id or generate one from rcUri
+    const tabId = article.id || article.rcUri.replace(/[^a-zA-Z0-9]/g, "_");
+
+    // Create new dynamic tab
+    const newTab = {
+      id: tabId,
+      label: article.title || "Article",
+      component: ArticlePanel,
+      isStatic: false,
+      articleData: article,
+    };
+
+    dynamicTabs = [...dynamicTabs, newTab];
     activeTab = tabId;
   }
-  
-  // Mock data for demo
-  const mockNotes = [
-    {
-      id: 'note1',
-      verse: 1,
-      title: 'In the beginning',
-      content: 'This phrase indicates the start of all creation. It establishes God as the Creator of everything.'
-    },
-    {
-      id: 'note2',
-      verse: 2,
-      title: 'without form and void',
-      content: 'The Hebrew words "tohu wabohu" describe a state of emptiness and chaos before God brought order.'
+
+  export function closeTab(tabId) {
+    // Only allow closing dynamic tabs
+    const tabToClose = dynamicTabs.find((tab) => tab.id === tabId);
+    if (tabToClose) {
+      dynamicTabs = dynamicTabs.filter((tab) => tab.id !== tabId);
+
+      // If closing active tab, switch to first available tab
+      if (activeTab === tabId) {
+        const remainingTabs = allTabs.filter((tab) => tab.id !== tabId);
+        if (remainingTabs.length > 0) {
+          activeTab = remainingTabs[0].id;
+        }
+      }
     }
-  ];
-  
-  const mockQuestions = [
-    {
-      id: 'q1',
-      verse: 1,
-      question: 'What did God create in the beginning?',
-      answer: 'God created the heavens and the earth.'
-    },
-    {
-      id: 'q2',
-      verse: 3,
-      question: 'What was the first thing God spoke into existence?',
-      answer: 'Light was the first thing God spoke into existence.'
+  }
+
+  function handleTabChange(tabId) {
+    activeTab = tabId;
+  }
+
+  function handleCloseTab(tabId, event) {
+    event.stopPropagation();
+    const tabToClose = dynamicTabs.find((tab) => tab.id === tabId);
+    if (tabToClose) {
+      dynamicTabs = dynamicTabs.filter((tab) => tab.id !== tabId);
+
+      // If closing active tab, switch to first available tab
+      if (activeTab === tabId) {
+        const remainingTabs = allTabs.filter((tab) => tab.id !== tabId);
+        if (remainingTabs.length > 0) {
+          activeTab = remainingTabs[0].id;
+        }
+      }
     }
-  ];
-  
-  const mockWords = [
-    {
-      id: 'word1',
-      term: 'God',
-      definition: 'The supreme being who created and rules over all things.',
-      references: ['Genesis 1:1']
-    },
-    {
-      id: 'word2',
-      term: 'heavens',
-      definition: 'The sky, space, and spiritual realm where God dwells.',
-      references: ['Genesis 1:1']
-    }
-  ];
-  
-  $: currentData = activeTab === 'notes' ? ($notes.length ? $notes : mockNotes) :
-                   activeTab === 'questions' ? ($questions.length ? $questions : mockQuestions) :
-                   activeTab === 'words' ? ($words.length ? $words : mockWords) : [];
-  
-  $: isLoading = $loadingResources.has(activeTab);
+  }
 </script>
 
-<div class="helps-tabs">
-  <div class="tabs-header">
-    <div class="tabs-nav">
-      {#each tabs as tab}
-        <button 
-          class="tab-button"
-          class:tab-active={activeTab === tab.id}
-          on:click={() => setActiveTab(tab.id)}
+<div class="helps-tabs" data-testid="helps-tabs">
+  <div class="tabs-header" role="tablist" aria-label="Translation helps tabs">
+    {#each allTabs as tab (tab.id)}
+      {@const count = getResourceCount(tab.id)}
+      {@const isActive = activeTab === tab.id}
+      {@const tabIsLoading = isResourceLoading(tab.id)}
+      
+      <div class="tab-container">
+        <button
+          role="tab"
+          aria-selected={isActive}
+          aria-controls="tabpanel-{tab.id}"
+          id="tab-{tab.id}"
+          on:click={() => handleTabChange(tab.id)}
+          data-testid="tab-{tab.id}"
+          class="tab-button {isActive ? 'active' : ''} {tabIsLoading ? 'loading' : ''}"
+          tabindex={isActive ? 0 : -1}
         >
-          <span class="tab-icon">{tab.icon}</span>
-          <span class="tab-label">{tab.label}</span>
+          {#if tab.icon}
+            <TabIcon type={tab.icon} />
+          {/if}
+          <span class="desktop-label">{tab.label}</span>
+          <span class="mobile-label">{tab.mobileLabel || tab.label}</span>
+          {#if count !== null}
+            <span 
+              class="count-badge {count === 0 ? 'zero' : ''} {count === 'loading' ? 'loading-badge' : ''}"
+              aria-label={count === 'loading' ? 'Loading...' : `${count} items`}
+            >
+              {#if count === 'loading'}
+                <LoadingSpinner size="small" variant="white" />
+              {:else}
+                {count}
+              {/if}
+            </span>
+          {/if}
         </button>
-      {/each}
-    </div>
+        {#if !tab.isStatic}
+          <button
+            on:click={(e) => handleCloseTab(tab.id, e)}
+            class="close-button"
+            aria-label="Close {tab.label} tab"
+            tabindex={isActive ? 0 : -1}
+          >
+            ×
+          </button>
+        {/if}
+      </div>
+    {/each}
   </div>
   
-  <div class="tab-content">
-    {#if isLoading}
-      <div class="loading-state">
-        <div class="loading-spinner"></div>
-        <p>Loading {activeTab}...</p>
+  <div class="main-tab-content">
+    <!-- Always render all static panels but only show the active one -->
+    
+    <LoadingOverlay 
+      isVisible={activeTab === 'tn' && isResourceLoading('tn')}
+      text="Loading Notes..."
+    >
+      <div 
+        role="tabpanel"
+        id="tabpanel-tn"
+        aria-labelledby="tab-tn"
+        data-testid="tab-content-tn"
+        class="tab-panel"
+        style="display: {activeTab === 'tn' ? 'block' : 'none'}"
+        tabindex={activeTab === 'tn' ? 0 : -1}
+      >
+        <TranslationNotesPanel {reference} />
       </div>
-    {:else if currentData.length === 0}
-      <div class="empty-state">
-        <p>No {activeTab} available for this verse.</p>
+    </LoadingOverlay>
+    
+    <LoadingOverlay 
+      isVisible={activeTab === 'tq' && isResourceLoading('tq')}
+      text="Loading Questions..."
+    >
+      <div 
+        role="tabpanel"
+        id="tabpanel-tq"
+        aria-labelledby="tab-tq"
+        data-testid="tab-content-tq"
+        class="tab-panel"
+        style="display: {activeTab === 'tq' ? 'block' : 'none'}"
+        tabindex={activeTab === 'tq' ? 0 : -1}
+      >
+        <TranslationQuestionsPanel {reference} />
       </div>
-    {:else}
-      <div class="content-list">
-        {#each currentData as item}
-          <div class="content-item card">
-            {#if activeTab === 'notes'}
-              <h4 class="item-title">{item.title}</h4>
-              <p class="item-content">{item.content}</p>
-              <div class="item-meta">Verse {item.verse}</div>
-            {:else if activeTab === 'questions'}
-              <h4 class="item-title">{item.question}</h4>
-              <p class="item-content">{item.answer}</p>
-              <div class="item-meta">Verse {item.verse}</div>
-            {:else if activeTab === 'words'}
-              <h4 class="item-title">{item.term}</h4>
-              <p class="item-content">{item.definition}</p>
-              <div class="item-meta">
-                {#if item.references}
-                  References: {item.references.join(', ')}
-                {/if}
-              </div>
-            {/if}
-          </div>
-        {/each}
+    </LoadingOverlay>
+    
+    <LoadingOverlay 
+      isVisible={activeTab === 'tw' && isResourceLoading('tw')}
+      text="Loading Words..."
+    >
+      <div 
+        role="tabpanel"
+        id="tabpanel-tw"
+        aria-labelledby="tab-tw"
+        data-testid="tab-content-tw"
+        class="tab-panel"
+        style="display: {activeTab === 'tw' ? 'block' : 'none'}"
+        tabindex={activeTab === 'tw' ? 0 : -1}
+      >
+        <TranslationWordsPanel {reference} />
       </div>
-    {/if}
+    </LoadingOverlay>
+    
+    <LoadingOverlay 
+      isVisible={activeTab === 'fia-images' && isResourceLoading('fia-images')}
+      text="Loading FIA Images..."
+    >
+      <div 
+        role="tabpanel"
+        id="tabpanel-fia-images"
+        aria-labelledby="tab-fia-images"
+        data-testid="tab-content-fia-images"
+        class="tab-panel"
+        style="display: {activeTab === 'fia-images' ? 'block' : 'none'}"
+        tabindex={activeTab === 'fia-images' ? 0 : -1}
+      >
+        <FiaImagesPanel {reference} />
+      </div>
+    </LoadingOverlay>
+    
+    <LoadingOverlay 
+      isVisible={activeTab === 'fia-maps' && isResourceLoading('fia-maps')}
+      text="Loading FIA Maps..."
+    >
+      <div 
+        role="tabpanel"
+        id="tabpanel-fia-maps"
+        aria-labelledby="tab-fia-maps"
+        data-testid="tab-content-fia-maps"
+        class="tab-panel"
+        style="display: {activeTab === 'fia-maps' ? 'block' : 'none'}"
+        tabindex={activeTab === 'fia-maps' ? 0 : -1}
+      >
+        <FiaMapsPanel {reference} />
+      </div>
+    </LoadingOverlay>
+    
+    <div 
+      role="tabpanel"
+      id="tabpanel-chat"
+      aria-labelledby="tab-chat"
+      data-testid="tab-content-chat"
+      class="tab-panel"
+      style="display: {activeTab === 'chat' ? 'block' : 'none'}"
+      tabindex={activeTab === 'chat' ? 0 : -1}
+    >
+      <LLMChatPanel {reference} />
+    </div>
+    
+    <!-- Dynamic tabs (articles) - only render when active -->
+    {#each dynamicTabs as tab (tab.id)}
+      <div
+        role="tabpanel"
+        id="tabpanel-{tab.id}"
+        aria-labelledby="tab-{tab.id}"
+        data-testid="tab-content-{tab.id}"
+        class="tab-panel"
+        style="display: {activeTab === tab.id ? 'block' : 'none'}"
+        tabindex={activeTab === tab.id ? 0 : -1}
+      >
+        <ArticlePanel {reference} article={tab.articleData} />
+      </div>
+    {/each}
   </div>
 </div>
 
@@ -127,132 +349,163 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background-color: var(--color-surface);
-    border-radius: var(--radius-lg);
+    background: var(--color-background);
+    border-radius: 8px;
     overflow: hidden;
   }
 
   .tabs-header {
-    background-color: var(--color-surface-secondary);
+    display: flex;
+    background: var(--color-header);
     border-bottom: 1px solid var(--color-border);
-    padding: var(--spacing-2);
+    padding: 0 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: thin;
   }
 
-  .tabs-nav {
+  .tabs-header::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .tabs-header::-webkit-scrollbar-track {
+    background: var(--color-background);
+  }
+
+  .tabs-header::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
+  }
+
+  .tab-container {
     display: flex;
-    gap: var(--spacing-1);
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
   }
 
   .tab-button {
     display: flex;
     align-items: center;
-    gap: var(--spacing-2);
-    padding: var(--spacing-2) var(--spacing-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background-color: var(--color-surface);
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: all var(--transition-fast);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+    position: relative;
   }
 
   .tab-button:hover {
-    background-color: var(--color-surface-hover);
     color: var(--color-text);
-    border-color: var(--color-border-hover);
+    background: var(--color-hover);
   }
 
-  .tab-active {
-    background-color: var(--color-primary);
-    color: var(--color-text-on-primary);
-    border-color: var(--color-primary);
+  .tab-button.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    background: var(--color-background);
   }
 
-  .tab-active:hover {
-    background-color: var(--color-primary-hover);
-    border-color: var(--color-primary-hover);
+  .tab-button.loading {
+    opacity: 0.7;
   }
 
-  .tab-icon {
-    font-size: var(--font-size-md);
+  .desktop-label {
+    display: block;
   }
 
-  .tab-content {
-    flex: 1;
-    padding: var(--spacing-4);
-    overflow-y: auto;
+  .mobile-label {
+    display: none;
   }
 
-  .content-list {
+  .count-badge {
+    background: var(--color-primary);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.4rem;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1;
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-3);
-  }
-
-  .content-item {
-    padding: var(--spacing-3);
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-  }
-
-  .item-title {
-    margin: 0 0 var(--spacing-2) 0;
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text);
-  }
-
-  .item-content {
-    margin: 0 0 var(--spacing-2) 0;
-    line-height: var(--line-height-relaxed);
-    color: var(--color-text);
-  }
-
-  .item-meta {
-    font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
-    font-style: italic;
-  }
-
-  .loading-state,
-  .empty-state {
-    display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-4);
-    height: 200px;
-    color: var(--color-text-secondary);
   }
 
-  /* Mobile responsive */
+  .count-badge.zero {
+    background: var(--color-text-secondary);
+    opacity: 0.6;
+  }
+
+  .count-badge.loading-badge {
+    background: var(--color-secondary);
+    padding: 0.2rem 0.4rem;
+  }
+
+  .close-button {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0.25rem;
+    margin-left: 0.25rem;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    line-height: 1;
+  }
+
+  .close-button:hover {
+    color: var(--color-error);
+    background: var(--color-error-alpha);
+  }
+
+  .main-tab-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .tab-panel {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* Responsive design */
   @media (max-width: 768px) {
-    .tabs-header {
-      padding: var(--spacing-1);
-    }
-
-    .tab-button {
-      padding: var(--spacing-2);
-      font-size: var(--font-size-xs);
-    }
-
-    .tab-label {
+    .desktop-label {
       display: none;
     }
 
-    .tab-content {
-      padding: var(--spacing-3);
+    .mobile-label {
+      display: block;
     }
 
-    .content-item {
-      padding: var(--spacing-2);
+    .tab-button {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
     }
 
-    .item-title {
-      font-size: var(--font-size-sm);
+    .tabs-header {
+      padding: 0 0.25rem;
     }
+  }
+
+  /* Focus styles for accessibility */
+  .tab-button:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+  }
+
+  .close-button:focus {
+    outline: 2px solid var(--color-error);
+    outline-offset: -2px;
   }
 </style>

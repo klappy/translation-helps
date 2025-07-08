@@ -38,6 +38,9 @@ function get_current_component() {
   if (!current_component) throw new Error("Function called outside component initialization");
   return current_component;
 }
+function onDestroy(fn) {
+  get_current_component().$$.on_destroy.push(fn);
+}
 function setContext(key, context) {
   get_current_component().$$.context.set(key, context);
   return context;
@@ -128,16 +131,17 @@ function add_attribute(name, value, boolean) {
 }
 export {
   subscribe as a,
-  get_store_value as b,
+  each as b,
   create_ssr_component as c,
-  each as d,
+  add_attribute as d,
   escape as e,
-  add_attribute as f,
-  getContext as g,
-  safe_not_equal as h,
+  safe_not_equal as f,
+  get_store_value as g,
+  getContext as h,
   is_function as i,
   missing_component as m,
   noop as n,
+  onDestroy as o,
   run_all as r,
   setContext as s,
   validate_component as v

@@ -10,18 +10,35 @@ return {
 	assets: new Set([]),
 	mimeTypes: {},
 	_: {
-		client: {start:"_app/immutable/entry/start.JIfqr97I.js",app:"_app/immutable/entry/app.DyCyq4fn.js",imports:["_app/immutable/entry/start.JIfqr97I.js","_app/immutable/chunks/DTmELYTR.js","_app/immutable/chunks/JpYApHOg.js","_app/immutable/chunks/BXDySL8v.js","_app/immutable/entry/app.DyCyq4fn.js","_app/immutable/chunks/JpYApHOg.js","_app/immutable/chunks/IHki7fMi.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
+		client: {start:"_app/immutable/entry/start.CGPL4a9r.js",app:"_app/immutable/entry/app.DaQQAT-_.js",imports:["_app/immutable/entry/start.CGPL4a9r.js","_app/immutable/chunks/B0H3kkKu.js","_app/immutable/chunks/CoZqjePk.js","_app/immutable/chunks/AU_adb6V.js","_app/immutable/entry/app.DaQQAT-_.js","_app/immutable/chunks/CoZqjePk.js","_app/immutable/chunks/IHki7fMi.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
 		nodes: [
 			__memo(() => import('./nodes/0.js')),
 			__memo(() => import('./nodes/1.js')),
-			__memo(() => import('./nodes/2.js'))
+			__memo(() => import('./nodes/2.js')),
+			__memo(() => import('./nodes/3.js')),
+			__memo(() => import('./nodes/4.js')),
+			__memo(() => import('./nodes/5.js'))
 		],
 		routes: [
 			{
 				id: "/",
 				pattern: /^\/$/,
 				params: [],
-				page: { layouts: [0,], errors: [1,], leaf: 2 },
+				page: { layouts: [0,], errors: [1,], leaf: 3 },
+				endpoint: null
+			},
+			{
+				id: "/showcase",
+				pattern: /^\/showcase\/?$/,
+				params: [],
+				page: { layouts: [0,2,], errors: [1,,], leaf: 4 },
+				endpoint: null
+			},
+			{
+				id: "/showcase/[section]",
+				pattern: /^\/showcase\/([^/]+?)\/?$/,
+				params: [{"name":"section","optional":false,"rest":false,"chained":false}],
+				page: { layouts: [0,2,], errors: [1,,], leaf: 5 },
 				endpoint: null
 			}
 		],
