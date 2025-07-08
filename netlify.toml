@@ -1,22 +1,8 @@
 [build]
-  command = "npm run build:netlify"
+  command = "npm run build"
   publish = "build"
 
 [dev]
   command = "npm run dev"
   port = 5173
   autoLaunch = true
-
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
-
-# Environment variable setup (for production)
-[context.production.environment]
-  NODE_ENV = "production"
-
-[context.deploy-preview.environment]
-  NODE_ENV = "development"
-
-[context.branch-deploy.environment]
-  NODE_ENV = "development"
