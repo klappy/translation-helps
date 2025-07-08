@@ -85,13 +85,7 @@ declare module '$env/static/private' {
 	export const PIP_NO_INPUT: string;
 	export const INIT_CWD: string;
 	export const EDITOR: string;
-	export const TEST: string;
-	export const VITEST: string;
 	export const NODE_ENV: string;
-	export const PROD: string;
-	export const DEV: string;
-	export const BASE_URL: string;
-	export const MODE: string;
 }
 
 /**
@@ -182,13 +176,7 @@ declare module '$env/dynamic/private' {
 		PIP_NO_INPUT: string;
 		INIT_CWD: string;
 		EDITOR: string;
-		TEST: string;
-		VITEST: string;
 		NODE_ENV: string;
-		PROD: string;
-		DEV: string;
-		BASE_URL: string;
-		MODE: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
 	}
